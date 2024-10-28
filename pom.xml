@@ -61,7 +61,7 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>8.0.33</version> 
+			<version>8.0.33</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -99,6 +99,10 @@
 	</build>
 
 	<modules>
-		<module>app-nutricare-module</module>
+		<module>app-nutricare-entity</module>
+		<module>app-nutricare-repository</module>
+		<module>app-nutricare-service</module>
+		<module>app-nutricare-controller</module>
+		<module>app-nutricare-common</module>
 	</modules>
 </project>
