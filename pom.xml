@@ -137,6 +137,16 @@
 					<release>${maven.compiler.release}</release>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.liquibase</groupId>
+				<artifactId>liquibase-maven-plugin</artifactId>
+				<configuration>
+					<changeLogFile>src/main/resources/db/changelog/changelog-master.xml</changeLogFile> 
+					<url>jdbc:mysql://localhost:3306/nutricare</url>
+					<username>nutricare</username>
+					<password>nutricare92!</password>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
