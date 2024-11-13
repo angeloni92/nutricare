@@ -5,6 +5,8 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <include file = "ddl/changelog.xml" relativeToChangelogFile = "true" />
+    <changeSet id="create_users" author="angeloni">
+        <sqlFile path="db/changelog/ddl/users/create_users.sql" dbms="mysql"/>
+    </changeSet>
 
 </databaseChangeLog>

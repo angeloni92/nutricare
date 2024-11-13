@@ -7,4 +7,16 @@
   </parent>
   <artifactId>app-nutricare-service</artifactId>
 
+  <dependencies>
+	 <dependency>
+  		<groupId>com.angeloni</groupId>
+  		<artifactId>app-nutricare-common</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>com.angeloni</groupId>
+  		<artifactId>app-nutricare-repository</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+  </dependencies>
 </project>

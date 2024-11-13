@@ -8,4 +8,11 @@
   <artifactId>app-nutricare-entity</artifactId>
   <name>entity</name>
 
+  <dependencies>
+  	<dependency>
+  		<groupId>com.angeloni</groupId>
+  		<artifactId>app-nutricare-common</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+  </dependencies>
 </project>
