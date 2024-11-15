@@ -1,7 +1,5 @@
 package com.angeloni.nutricare.service;
 
-import java.util.Optional;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -11,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.angeloni.nutricare.dto.LoginDto;
 import com.angeloni.nutricare.dto.UserDto;
 import com.angeloni.nutricare.entity.UserEntity;
+import com.angeloni.nutricare.exception.InvalidCredentialsException;
 import com.angeloni.nutricare.repository.UserRepository;
 import com.angeloni.nutricare.util.JwtTokenUtil;
 
@@ -47,13 +46,14 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public String loginUser(LoginDto loginDto) {
+		String token = null;
 		Boolean isAuthenticated = authenticate(loginDto.getLogin(), loginDto.getPassword());
 		if(isAuthenticated) {
-			String token = jwtTokenUtil.generateToken(loginDto.getLogin());
-			//TODO TORNO response entity con stato ok e body ("Bearer " + token)
+			token = jwtTokenUtil.generateToken(loginDto.getLogin());
+		}else {
+			throw new InvalidCredentialsException(UserService.INVALID_CREDENTIAL_ERROR_MESSAGE);
 		}
-		//TODO TORNO ECCEZIONE PER 401 STATUS
-		return null;
+		return token;
 	}
 	
 	private Boolean authenticate(String login, String password) {
