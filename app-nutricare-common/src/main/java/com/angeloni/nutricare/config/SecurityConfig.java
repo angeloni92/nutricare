@@ -2,7 +2,6 @@ package com.angeloni.nutricare.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,7 +22,7 @@ public class SecurityConfig {
             
             // Configurazione delle autorizzazioni per le richieste
             .authorizeRequests(authz -> authz
-                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()  // Le rotte di registrazione e login sono aperte
+                .antMatchers("/api/auth/register", "/api/auth/login").permitAll()  // Le rotte di registrazione e login sono aperte
                 .anyRequest().authenticated()  // Tutte le altre rotte richiedono autenticazione
                 .and()
                 .addFilterBefore(new JwtAutenthicationFilter(), UsernamePasswordAuthenticationFilter.class)
@@ -36,7 +35,7 @@ public class SecurityConfig {
             )
             
             // Abilita l'autenticazione HTTP Basic
-            .httpBasic(Customizer.withDefaults());  // Usa HTTP Basic
+            .httpBasic();  // Usa HTTP Basic
 
         return http.build();
     }
