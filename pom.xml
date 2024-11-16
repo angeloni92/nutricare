@@ -4,16 +4,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.17</version>
-	</parent>
-
 	<groupId>com.angeloni</groupId>
 	<artifactId>nutricare</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging> <!-- Packaging come JAR per il progetto monolitico -->
 
 	<properties>
 		<java.version>17</java.version>
@@ -26,6 +20,7 @@
 	</properties>
 
 	<dependencies>
+		<!-- Dipendenze del progetto monolitico -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-artemis</artifactId>
@@ -166,13 +161,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<modules>
-		<module>app-nutricare-common</module>
-		<module>app-nutricare-entity</module>
-		<module>app-nutricare-repository</module>
-		<module>app-nutricare-service</module>
-		<module>app-nutricare-controller</module>
-	</modules>
-
 </project>
