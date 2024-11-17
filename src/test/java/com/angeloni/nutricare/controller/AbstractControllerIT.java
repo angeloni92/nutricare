@@ -15,7 +15,7 @@ public abstract class AbstractControllerIT extends AbstractBaseTestIT {
 	
 	@Autowired
 	protected UserRepository userRepository;
-	
+
 	protected void clearDb() {
 		userRepository.deleteAll();
 	}

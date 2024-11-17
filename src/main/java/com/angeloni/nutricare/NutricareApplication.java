@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@ComponentScan(basePackages = "com.angeloni.nutricare.*")
+@ComponentScan(basePackages = "com.angeloni.nutricare")
 @EnableJpaRepositories(basePackages = "com.angeloni.nutricare.repository")
 @EntityScan("com.angeloni.nutricare.entity")
 public class NutricareApplication {
