@@ -1,6 +1,9 @@
 package com.angeloni.nutricare.util;
 
+import java.util.Base64;
 import java.util.Date;
+
+import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -8,12 +11,18 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtTokenUtil {
 
     @Value("${jwt.secret}")
     private String secretKey;
+    
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = Base64.getDecoder().decode(secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
 
     // Method to generate JWT Token
     public String generateToken(String username) {
@@ -24,14 +33,14 @@ public class JwtTokenUtil {
                 .setSubject(username)
                 .setIssuedAt(now) // Issued date of the token
                 .setExpiration(expirationTime) // Expiration date
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .signWith(SignatureAlgorithm.HS256, getSigningKey())
                 .compact();
     }
 
     // Method to extract Jwt details
     public Claims extractClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
+                .setSigningKey(getSigningKey())
                 .build() // Build the parser
                 .parseClaimsJws(token) // Parse the JWT and extract the claims
                 .getBody();

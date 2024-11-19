@@ -6,7 +6,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -16,34 +15,41 @@ import com.angeloni.nutricare.util.JwtAutenthicationFilter;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())  // Disabilita CSRF per le API REST (non necessario in questo contesto)
-            
-            // Configurazione delle autorizzazioni per le richieste
-            .authorizeRequests(authz -> authz
-                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()  // Le rotte di registrazione e login sono aperte
-                .anyRequest().authenticated()  // Tutte le altre rotte richiedono autenticazione
-                .and()
-                .addFilterBefore(new JwtAutenthicationFilter(), UsernamePasswordAuthenticationFilter.class)
-            )
-            
-            // Configura il login tramite form
-            .formLogin(form -> form
-                .loginPage("/login")  // URL della pagina di login personalizzata (può essere un endpoint che restituisce un form o un JSON)
-                .permitAll()  // Consente l'accesso a tutti alla pagina di login
-            )
-            
-            // Abilita l'autenticazione HTTP Basic
-            .httpBasic(Customizer.withDefaults());  // Usa HTTP Basic
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	    http
+	        // Disable CSRF for REST APIs (not necessary in this context)
+	        .csrf(csrf -> csrf.disable())  
 
-        return http.build();
-    }
+	        // Configure request authorization
+	        .authorizeRequests(authz -> authz
+	            // The registration and login routes are open
+	            .requestMatchers("/auth/register", "/auth/login").permitAll()  
+	            // All other routes require authentication
+	            .anyRequest().authenticated()  
+	            .and()
+	            // Add the JWT authentication filter before the UsernamePasswordAuthenticationFilter
+	            .addFilterBefore(new JwtAutenthicationFilter(), UsernamePasswordAuthenticationFilter.class)
+	        )
+	        
+	        // Configure form-based login
+	        .formLogin(form -> form
+	            // URL for the custom login page (can be an endpoint returning a form or JSON)
+	            .loginPage("/login")  
+	            // Allow everyone access to the login page
+	            .permitAll()  
+	        )
+	        
+	        // Enable HTTP Basic authentication
+	        .httpBasic(Customizer.withDefaults());  
 
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // BCrypt for secure password management
-    }
+	    return http.build();
+	}
+
+	@Bean
+	public BCryptPasswordEncoder passwordEncoder() {
+	    return new BCryptPasswordEncoder(); // BCrypt for secure password management
+	}
+
  
 }
