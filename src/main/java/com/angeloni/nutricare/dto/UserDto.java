@@ -12,11 +12,11 @@ import lombok.Data;
 public class UserDto {
 
 	@NotBlank(message = "Username is required")
-	@Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+	@Size(min = 5, max = 50, message = "Username must be between 3 and 50 characters")
 	private String username;
 
 	@NotBlank(message = "Password is required")
-	@Size(min = 6, message = "Password must be at least 6 characters long")
+	@Size(min = 10, message = "Password must be at least 6 characters long")
 	@Pattern(regexp = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).*$", message = "Password must contain at least one uppercase letter, one number, and one special character")
 	private String password;
 

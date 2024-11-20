@@ -5,11 +5,14 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpClientErrorException.BadRequest;
+import org.springframework.web.client.HttpClientErrorException.NotFound;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -81,5 +84,4 @@ public class CustomExceptionHandler {
 		}
 		return new ResponseEntity<>(errorDetailsList, HttpStatus.BAD_REQUEST);
 	}
-
 }

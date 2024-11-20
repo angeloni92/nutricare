@@ -13,7 +13,10 @@ import com.angeloni.nutricare.exception.InvalidCredentialsException;
 import com.angeloni.nutricare.repository.UserRepository;
 import com.angeloni.nutricare.util.JwtTokenUtil;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 	
 	@Autowired
@@ -73,6 +76,7 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Override
 	public String loginUser(LoginDto loginDto) {
+		log.info("START login");
 		String token = null;
 		Boolean isAuthenticated = authenticate(loginDto.getLogin(), loginDto.getPassword());
 		if(isAuthenticated) {
