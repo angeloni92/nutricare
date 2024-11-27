@@ -1,13 +1,17 @@
 package com.angeloni.nutricare.dto;
 
+import java.io.Serializable;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class LoginDto {
+public class LoginDto implements Serializable {
 	
+	private static final long serialVersionUID = 6494620920313781968L;
+
 	@NotBlank(message = "Username or Email is required")
 	@Size(min = 3, max = 50, message = "Username or Email must be between 3 and 50 characters")
 	private String login;

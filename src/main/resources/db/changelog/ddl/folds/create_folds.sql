@@ -1,0 +1,18 @@
+-- CREATE TABLE
+
+CREATE TABLE folds (
+    id INT AUTO_INCREMENT PRIMARY KEY,                                           -- Identificativo univoco per ogni record di plicometria
+    anthropometry_id INT NOT NULL UNIQUE,                                        -- FK che punta alla tabella "anthropometries"
+    pectoral INT NOT NULL CHECK (pectoral > 0),                                  -- Plica pettorale (deve essere maggiore di 0)
+    axillary INT NOT NULL CHECK (axillary > 0),                                  -- Plica ascellare (deve essere maggiore di 0)
+    suprailiac INT NOT NULL CHECK (suprailiac > 0),                              -- Plica soprailiaca (deve essere maggiore di 0)
+    abdominal INT NOT NULL CHECK (abdominal > 0),                                -- Plica addominale (deve essere maggiore di 0)
+    triceps INT NOT NULL CHECK (triceps > 0),                                    -- Plica tricipite (deve essere maggiore di 0)
+    subscapularis INT NOT NULL CHECK (subscapularis > 0),                        -- Plica sottoscapolare (deve essere maggiore di 0)
+    thigh INT NOT NULL CHECK (thigh > 0),                                        -- Plica coscia (deve essere maggiore di 0)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,                              -- Data di creazione del record
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- Data di aggiornamento
+    CONSTRAINT fk_anthropometry_id FOREIGN KEY (anthropometry_id) REFERENCES anthropometries(id)  -- Vincolo FK verso la tabella "anthropometries"
+);
+
+

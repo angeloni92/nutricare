@@ -84,4 +84,29 @@ public class CustomExceptionHandler {
 		}
 		return new ResponseEntity<>(errorDetailsList, HttpStatus.BAD_REQUEST);
 	}
+	
+	
+	@ExceptionHandler(EmailException.class)
+	public ResponseEntity<ErrorDetails> handleEmailException(EmailException ex,
+			WebRequest request) {
+		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
+				request.getDescription(false));
+		return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+	
+	@ExceptionHandler(NotFoundException.class)
+	public ResponseEntity<ErrorDetails> handleNotFoundException(NotFoundException ex,
+			WebRequest request) {
+		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
+				request.getDescription(false));
+		return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
+	}
+	
+	@ExceptionHandler(QueueException.class)
+	public ResponseEntity<ErrorDetails> handleQueueException(QueueException ex,
+			WebRequest request) {
+		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
+				request.getDescription(false));
+		return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 }

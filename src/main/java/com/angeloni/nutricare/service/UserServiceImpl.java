@@ -1,7 +1,11 @@
 package com.angeloni.nutricare.service;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,7 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.angeloni.nutricare.dto.LoginDto;
 import com.angeloni.nutricare.dto.UserDto;
 import com.angeloni.nutricare.entity.UserEntity;
+import com.angeloni.nutricare.exception.EmailException;
 import com.angeloni.nutricare.exception.InvalidCredentialsException;
+import com.angeloni.nutricare.exception.NotFoundException;
 import com.angeloni.nutricare.repository.UserRepository;
 import com.angeloni.nutricare.util.JwtTokenUtil;
 
@@ -30,6 +36,18 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private ModelMapper modelMapper;
+    
+    @Autowired
+    private EmailService emailService;
+    
+    @Value("${server.host}")
+    private String serverHost;
+
+    @Value("${server.port}")
+    private String serverPort;
+
+    @Value("${server.context-path}")
+    private String contextPath;
 
     /**
      * Registers a new user by validating the input, encoding the password, and saving the user details.
@@ -59,8 +77,10 @@ public class UserServiceImpl implements UserService {
         String encodedPassword = passwordEncoder.encode(userDto.getPassword());
         userDto.setPassword(encodedPassword);
         UserEntity user = modelMapper.map(userDto, UserEntity.class);
+        user.setConfirmationToken(UUID.randomUUID().toString());;
         userRepository.save(user);
-        return UserService.REGISTRATION_SUCCESS;
+        sendConfirmationEmail(user);
+        return UserService.CONFIRM_REGISTRATION;
 	}
 
 	/**
@@ -87,6 +107,23 @@ public class UserServiceImpl implements UserService {
 		return token;
 	}
 	
+	@Override
+	@Transactional
+	public String confirmEmail(String token) {
+	    UserEntity user = userRepository.findByConfirmationToken(token).orElseThrow(() -> new NotFoundException(UserService.INVALID_CONFERMATION_TOKEN));
+	    if (user.getEmailConfirmed()) {
+	        return UserService.EMAIL_IS_ALREADY_CONFIRMED;
+	    }
+	    updateUserConfirmed(user);
+	    return UserService.EMAIL_SUCCESSFULLY_CONFIRMED;
+	}
+	
+	private void updateUserConfirmed(UserEntity user) {
+		user.setEmailConfirmed(Boolean.TRUE);
+	    user.setConfirmationToken(String.valueOf((Object)null));
+	    userRepository.save(user);
+	}
+	
 	/**
 	 * Authenticates a user by validating the provided login (username or email) and password.
 	 *
@@ -103,6 +140,30 @@ public class UserServiceImpl implements UserService {
 	 * If no user is found, or the password validation fails, it returns {@link Boolean#FALSE}.
 	 */
 	private Boolean authenticate(String login, String password) {
-       return userRepository.findByUsernameOrEmail(login, login).map(u -> passwordEncoder.matches(password, u.getPassword())).orElse(Boolean.FALSE);
+       return userRepository.findByUsernameOrEmailAndEmailConfirmedTrue(login, login).map(u -> passwordEncoder.matches(password, u.getPassword())).orElse(Boolean.FALSE);
 	}
+	
+	private void sendConfirmationEmail(UserEntity userTo) {
+		 String confirmationLink = generateConfirmationLink(userTo.getConfirmationToken());
+		 try {
+	            emailService.sendEmail(
+	                userTo.getEmail(),
+	                UserService.EMAIL_CONFIRM_REGISTRATION_SUBJECT,
+	                String.format(UserService.CONFIRM_REGISTRATION_EMAIL_FORMAT, confirmationLink)
+	            );
+	        } catch (Exception e) {
+	            userRepository.delete(userTo); 
+	            throw new EmailException(UserService.ERROR_SENDING_EMAIL_MSG);
+	        }
+	}
+	
+	/**
+     * Genera un link di conferma dinamico basato sulle configurazioni del server.
+     *
+     * @param confirmationToken {@link String} Il token di conferma da includere nel link
+     * @return La URL completa per la conferma email
+     */
+    private String generateConfirmationLink(String confirmationToken) {
+        return String.format(UserService.CONFIRMATION_LINK_FORMAT, serverHost, serverPort, contextPath, confirmationToken);
+    }
 }

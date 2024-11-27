@@ -8,5 +8,29 @@
     <changeSet id="create_users" author="angeloni">
         <sqlFile path="db/changelog/ddl/users/create_users.sql" dbms="mysql"/>
     </changeSet>
+    
+    <changeSet id="create_ai" author="angeloni">
+        <sqlFile path="db/changelog/ddl/ai/create_ai.sql" dbms="mysql"/>
+    </changeSet>
+    
+    <changeSet id="create_clients" author="angeloni">
+        <sqlFile path="db/changelog/ddl/clients/create_clients.sql" dbms="mysql"/>
+    </changeSet>
+    
+    <changeSet id="create_diet_details" author="angeloni">
+        <sqlFile path="db/changelog/ddl/diet_details/create_diet_details.sql" dbms="mysql"/>
+    </changeSet>
+    
+    <changeSet id="create_anthropometries" author="angeloni">
+        <sqlFile path="db/changelog/ddl/anthropometries/create_anthropometries.sql" dbms="mysql"/>
+    </changeSet>
+    
+    <changeSet id="create_folds" author="angeloni">
+        <sqlFile path="db/changelog/ddl/folds/create_folds.sql" dbms="mysql"/>
+    </changeSet>
+    
+    <changeSet id="create_circumferences" author="angeloni">
+        <sqlFile path="db/changelog/ddl/circumferences/create_circumferences.sql" dbms="mysql"/>
+    </changeSet>
 
 </databaseChangeLog>
