@@ -33,7 +33,7 @@ public class SecurityConfig {
 	        // Configure request authorization
 	        .authorizeRequests(authz -> authz
 	            // The registration and login routes are open
-	            .requestMatchers("/auth/register", "/auth/login").permitAll()  
+	            .requestMatchers("/auth/register", "/auth/confirm", "/auth/login").permitAll()  
 	            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 	            // All other routes require authentication
 	            .anyRequest().authenticated()  

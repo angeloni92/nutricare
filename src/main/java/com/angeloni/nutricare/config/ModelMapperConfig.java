@@ -18,7 +18,6 @@ public class ModelMapperConfig {
 				.setFieldMatchingEnabled(true) // Enables matching of fields even without setters
 				.setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE); // Allows access to
 																								// private fields
-
 		return modelMapper;
 	}
 }

@@ -59,6 +59,9 @@ public class UserEntity implements Serializable {
 	
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ClientEntity> clients;
+	
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AiUserEntity> aiUsers;
 
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false)

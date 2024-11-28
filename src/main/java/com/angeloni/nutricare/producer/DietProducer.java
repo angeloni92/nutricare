@@ -29,6 +29,23 @@ public class DietProducer {
 	@Value("${jms.queue.diet.start}")
 	private String dietStartQueue;
 	
+	/**
+	 * Sends a diet start message to the specified JMS queue.
+	 * <p>
+	 * This method converts the provided {@link DietStartMessage} object to a JSON string and sends it to the 
+	 * {@code dietStartQueue} using the {@link JmsTemplate}. The message is serialized with a pretty print format 
+	 * for readability. If an error occurs during message sending or JSON processing, a {@link QueueException} is thrown.
+	 * 
+	 * @param dietStartMessage the message containing the diet start details to be sent. Must not be {@code null}.
+	 * 
+	 * @throws QueueException if there is an error sending the message to the queue or during the JSON serialization.
+	 * 
+	 * @see DietStartMessage
+	 * @see JmsTemplate
+	 * @see QueueException
+	 * @see JsonProcessingException
+	 * @see JmsException
+	 */
 	public void sendStartDietMessage(DietStartMessage dietStartMessage) {
 		try {
 			log.info(String.format(SENDING_MESSAGE_LOG_INFO, dietStartQueue));

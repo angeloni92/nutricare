@@ -8,21 +8,16 @@ public enum DietaryPreferenceEnum {
 	 PESCATARIAN("Pescatarian"),
 	 KETO("Keto");
 
-	    private final String description;
+	    private final String value;
 
 	    
-	    DietaryPreferenceEnum(String description) {
-	        this.description = description;
+	    DietaryPreferenceEnum(String value) {
+	        this.value = value;
 	    }
 
 	    
-	    public String getDescription() {
-	        return description;
-	    }
-
-	    
-	    public String getRoleName() {
-	        return name();
+	    public String getValue() {
+	        return value;
 	    }
 
 }

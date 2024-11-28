@@ -20,6 +20,23 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
+    /**
+     * Sends an email with the specified recipient, subject, and body content.
+     * <p>
+     * This method creates a MIME email message, sets the provided recipient, subject, and body, 
+     * and sends the email using the configured {@link JavaMailSender}.
+     * 
+     * @param to      the recipient's email address. Must not be {@code null} or empty.
+     * @param subject the subject of the email. Must not be {@code null} or empty.
+     * @param body    the HTML content of the email body. Must not be {@code null}.
+     * 
+     * @throws MessagingException if there is an issue while constructing or sending the email.
+     * @throws IllegalArgumentException if any of the parameters are {@code null} or empty.
+     * 
+     * @see MimeMessage
+     * @see MimeMessageHelper
+     * @see JavaMailSender
+     */
     public void sendEmail(String to, String subject, String body) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, "utf-8");

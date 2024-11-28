@@ -8,7 +8,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -58,6 +60,18 @@ public class ClientEntity implements Serializable {
 	
 	@OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AnthropometryEntity> anthropometries;
+	
+	@ElementCollection
+    @CollectionTable(name = "client_allergies", 
+                     joinColumns = @JoinColumn(name = "client_id")) 
+    @Column(name = "allergy_name") 
+    private List<String> allergies;
+	
+	@ElementCollection
+    @CollectionTable(name = "client_health_conditions", 
+                     joinColumns = @JoinColumn(name = "client_id")) 
+    @Column(name = "health_condition") 
+    private List<String> healthConditions;
 
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false)

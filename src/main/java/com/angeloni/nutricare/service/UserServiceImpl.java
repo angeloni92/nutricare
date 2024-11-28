@@ -1,6 +1,5 @@
 package com.angeloni.nutricare.service;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
@@ -46,28 +45,37 @@ public class UserServiceImpl implements UserService {
     @Value("${server.port}")
     private String serverPort;
 
-    @Value("${server.context-path}")
+    @Value("${server.servlet.context-path}")
     private String contextPath;
 
     /**
-     * Registers a new user by validating the input, encoding the password, and saving the user details.
-     *
-     * @param userDto {@link UserDto} containing the user's registration details, such as username, email, and password
-     * @return a {@link String} indicating the result of the registration process:
+     * Registers a new user in the system.
+     * <p>
+     * This method performs the following steps:
+     * <ol>
+     *   <li>Checks if the username or email is already in use. If so, returns the appropriate error message.</li>
+     *   <li>Encodes the provided password and updates the {@link UserDto} with the encoded value.</li>
+     *   <li>Maps the {@link UserDto} to a {@link UserEntity} and sets a unique confirmation token.</li>
+     *   <li>Saves the user entity to the database.</li>
+     *   <li>Sends a confirmation email to the user's email address.</li>
+     * </ol>
+     * 
+     * @param userDto the DTO containing user information, including username, email, and password.
+     * @return a string indicating the result of the registration:
      *         <ul>
-     *             <li>{@link UserService#USERNAME_ALREADY_EXISTS} if the username is already taken</li>
-     *             <li>{@link UserService#EMAIL_ALREADY_EXISTS} if the email is already registered</li>
-     *             <li>{@link UserService#REGISTRATION_SUCCESS} if the registration is successful</li>
+     *           <li>{@link UserService#USERNAME_ALREADY_EXISTS} if the username is already taken.</li>
+     *           <li>{@link UserService#EMAIL_ALREADY_EXISTS} if the email is already in use.</li>
+     *           <li>{@link UserService#CONFIRM_REGISTRATION} if the registration is successful and the confirmation email is sent.</li>
      *         </ul>
-     *
-     * This method checks for the existence of the username and email in the database.
-     * If valid, it encodes the password, maps the {@link UserDto} to a {@link UserEntity}, and saves the entity to the database.
-     *
-     * This method is annotated with {@link Transactional}, ensuring the operation is atomic and rolled back if any failure occurs.
+     * 
+     * @throws IllegalArgumentException if the provided {@link UserDto} is null or contains invalid data.
+     * @see UserDto
+     * @see UserEntity
      */
 	@Override
 	@Transactional
 	public String registerUser(UserDto userDto) {
+		log.info(String.format("START register user with username: [%s]", userDto.getUsername()));
         if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
             return UserService.USERNAME_ALREADY_EXISTS;
         }
@@ -79,6 +87,7 @@ public class UserServiceImpl implements UserService {
         UserEntity user = modelMapper.map(userDto, UserEntity.class);
         user.setConfirmationToken(UUID.randomUUID().toString());;
         userRepository.save(user);
+        log.info(String.format("SEND email to confirm user with username: [%s]", userDto.getUsername()));
         sendConfirmationEmail(user);
         return UserService.CONFIRM_REGISTRATION;
 	}
@@ -96,7 +105,7 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Override
 	public String loginUser(LoginDto loginDto) {
-		log.info("START login");
+		log.info(String.format("START login user with username or email: [%s]", loginDto.getLogin()));
 		String token = null;
 		Boolean isAuthenticated = authenticate(loginDto.getLogin(), loginDto.getPassword());
 		if(isAuthenticated) {
@@ -104,23 +113,69 @@ public class UserServiceImpl implements UserService {
 		}else {
 			throw new InvalidCredentialsException(UserService.INVALID_CREDENTIAL_ERROR_MESSAGE);
 		}
+		log.info(String.format("Username or email: [%s] succesfully logged", loginDto.getLogin()));
 		return token;
 	}
 	
+	/**
+	 * Confirms a user's email address based on a confirmation token.
+	 * <p>
+	 * This method performs the following steps:
+	 * <ol>
+	 *   <li>Logs the start of the email confirmation process.</li>
+	 *   <li>Retrieves the user associated with the provided confirmation token.</li>
+	 *   <li>Throws a {@link NotFoundException} if the token is invalid or not associated with any user.</li>
+	 *   <li>Checks if the email is already confirmed. If so, returns a specific message indicating this.</li>
+	 *   <li>Updates the user's email confirmation status if it was not already confirmed.</li>
+	 *   <li>Logs the successful confirmation of the email.</li>
+	 * </ol>
+	 * 
+	 * @param token the unique confirmation token associated with the user's account.
+	 * @return a string indicating the result of the confirmation process:
+	 *         <ul>
+	 *           <li>{@link UserService#INVALID_CONFERMATION_TOKEN} if the token is invalid or not found.</li>
+	 *           <li>{@link UserService#EMAIL_IS_ALREADY_CONFIRMED} if the email was already confirmed previously.</li>
+	 *           <li>{@link UserService#EMAIL_SUCCESSFULLY_CONFIRMED} if the email confirmation process completes successfully.</li>
+	 *         </ul>
+	 * 
+	 * @throws NotFoundException if the confirmation token is invalid or not associated with any user.
+	 * @see UserService
+	 * @see UserEntity
+	 */
 	@Override
 	@Transactional
 	public String confirmEmail(String token) {
+		log.info("START confirm email");
 	    UserEntity user = userRepository.findByConfirmationToken(token).orElseThrow(() -> new NotFoundException(UserService.INVALID_CONFERMATION_TOKEN));
 	    if (user.getEmailConfirmed()) {
 	        return UserService.EMAIL_IS_ALREADY_CONFIRMED;
 	    }
 	    updateUserConfirmed(user);
+	    log.info("EMAIL confirmed");
 	    return UserService.EMAIL_SUCCESSFULLY_CONFIRMED;
 	}
 	
+	/**
+	 * Updates a user's status to confirm their email address.
+	 * <p>
+	 * This method performs the following actions:
+	 * <ol>
+	 *   <li>Sets the user's {@code emailConfirmed} property to {@link Boolean#TRUE}.</li>
+	 *   <li>Clears the user's {@code confirmationToken} by setting it to {@code null}.</li>
+	 *   <li>Saves the updated user entity to the repository.</li>
+	 * </ol>
+	 * 
+	 * @param user the {@link UserEntity} whose email confirmation status needs to be updated.
+	 *             Must not be {@code null}.
+	 * 
+	 * @throws IllegalArgumentException if the provided {@link UserEntity} is {@code null}.
+	 * 
+	 * @see UserEntity
+	 * @see UserRepository
+	 */
 	private void updateUserConfirmed(UserEntity user) {
 		user.setEmailConfirmed(Boolean.TRUE);
-	    user.setConfirmationToken(String.valueOf((Object)null));
+	    user.setConfirmationToken(null);
 	    userRepository.save(user);
 	}
 	
@@ -143,6 +198,23 @@ public class UserServiceImpl implements UserService {
        return userRepository.findByUsernameOrEmailAndEmailConfirmedTrue(login, login).map(u -> passwordEncoder.matches(password, u.getPassword())).orElse(Boolean.FALSE);
 	}
 	
+	/**
+	 * Sends a confirmation email to the specified user.
+	 * <p>
+	 * This method generates a confirmation link using the user's confirmation token, 
+	 * and sends an email to the user containing the link. If an error occurs while sending the email,
+	 * the user record is deleted from the repository, and an {@link EmailException} is thrown.
+	 * 
+	 * @param userTo the {@link UserEntity} representing the user to whom the confirmation email will be sent.
+	 *               Must not be {@code null}.
+	 * 
+	 * @throws IllegalArgumentException if the provided {@link UserEntity} is {@code null}.
+	 * @throws EmailException if there is an error while sending the email.
+	 * 
+	 * @see UserEntity
+	 * @see EmailService
+	 * @see UserRepository
+	 */
 	private void sendConfirmationEmail(UserEntity userTo) {
 		 String confirmationLink = generateConfirmationLink(userTo.getConfirmationToken());
 		 try {
@@ -158,11 +230,20 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	/**
-     * Genera un link di conferma dinamico basato sulle configurazioni del server.
-     *
-     * @param confirmationToken {@link String} Il token di conferma da includere nel link
-     * @return La URL completa per la conferma email
-     */
+	 * Generates a confirmation link using the provided confirmation token.
+	 * <p>
+	 * This method constructs a URL by formatting a predefined template with the server's host, port, 
+	 * context path, and the user's confirmation token.
+	 * 
+	 * @param confirmationToken the unique token associated with the user's email confirmation process. 
+	 *                          Must not be {@code null} or empty.
+	 * 
+	 * @return a {@link String} representing the complete confirmation link.
+	 * 
+	 * @throws IllegalArgumentException if the {@code confirmationToken} is {@code null} or empty.
+	 * 
+	 * @see UserService#CONFIRMATION_LINK_FORMAT
+	 */
     private String generateConfirmationLink(String confirmationToken) {
         return String.format(UserService.CONFIRMATION_LINK_FORMAT, serverHost, serverPort, contextPath, confirmationToken);
     }

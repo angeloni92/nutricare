@@ -7,21 +7,15 @@ public enum PrimaryGoalEnum {
 	 ENERGY_IMPROVMENT("Energy improvment"),
 	 GENERAL_HEALTH("General health");
 
-	    private final String description;
+	    private final String value;
 
 	    
-	    PrimaryGoalEnum(String description) {
-	        this.description = description;
+	    PrimaryGoalEnum(String value) {
+	        this.value = value;
 	    }
 
 	    
-	    public String getDescription() {
-	        return description;
+	    public String getValue() {
+	        return value;
 	    }
-
-	    
-	    public String getRoleName() {
-	        return name();
-	    }
-
 }

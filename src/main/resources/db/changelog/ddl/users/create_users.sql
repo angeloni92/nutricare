@@ -1,7 +1,7 @@
 -- CREATE TABLE
 
 CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY, 											-- Identificativo univoco per ogni utente
+    id BIGINT AUTO_INCREMENT PRIMARY KEY, 										-- Identificativo univoco per ogni utente
     username VARCHAR(255) NOT NULL UNIQUE,  								    -- Nome utente, deve essere unico
     password VARCHAR(255) NOT NULL,         									-- La password dell'utente
     email VARCHAR(255) NOT NULL UNIQUE,     									-- Email, deve essere unica

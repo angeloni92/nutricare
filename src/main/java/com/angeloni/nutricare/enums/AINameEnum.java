@@ -1,16 +1,13 @@
 package com.angeloni.nutricare.enums;
 
-public enum ActivityLevelEnum {
-	
-	 SEDENTARY("Sedentary"),
-	 MODERATE("Moderate"),
-	 ACTIVE("Active"),
-	 VERY_ACTIVE("Very active");
+public enum AINameEnum {
 
+	 CHATGPT("ChatGPT");
+		
 	    private final String value;
 
 	    
-	    ActivityLevelEnum(String value) {
+	    AINameEnum(String value) {
 	        this.value = value;
 	    }
 

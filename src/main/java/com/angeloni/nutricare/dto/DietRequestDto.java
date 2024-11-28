@@ -13,6 +13,8 @@ public class DietRequestDto implements Serializable {
 	@NotNull
 	private AiDto ai;	
 	@NotNull
-	private ClientDto client;
+	private ClientRequestDto clientRequest;
+	
+	private String aiKey;
 
 }

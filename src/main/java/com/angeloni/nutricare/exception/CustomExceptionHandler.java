@@ -5,16 +5,13 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.client.HttpClientErrorException.BadRequest;
-import org.springframework.web.client.HttpClientErrorException.NotFound;
-import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
 @RestControllerAdvice
 public class CustomExceptionHandler {
@@ -104,6 +101,22 @@ public class CustomExceptionHandler {
 	
 	@ExceptionHandler(QueueException.class)
 	public ResponseEntity<ErrorDetails> handleQueueException(QueueException ex,
+			WebRequest request) {
+		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
+				request.getDescription(false));
+		return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+	
+	@ExceptionHandler(AiKeyException.class)
+	public ResponseEntity<ErrorDetails> handleAiKeyException(AiKeyException ex,
+			WebRequest request) {
+		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
+				request.getDescription(false));
+		return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+	}
+	
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ErrorDetails> handleIllegalArgumentException(IllegalArgumentException ex,
 			WebRequest request) {
 		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
 				request.getDescription(false));

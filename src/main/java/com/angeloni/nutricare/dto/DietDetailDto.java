@@ -23,9 +23,7 @@ public class DietDetailDto implements Serializable {
 	@PositiveOrZero(message = "Age must be higher or equal to zero")
 	private Integer caloryTarget;
 	private Month month;
-	private DayOfWeek freeDay;
-    private List<String> allergies;
-    private List<String> healthConditions;   
+	private DayOfWeek freeDay;  
     private List<String> foodPreferences;
     private List<String> foodDislikes;
 

@@ -3,7 +3,9 @@ package com.angeloni.nutricare.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,7 +16,9 @@ import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MvcResult;
@@ -24,6 +28,7 @@ import com.angeloni.nutricare.dto.UserDto;
 import com.angeloni.nutricare.entity.UserEntity;
 import com.angeloni.nutricare.enums.UserRoleEnum;
 import com.angeloni.nutricare.exception.ErrorDetails;
+import com.angeloni.nutricare.service.EmailService;
 import com.angeloni.nutricare.service.UserService;
 import com.google.gson.reflect.TypeToken;
 
@@ -32,9 +37,13 @@ public class UserControllerIT extends AbstractControllerIT {
 	private static final String ROOT_USER_CONTROLLER = "/auth";
 	private static final String URI_USER_REGISTER = ROOT_USER_CONTROLLER + "/register";
 	private static final String URI_USER_LOGIN = ROOT_USER_CONTROLLER + "/login";
+	private static final String URI_USER_CONFIRM = ROOT_USER_CONTROLLER + "/confirm";
 	
 	@Autowired
 	private BCryptPasswordEncoder passwordEncoder; 
+	
+	@MockBean
+	private EmailService emailService;
 
 	@BeforeEach
 	void setUp() {
@@ -50,7 +59,7 @@ public class UserControllerIT extends AbstractControllerIT {
 	 * REGISTER
 	 */
 	@Test
-	void givenValidUserDto_whenRegister_thenOKStatus200_RegistrationSuccessfull() throws Exception {
+	void givenValidUserDto_whenRegister_thenOKStatus200_ConfirmationEmailSent() throws Exception {
 		// Given
 		UserDto userDto = new UserDto();
 		userDto.setUsername("username");
@@ -60,7 +69,7 @@ public class UserControllerIT extends AbstractControllerIT {
 		String request = gson.toJson(userDto);
 
 		// Expected
-		String expectedResponse = UserService.REGISTRATION_SUCCESS;
+		String expectedResponse = UserService.CONFIRM_REGISTRATION;
 		UserRoleEnum expectedUserRole = UserRoleEnum.USER;
 
 		// When
@@ -70,6 +79,7 @@ public class UserControllerIT extends AbstractControllerIT {
 
 		// Then
 		String actualResponse = result.getResponse().getContentAsString();
+		Mockito.verify(emailService, Mockito.times(1)).sendEmail(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		Optional<UserEntity> actualUser = userRepository.findByUsername(userDto.getUsername());
 
 		assertNotNull(actualResponse);
@@ -104,6 +114,7 @@ public class UserControllerIT extends AbstractControllerIT {
 
 		// Then
 		String actualResponse = result.getResponse().getContentAsString();
+		Mockito.verify(emailService, Mockito.never()).sendEmail(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
 		assertNotNull(actualResponse);
 		assertEquals(expectedResponse, actualResponse);
@@ -134,6 +145,7 @@ public class UserControllerIT extends AbstractControllerIT {
 
 		// Then
 		String actualResponse = result.getResponse().getContentAsString();
+		Mockito.verify(emailService, Mockito.never()).sendEmail(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
 		assertNotNull(actualResponse);
 		assertEquals(expectedResponse, actualResponse);
@@ -166,6 +178,8 @@ public class UserControllerIT extends AbstractControllerIT {
 		MvcResult result = mockMvc.perform(post(URI_USER_REGISTER).contentType(MediaType.APPLICATION_JSON).content(request))
 				.andExpect(status().isBadRequest()).andReturn();
 		
+		//Then
+		Mockito.verify(emailService, Mockito.never()).sendEmail(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		List<ErrorDetails> errorDetailsList = gson.fromJson(result.getResponse().getContentAsString(), new TypeToken<List<ErrorDetails>>() {}.getType());
 		assertEquals(expectedErrorMessages.size(),errorDetailsList.size());
 		assertThat(errorDetailsList.stream().anyMatch(x -> x.getMessage().equals(expectedErrorMessagePasswordPattern)));
@@ -174,6 +188,74 @@ public class UserControllerIT extends AbstractControllerIT {
 		assertThat(errorDetailsList.stream().anyMatch(x -> x.getMessage().equals(expectedErrorMessageEmailNotValid)));
 		assertThat(errorDetailsList.stream().anyMatch(x -> x.getMessage().equals(expectedErrorMessageUsernameNotBlank)));
 	}
+	
+	/*
+	 * CONFIRM EMAIL
+	 */
+	@Test
+	void givenValidToken_whenConfirmEmail_thenOKStatus200_EmailSuccesfullyConfirmed() throws Exception {
+		// Given
+		String token = "test_Token_1234";
+		UserEntity user = new UserEntity();
+		user.setUsername("username");
+		user.setEmail("testemail@email.com");
+		String expectedPassword = "Test_Password_123456";
+		user.setPassword(passwordEncoder.encode(expectedPassword));
+		user.setEmailConfirmed(Boolean.FALSE);
+		user.setConfirmationToken(token);
+		user = userRepository.saveAndFlush(user);
+		
+		String request = token;
+
+		// Expected
+		String expectedResponse = UserService.EMAIL_SUCCESSFULLY_CONFIRMED;
+
+		// When
+		MvcResult result = mockMvc
+				.perform(get(URI_USER_CONFIRM).contentType(MediaType.APPLICATION_JSON).param("token", request))
+				.andExpect(status().isOk()).andReturn();
+
+		// Then
+		String actualResponse = result.getResponse().getContentAsString();
+		user = userRepository.findByUsername(user.getUsername()).get();
+
+		assertNotNull(actualResponse);
+		assertEquals(expectedResponse, actualResponse);
+		assertNull(user.getConfirmationToken());
+	}
+	
+	@Test
+	void givenValidTokenAndEmailAlreadyConfirmed_whenConfirmEmail_thenOKStatus200_EmailAlreadyConfirmed() throws Exception {
+		// Given
+		String token = "test_Token_1234";
+		UserEntity user = new UserEntity();
+		user.setUsername("username");
+		user.setEmail("testemail@email.com");
+		String expectedPassword = "Test_Password_123456";
+		user.setPassword(passwordEncoder.encode(expectedPassword));
+		user.setEmailConfirmed(Boolean.TRUE);
+		user.setConfirmationToken(token);
+		user = userRepository.saveAndFlush(user);
+		
+		String request = token;
+
+		// Expected
+		String expectedResponse = UserService.EMAIL_IS_ALREADY_CONFIRMED;
+
+		// When
+		MvcResult result = mockMvc
+				.perform(get(URI_USER_CONFIRM).contentType(MediaType.APPLICATION_JSON).param("token", request))
+				.andExpect(status().isOk()).andReturn();
+
+		// Then
+		String actualResponse = result.getResponse().getContentAsString();
+		user = userRepository.findByUsername(user.getUsername()).get();
+
+		assertNotNull(actualResponse);
+		assertEquals(expectedResponse, actualResponse);
+		assertEquals(token, user.getConfirmationToken());
+	}
+	
 	
 	/*
 	 * LOGIN
@@ -186,6 +268,7 @@ public class UserControllerIT extends AbstractControllerIT {
 		user.setEmail("testemail@email.com");
 		String expectedPassword = "Test_Password_123456";
 		user.setPassword(passwordEncoder.encode(expectedPassword));
+		user.setEmailConfirmed(Boolean.TRUE);
 		user = userRepository.saveAndFlush(user);
 		
 		LoginDto loginDto = new LoginDto();

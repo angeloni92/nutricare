@@ -73,18 +73,6 @@ public class DietDetailEntity implements Serializable {
 	private DayOfWeek freeDay;
 	
 	@ElementCollection
-    @CollectionTable(name = "client_allergies", 
-                     joinColumns = @JoinColumn(name = "client_id")) 
-    @Column(name = "allergy_name") 
-    private List<String> allergies;
-	
-	@ElementCollection
-    @CollectionTable(name = "client_health_conditions", 
-                     joinColumns = @JoinColumn(name = "client_id")) 
-    @Column(name = "health_condition") 
-    private List<String> healthConditions;
-	
-	@ElementCollection
     @CollectionTable(name = "client_food_preferences", 
                      joinColumns = @JoinColumn(name = "client_id")) 
     @Column(name = "food_preference") 

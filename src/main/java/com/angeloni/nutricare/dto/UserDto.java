@@ -29,5 +29,6 @@ public class UserDto implements Serializable {
 	private String email;
 	
 	private UserRoleEnum role = UserRoleEnum.USER;
+	private Boolean emailConfirmed = Boolean.FALSE;
 
 }

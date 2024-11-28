@@ -13,6 +13,10 @@
         <sqlFile path="db/changelog/ddl/ai/create_ai.sql" dbms="mysql"/>
     </changeSet>
     
+    <changeSet id="create_ai_users" author="angeloni">
+        <sqlFile path="db/changelog/ddl/ai_users/create_ai_users.sql" dbms="mysql"/>
+    </changeSet>
+    
     <changeSet id="create_clients" author="angeloni">
         <sqlFile path="db/changelog/ddl/clients/create_clients.sql" dbms="mysql"/>
     </changeSet>
