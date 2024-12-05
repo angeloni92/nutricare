@@ -2,6 +2,7 @@ package com.angeloni.nutricare.entity;
 
 import java.io.Serializable;
 
+import com.angeloni.nutricare.enums.AIModelEnum;
 import com.angeloni.nutricare.enums.AINameEnum;
 
 import jakarta.persistence.Column;
@@ -35,7 +36,8 @@ public class AiEntity implements Serializable {
 	@Column(name = "name", nullable = false, length = 255)
 	private AINameEnum name;
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "model", nullable = false, length = 255)
-	private String model;
+	private AIModelEnum model;
 
 }

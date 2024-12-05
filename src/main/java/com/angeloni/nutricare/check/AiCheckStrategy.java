@@ -1,10 +1,12 @@
 package com.angeloni.nutricare.check;
 
-import com.angeloni.nutricare.dto.DietRequestDto;
-import com.angeloni.nutricare.entity.AiEntity;
+import java.util.Optional;
+
+import com.angeloni.nutricare.dto.AiDto;
+import com.angeloni.nutricare.entity.AiUserEntity;
 import com.angeloni.nutricare.entity.UserEntity;
 
 public interface AiCheckStrategy {
 	
-	void check(DietRequestDto dietRequestDto, UserEntity user, AiEntity ai);
+	Optional<AiUserEntity> check(AiDto aiDto, UserEntity user);
 }

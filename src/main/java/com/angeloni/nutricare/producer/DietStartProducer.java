@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @EnableJms
-public class DietProducer {
+public class DietStartProducer {
 	
 	private static String SENDING_MESSAGE_LOG_INFO = "Sending message to queue [%s]";
 	private static final String ERROR_QUEUE_MSG = "message.error.queue-start";

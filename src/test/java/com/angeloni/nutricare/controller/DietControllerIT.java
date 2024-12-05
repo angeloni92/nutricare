@@ -38,6 +38,7 @@ import com.angeloni.nutricare.dto.FoldDto;
 import com.angeloni.nutricare.entity.AiEntity;
 import com.angeloni.nutricare.entity.AiUserEntity;
 import com.angeloni.nutricare.entity.UserEntity;
+import com.angeloni.nutricare.enums.AIModelEnum;
 import com.angeloni.nutricare.enums.AINameEnum;
 import com.angeloni.nutricare.enums.ActivityLevelEnum;
 import com.angeloni.nutricare.enums.DietaryPreferenceEnum;
@@ -83,9 +84,9 @@ public class DietControllerIT extends AbstractControllerIT {
 		DietRequestDto dietRequestDto = new DietRequestDto();
 		AiDto aiDto = new AiDto();
 		aiDto.setName(AINameEnum.CHATGPT);
-		aiDto.setModel("openAI o1");
+		aiDto.setModel(AIModelEnum.GPT4O);
+		aiDto.setAiKey(expectedAiKey);
 		dietRequestDto.setAi(aiDto);
-		dietRequestDto.setAiKey(expectedAiKey);
 		ClientRequestDto clientRequestDto = new ClientRequestDto();
 		ClientDto clientDto = new ClientDto();
 		AnthropometryDto anthropometryDto = new AnthropometryDto();
@@ -125,6 +126,7 @@ public class DietControllerIT extends AbstractControllerIT {
 		
 		AiEntity ai = modelMapper.map(aiDto, AiEntity.class);
 		aiRepository.saveAndFlush(ai);
+		
 		String request = gson.toJson(dietRequestDto);
 
 		// Expected
@@ -139,7 +141,6 @@ public class DietControllerIT extends AbstractControllerIT {
 		String actualResponse = result.getResponse().getContentAsString();
 		Mockito.verify(jmsTemplate, times(1)).convertAndSend(Mockito.anyString(),Mockito.any(Object.class));;
 		Optional<AiUserEntity> actualAiUser = aiUserRepository.findByAiKey(expectedAiKey);
-
 		assertNotNull(actualResponse);
 		assertEquals(expectedResponse, actualResponse);
 		assertTrue(actualAiUser.isPresent());
@@ -156,9 +157,9 @@ public class DietControllerIT extends AbstractControllerIT {
 		DietRequestDto dietRequestDto = new DietRequestDto();
 		AiDto aiDto = new AiDto();
 		aiDto.setName(AINameEnum.CHATGPT);
-		aiDto.setModel("openAI o1");
+		aiDto.setModel(AIModelEnum.GPT4O);
+		aiDto.setAiKey(expectedAiKey);
 		dietRequestDto.setAi(aiDto);
-		dietRequestDto.setAiKey(expectedAiKey);
 		ClientRequestDto clientRequestDto = new ClientRequestDto();
 		ClientDto clientDto = new ClientDto();
 		AnthropometryDto anthropometryDto = new AnthropometryDto();
@@ -222,9 +223,9 @@ public class DietControllerIT extends AbstractControllerIT {
 		DietRequestDto dietRequestDto = new DietRequestDto();
 		AiDto aiDto = new AiDto();
 		aiDto.setName(AINameEnum.CHATGPT);
-		aiDto.setModel("openAI o1");
+		aiDto.setModel(AIModelEnum.GPT4O);
+		aiDto.setAiKey(expectedAiKey);
 		dietRequestDto.setAi(aiDto);
-		dietRequestDto.setAiKey(expectedAiKey);
 		ClientRequestDto clientRequestDto = new ClientRequestDto();
 		ClientDto clientDto = new ClientDto();
 		AnthropometryDto anthropometryDto = new AnthropometryDto();

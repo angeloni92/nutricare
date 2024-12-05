@@ -2,9 +2,9 @@ package com.angeloni.nutricare.dto;
 
 import java.io.Serializable;
 
+import com.angeloni.nutricare.enums.AIModelEnum;
 import com.angeloni.nutricare.enums.AINameEnum;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -16,8 +16,9 @@ public class AiDto implements Serializable{
 	@NotNull
 	private AINameEnum name;
 
-	@NotBlank(message = "model is required")
-	private String model;
-
+	@NotNull
+	private AIModelEnum model;
+	
+	private String aiKey;
 
 }
