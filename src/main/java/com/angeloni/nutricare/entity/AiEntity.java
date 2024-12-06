@@ -29,7 +29,6 @@ public class AiEntity implements Serializable {
 	private static final long serialVersionUID = 1919048970295170497L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	@Enumerated(EnumType.STRING)

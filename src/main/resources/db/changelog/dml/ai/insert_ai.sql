@@ -1,4 +1,4 @@
-INSERT INTO ai (name, model)
+INSERT INTO ai (id, name, model)
 VALUES 
-('ChatGPT', 'OpenAI o1');
+(1, 'ChatGPT', 'OpenAI o1');
 
