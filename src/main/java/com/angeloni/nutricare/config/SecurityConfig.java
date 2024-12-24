@@ -42,14 +42,6 @@ public class SecurityConfig {
 	            .addFilterBefore(new JwtAutenthicationFilter(), UsernamePasswordAuthenticationFilter.class)
 	        )
 	        
-	        // Configure form-based login
-	        .formLogin(form -> form
-	            // URL for the custom login page (can be an endpoint returning a form or JSON)
-	            .loginPage("/login")  
-	            // Allow everyone access to the login page
-	            .permitAll()  
-	        )
-	        
 	        // Enable HTTP Basic authentication
 	        .httpBasic(Customizer.withDefaults());  
 

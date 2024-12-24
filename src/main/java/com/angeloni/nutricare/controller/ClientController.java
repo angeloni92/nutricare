@@ -10,9 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.angeloni.nutricare.dto.CommonResponseDto;
-import com.angeloni.nutricare.dto.DietRequestDto;
-import com.angeloni.nutricare.service.DietService;
+import com.angeloni.nutricare.dto.ClientDto;
+import com.angeloni.nutricare.service.ClientService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -24,17 +23,17 @@ import jakarta.validation.Valid;
 
 @RestController
 @Validated
-@RequestMapping("/diet")
-public class DietController {
+@RequestMapping("/client")
+public class ClientController {
 
 	@Autowired
-	private DietService dietService;
+	private ClientService clientService;
 
-	@Operation(summary = "generate a new diet")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "generate a new diet for a client", content = {
-			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = CommonResponseDto.class))) }) })
-	@PostMapping("/generate")
-	public ResponseEntity<CommonResponseDto> createDiet(@Valid @RequestBody DietRequestDto dietRequestDto) {
-		return new ResponseEntity<>(dietService.generateDiet(dietRequestDto), HttpStatus.OK);
+	@Operation(summary = "create a client")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "create a new client", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ClientDto.class))) }) })
+	@PostMapping("/create")
+	public ResponseEntity<ClientDto> createDiet(@Valid @RequestBody ClientDto clientDto) {
+		return new ResponseEntity<>(clientService.createClient(clientDto), HttpStatus.OK);
 	}
 }

@@ -5,11 +5,15 @@ import java.util.UUID;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.angeloni.nutricare.dto.LoginDto;
+import com.angeloni.nutricare.dto.CommonResponseDto;
+import com.angeloni.nutricare.dto.LoginRequestDto;
+import com.angeloni.nutricare.dto.LoginResponseDto;
 import com.angeloni.nutricare.dto.UserDto;
 import com.angeloni.nutricare.entity.UserEntity;
 import com.angeloni.nutricare.exception.EmailException;
@@ -74,13 +78,15 @@ public class UserServiceImpl implements UserService {
      */
 	@Override
 	@Transactional
-	public String registerUser(UserDto userDto) {
+	public CommonResponseDto registerUser(UserDto userDto) {
 		log.info(String.format("START register user with username: [%s]", userDto.getUsername()));
-        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
-            return UserService.USERNAME_ALREADY_EXISTS;
-        }
-        if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
-            return UserService.EMAIL_ALREADY_EXISTS;
+		CommonResponseDto authResponseDto = new CommonResponseDto();
+		Boolean isUsernamePresent = userRepository.findByUsername(userDto.getUsername()).isPresent();
+		Boolean isEmailPresent = userRepository.findByEmail(userDto.getEmail()).isPresent();
+        if (isUsernamePresent || isEmailPresent) {
+        	authResponseDto.setStatus(UserService.ERROR_STATUS);
+        	authResponseDto.setMessage(isUsernamePresent ? UserService.USERNAME_ALREADY_EXISTS : UserService.EMAIL_ALREADY_EXISTS);
+            return authResponseDto;
         }
         String encodedPassword = passwordEncoder.encode(userDto.getPassword());
         userDto.setPassword(encodedPassword);
@@ -89,13 +95,15 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         log.info(String.format("SEND email to confirm user with username: [%s]", userDto.getUsername()));
         sendConfirmationEmail(user);
-        return UserService.CONFIRM_REGISTRATION;
+        authResponseDto.setStatus(UserService.SUCCESS_STATUS);
+        authResponseDto.setMessage(UserService.CONFIRM_REGISTRATION);
+        return authResponseDto;
 	}
 
 	/**
 	 * Authenticates a user and generates a JWT token upon successful login.
 	 *
-	 * @param loginDto {@link LoginDto} containing the user's login credentials (username/email and password)
+	 * @param loginDto {@link LoginRequestDto} containing the user's login credentials (username/email and password)
 	 * @return a {@link String} containing the JWT token if authentication is successful
 	 * @throws {@link InvalidCredentialsException} if the provided credentials are invalid
 	 *
@@ -104,17 +112,20 @@ public class UserServiceImpl implements UserService {
 	 * If authentication fails, it throws an {@link InvalidCredentialsException} with an appropriate error message.
 	 */
 	@Override
-	public String loginUser(LoginDto loginDto) {
-		log.info(String.format("START login user with username or email: [%s]", loginDto.getLogin()));
+	public LoginResponseDto loginUser(LoginRequestDto loginDto) {
+		log.info(String.format("START login user with username or email: [%s]", loginDto.getUsername()));
+		LoginResponseDto loginResponseDto = new LoginResponseDto();
 		String token = null;
-		Boolean isAuthenticated = authenticate(loginDto.getLogin(), loginDto.getPassword());
+		Boolean isAuthenticated = authenticate(loginDto.getUsername(), loginDto.getPassword());
 		if(isAuthenticated) {
-			token = jwtTokenUtil.generateToken(loginDto.getLogin());
+			token = jwtTokenUtil.generateToken(loginDto.getUsername());
 		}else {
 			throw new InvalidCredentialsException(UserService.INVALID_CREDENTIAL_ERROR_MESSAGE);
 		}
-		log.info(String.format("Username or email: [%s] succesfully logged", loginDto.getLogin()));
-		return token;
+		log.info(String.format("Username or email: [%s] succesfully logged", loginDto.getUsername()));
+		loginResponseDto.setStatus(UserService.SUCCESS_STATUS);
+		loginResponseDto.setToken(UserService.BEARER + token);
+		return loginResponseDto;
 	}
 	
 	/**
@@ -146,7 +157,7 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public String confirmEmail(String token) {
 		log.info("START confirm email");
-	    UserEntity user = userRepository.findByConfirmationToken(token).orElseThrow(() -> new NotFoundException(UserService.INVALID_CONFERMATION_TOKEN));
+	    UserEntity user = userRepository.findByConfirmationToken(token).orElseThrow(() -> new NotFoundException(UserService.INVALID_CONFERMATION_TOKEN));	    
 	    if (user.getEmailConfirmed()) {
 	        return UserService.EMAIL_IS_ALREADY_CONFIRMED;
 	    }
@@ -182,7 +193,7 @@ public class UserServiceImpl implements UserService {
 	/**
 	 * Authenticates a user by validating the provided login (username or email) and password.
 	 *
-	 * @param login {@link String} the user's login credential, which can be either a username or an email
+	 * @param username {@link String} the user's login credential, username
 	 * @param password {@link String} the raw password provided by the user
 	 * @return a {@link Boolean} indicating whether the authentication is successful:
 	 *         <ul>
@@ -194,8 +205,8 @@ public class UserServiceImpl implements UserService {
 	 * If a user is found, the raw password is validated against the encoded password stored in the database using {@link BCryptPasswordEncoder#matches}.
 	 * If no user is found, or the password validation fails, it returns {@link Boolean#FALSE}.
 	 */
-	private Boolean authenticate(String login, String password) {
-       return userRepository.findByUsernameOrEmailAndEmailConfirmedTrue(login, login).map(u -> passwordEncoder.matches(password, u.getPassword())).orElse(Boolean.FALSE);
+	private Boolean authenticate(String username, String password) {
+       return userRepository.findByUsernameAndEmailConfirmedTrue(username).map(u -> passwordEncoder.matches(password, u.getPassword())).orElse(Boolean.FALSE);
 	}
 	
 	/**
@@ -224,7 +235,8 @@ public class UserServiceImpl implements UserService {
 	                String.format(UserService.CONFIRM_REGISTRATION_EMAIL_FORMAT, confirmationLink)
 	            );
 	        } catch (Exception e) {
-	            userRepository.delete(userTo); 
+	        	log.error(String.format("Error sending email: [%s]", e.getMessage()));
+	            userRepository.delete(userTo); ;
 	            throw new EmailException(UserService.ERROR_SENDING_EMAIL_MSG);
 	        }
 	}
@@ -247,4 +259,13 @@ public class UserServiceImpl implements UserService {
     private String generateConfirmationLink(String confirmationToken) {
         return String.format(UserService.CONFIRMATION_LINK_FORMAT, serverHost, serverPort, contextPath, confirmationToken);
     }
+
+	@Override
+	public UserEntity getUserFromAuthentication() {
+		UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String username = userDetails.getUsername();
+		UserEntity user = userRepository.findByUsername(username)
+				.orElseThrow(() -> new NotFoundException(String.format(DietService.USER_NOT_FOUND_FORMAT, username)));
+		return user;
+	}
 }

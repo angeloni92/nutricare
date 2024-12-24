@@ -1,12 +1,11 @@
 package com.angeloni.nutricare.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.angeloni.nutricare.check.AiCheckContext;
+import com.angeloni.nutricare.dto.CommonResponseDto;
 import com.angeloni.nutricare.dto.DietRequestDto;
 import com.angeloni.nutricare.entity.AiEntity;
 import com.angeloni.nutricare.entity.AiUserEntity;
@@ -17,16 +16,12 @@ import com.angeloni.nutricare.message.DietStartMessage;
 import com.angeloni.nutricare.producer.DietStartProducer;
 import com.angeloni.nutricare.repository.AiRepository;
 import com.angeloni.nutricare.repository.AiUserRepository;
-import com.angeloni.nutricare.repository.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class DietServiceImpl implements DietService {
-
-	@Autowired
-	private UserRepository userRepository;
 
 	@Autowired
 	private AiRepository aiRepository;
@@ -39,6 +34,9 @@ public class DietServiceImpl implements DietService {
 	
 	@Autowired
 	private DietStartProducer dietProducer;
+	
+	@Autowired
+	private UserService userService;
 
 	/**
 	 * Generates a personalized diet plan using AI based on the provided request details.
@@ -59,13 +57,10 @@ public class DietServiceImpl implements DietService {
 	 */
 	@Override
 	@Transactional
-	public String generateDiet(DietRequestDto dietRequestDto) {
+	public CommonResponseDto generateDiet(DietRequestDto dietRequestDto) {
 		log.info("START generate diet using AI: [%s], model: [%s].", dietRequestDto.getAi().getName().getValue(),
 				dietRequestDto.getAi().getModel());
-		UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		String username = userDetails.getUsername();
-		UserEntity user = userRepository.findByUsername(username)
-				.orElseThrow(() -> new NotFoundException(String.format(DietService.USER_NOT_FOUND_FORMAT, username)));
+		UserEntity user = userService.getUserFromAuthentication();
 		AiEntity ai = aiRepository
 				.findByNameAndModel(dietRequestDto.getAi().getName(), dietRequestDto.getAi().getModel())
 				.orElseThrow(() -> new NotFoundException(String.format(DietService.AI_NOT_FOUND_FORMAT,
@@ -74,7 +69,10 @@ public class DietServiceImpl implements DietService {
 	    dietGenerationContext.check(aiName, dietRequestDto.getAi(), user).orElse(saveAiUser(user, ai, dietRequestDto.getAi().getAiKey()));
 	    DietStartMessage dietStartMessage = prepareDietStartMessage(user.getId(), dietRequestDto);
 	    dietProducer.sendStartDietMessage(dietStartMessage);
-		return DietService.START_GENERATE_DIET_MSG;
+	    CommonResponseDto commonResponseDto = new CommonResponseDto();
+	    commonResponseDto.setStatus(DietService.SUCCESS_STATUS);
+	    commonResponseDto.setMessage(DietService.START_GENERATE_DIET_MSG);
+		return commonResponseDto;
 	}
 	
 	/**

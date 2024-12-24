@@ -32,6 +32,7 @@ import com.angeloni.nutricare.dto.AnthropometryDto;
 import com.angeloni.nutricare.dto.CircumferenceDto;
 import com.angeloni.nutricare.dto.ClientDto;
 import com.angeloni.nutricare.dto.ClientRequestDto;
+import com.angeloni.nutricare.dto.CommonResponseDto;
 import com.angeloni.nutricare.dto.DietDetailDto;
 import com.angeloni.nutricare.dto.DietRequestDto;
 import com.angeloni.nutricare.dto.FoldDto;
@@ -124,7 +125,10 @@ public class DietControllerIT extends AbstractControllerIT {
 		clientRequestDto.setDietDetail(dietDetailDto);
 		dietRequestDto.setClientRequest(clientRequestDto);
 		
-		AiEntity ai = modelMapper.map(aiDto, AiEntity.class);
+		AiEntity ai = new AiEntity();
+		ai.setId(1L);
+		ai.setName(aiDto.getName());
+		ai.setModel(aiDto.getModel());		
 		aiRepository.saveAndFlush(ai);
 		
 		String request = gson.toJson(dietRequestDto);
@@ -138,11 +142,11 @@ public class DietControllerIT extends AbstractControllerIT {
 				.andExpect(status().isOk()).andReturn();
 
 		// Then
-		String actualResponse = result.getResponse().getContentAsString();
+		CommonResponseDto actualResponse = gson.fromJson(result.getResponse().getContentAsString(), new TypeToken<CommonResponseDto>() {}.getType());
 		Mockito.verify(jmsTemplate, times(1)).convertAndSend(Mockito.anyString(),Mockito.any(Object.class));;
 		Optional<AiUserEntity> actualAiUser = aiUserRepository.findByAiKey(expectedAiKey);
 		assertNotNull(actualResponse);
-		assertEquals(expectedResponse, actualResponse);
+		assertEquals(expectedResponse, actualResponse.getMessage());
 		assertTrue(actualAiUser.isPresent());
 		assertEquals(expectedAiKey, actualAiUser.get().getAiKey());
 	}

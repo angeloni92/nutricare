@@ -23,7 +23,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.angeloni.nutricare.dto.LoginDto;
+import com.angeloni.nutricare.dto.LoginRequestDto;
+import com.angeloni.nutricare.dto.CommonResponseDto;
 import com.angeloni.nutricare.dto.UserDto;
 import com.angeloni.nutricare.entity.UserEntity;
 import com.angeloni.nutricare.enums.UserRoleEnum;
@@ -78,12 +79,12 @@ public class UserControllerIT extends AbstractControllerIT {
 				.andExpect(status().isOk()).andReturn();
 
 		// Then
-		String actualResponse = result.getResponse().getContentAsString();
+		CommonResponseDto actualResponse = gson.fromJson(result.getResponse().getContentAsString(), new TypeToken<CommonResponseDto>() {}.getType());
+		assertNotNull(actualResponse);
+		assertEquals(UserService.SUCCESS_STATUS, actualResponse.getStatus());
+		assertEquals(expectedResponse, actualResponse.getMessage());
 		Mockito.verify(emailService, Mockito.times(1)).sendEmail(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 		Optional<UserEntity> actualUser = userRepository.findByUsername(userDto.getUsername());
-
-		assertNotNull(actualResponse);
-		assertEquals(expectedResponse, actualResponse);
 		assertTrue(actualUser.isPresent());
 		assertEquals(userDto.getEmail(), actualUser.get().getEmail());
 		assertEquals(expectedUserRole, actualUser.get().getRole());
@@ -113,11 +114,12 @@ public class UserControllerIT extends AbstractControllerIT {
 				.andExpect(status().isOk()).andReturn();
 
 		// Then
-		String actualResponse = result.getResponse().getContentAsString();
+		CommonResponseDto actualResponse = gson.fromJson(result.getResponse().getContentAsString(), new TypeToken<CommonResponseDto>() {}.getType());
 		Mockito.verify(emailService, Mockito.never()).sendEmail(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
 		assertNotNull(actualResponse);
-		assertEquals(expectedResponse, actualResponse);
+		assertEquals(UserService.ERROR_STATUS, actualResponse.getStatus());
+		assertEquals(expectedResponse, actualResponse.getMessage());
 	}
 	
 	@Test
@@ -144,11 +146,12 @@ public class UserControllerIT extends AbstractControllerIT {
 				.andExpect(status().isOk()).andReturn();
 
 		// Then
-		String actualResponse = result.getResponse().getContentAsString();
+		CommonResponseDto actualResponse = gson.fromJson(result.getResponse().getContentAsString(), new TypeToken<CommonResponseDto>() {}.getType());
 		Mockito.verify(emailService, Mockito.never()).sendEmail(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
 		assertNotNull(actualResponse);
-		assertEquals(expectedResponse, actualResponse);
+		assertEquals(UserService.ERROR_STATUS, actualResponse.getStatus());
+		assertEquals(expectedResponse, actualResponse.getMessage());
 	}
 
 	@Test
@@ -193,7 +196,7 @@ public class UserControllerIT extends AbstractControllerIT {
 	 * CONFIRM EMAIL
 	 */
 	@Test
-	void givenValidToken_whenConfirmEmail_thenOKStatus200_EmailSuccesfullyConfirmed() throws Exception {
+	void givenValidToken_whenConfirmEmail_thenFoundStatus302_EmailSuccesfullyConfirmed() throws Exception {
 		// Given
 		String token = "test_Token_1234";
 		UserEntity user = new UserEntity();
@@ -213,7 +216,7 @@ public class UserControllerIT extends AbstractControllerIT {
 		// When
 		MvcResult result = mockMvc
 				.perform(get(URI_USER_CONFIRM).contentType(MediaType.APPLICATION_JSON).param("token", request))
-				.andExpect(status().isOk()).andReturn();
+				.andExpect(status().isFound()).andReturn();
 
 		// Then
 		String actualResponse = result.getResponse().getContentAsString();
@@ -225,7 +228,7 @@ public class UserControllerIT extends AbstractControllerIT {
 	}
 	
 	@Test
-	void givenValidTokenAndEmailAlreadyConfirmed_whenConfirmEmail_thenOKStatus200_EmailAlreadyConfirmed() throws Exception {
+	void givenValidTokenAndEmailAlreadyConfirmed_whenConfirmEmail_thenFoundStatus302_EmailAlreadyConfirmed() throws Exception {
 		// Given
 		String token = "test_Token_1234";
 		UserEntity user = new UserEntity();
@@ -245,7 +248,7 @@ public class UserControllerIT extends AbstractControllerIT {
 		// When
 		MvcResult result = mockMvc
 				.perform(get(URI_USER_CONFIRM).contentType(MediaType.APPLICATION_JSON).param("token", request))
-				.andExpect(status().isOk()).andReturn();
+				.andExpect(status().isFound()).andReturn();
 
 		// Then
 		String actualResponse = result.getResponse().getContentAsString();
@@ -271,8 +274,8 @@ public class UserControllerIT extends AbstractControllerIT {
 		user.setEmailConfirmed(Boolean.TRUE);
 		user = userRepository.saveAndFlush(user);
 		
-		LoginDto loginDto = new LoginDto();
-		loginDto.setLogin(user.getUsername());
+		LoginRequestDto loginDto = new LoginRequestDto();
+		loginDto.setUsername(user.getUsername());
 		loginDto.setPassword(expectedPassword);
 
 		String request = gson.toJson(loginDto);
@@ -292,8 +295,8 @@ public class UserControllerIT extends AbstractControllerIT {
 	@Test
 	void givenValidLoginDtoAndUserNotRegistered_whenLogin_thenKOStatus401_Unauthorized() throws Exception {
 		// Given
-		LoginDto loginDto = new LoginDto();
-		loginDto.setLogin("username");
+		LoginRequestDto loginDto = new LoginRequestDto();
+		loginDto.setUsername("username");
 		loginDto.setPassword("Test_Password_123456");
 
 		String request = gson.toJson(loginDto);
@@ -316,8 +319,8 @@ public class UserControllerIT extends AbstractControllerIT {
 	@Test
 	void givenInvalidLoginDto_whenLogin_thenKOStatus400_BadRequest() throws Exception {
 		// Given
-		LoginDto loginDto = new LoginDto();
-		loginDto.setLogin("");
+		LoginRequestDto loginDto = new LoginRequestDto();
+		loginDto.setUsername("");
 
 		String request = gson.toJson(loginDto);
 		

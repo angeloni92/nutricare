@@ -2,6 +2,7 @@ package com.angeloni.nutricare.controller;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -12,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.angeloni.nutricare.dto.LoginDto;
+import com.angeloni.nutricare.dto.LoginRequestDto;
+import com.angeloni.nutricare.dto.LoginResponseDto;
+import com.angeloni.nutricare.dto.CommonResponseDto;
 import com.angeloni.nutricare.dto.UserDto;
 import com.angeloni.nutricare.service.UserService;
 
@@ -36,7 +39,7 @@ public class UserController {
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "confirm to complete registration", content = {
 			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = String.class))) }) })
 	@PostMapping("/register")
-	public ResponseEntity<String> register(@Valid @RequestBody UserDto userDto) {
+	public ResponseEntity<CommonResponseDto> register(@Valid @RequestBody UserDto userDto) {
 		return new ResponseEntity<>(userService.registerUser(userDto), HttpStatus.OK);
 	}
 
@@ -45,8 +48,8 @@ public class UserController {
 			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserDto.class))) }),
 			@ApiResponse(responseCode = "401", description = "invalid credentials")})
 	@PostMapping("/login")
-	public ResponseEntity<String> login(@Valid @RequestBody LoginDto loginDto) {
-		return new ResponseEntity<>(UserService.BEARER + userService.loginUser(loginDto), HttpStatus.OK);
+	public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginDto) {
+		return new ResponseEntity<>(userService.loginUser(loginDto), HttpStatus.OK);
 	}
 	
 	@Operation(summary = "confirm user")
@@ -54,8 +57,9 @@ public class UserController {
 			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = String.class))) }) })
 	@GetMapping("/confirm")
     public ResponseEntity<String> confirmUserEmail(@RequestParam("token") String token) {
-        String message = userService.confirmEmail(token);
-        return ResponseEntity.ok(message);
+        return ResponseEntity.status(HttpStatus.FOUND) 
+                .header(HttpHeaders.LOCATION, "http://localhost:4200/login")
+                .body(userService.confirmEmail(token));
     }
 
 }
