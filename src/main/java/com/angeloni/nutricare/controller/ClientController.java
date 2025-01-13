@@ -1,10 +1,13 @@
 package com.angeloni.nutricare.controller;
 
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,8 +35,16 @@ public class ClientController {
 	@Operation(summary = "create a client")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "create a new client", content = {
 			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ClientDto.class))) }) })
-	@PostMapping("/create")
+	@PostMapping
 	public ResponseEntity<ClientDto> createDiet(@Valid @RequestBody ClientDto clientDto) {
-		return new ResponseEntity<>(clientService.createClient(clientDto), HttpStatus.OK);
+		return new ResponseEntity<>(clientService.saveClient(clientDto), HttpStatus.OK);
+	}
+	
+	@Operation(summary = "list of clients")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "list of clients", content = {
+			@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ClientDto.class))) }) })
+	@GetMapping("/clients")
+	public ResponseEntity<List<ClientDto>> getClients() {
+		return new ResponseEntity<>(clientService.getClients(), HttpStatus.OK);
 	}
 }

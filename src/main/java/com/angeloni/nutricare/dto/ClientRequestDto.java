@@ -13,6 +13,8 @@ public class ClientRequestDto implements Serializable {
 	@NotNull
 	private ClientDto client;
 	@NotNull
+	private AnthropometryDto anthropometry;
+	@NotNull
 	private DietDetailDto dietDetail;
 	
 

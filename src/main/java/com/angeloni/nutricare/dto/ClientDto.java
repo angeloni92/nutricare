@@ -1,10 +1,10 @@
 package com.angeloni.nutricare.dto;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -25,9 +25,9 @@ public class ClientDto implements Serializable {
 	@NotBlank(message = "country is required")
 	@Size(min = 2, message = "Country must be min 2 characters")
 	private String country;
-	@NotEmpty
-	private List<AnthropometryDto> anthropometries;
 	private List<String> allergies;
     private List<String> healthConditions; 
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
 
 }

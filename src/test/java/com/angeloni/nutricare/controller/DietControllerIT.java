@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.DayOfWeek;
 import java.time.Month;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -109,11 +108,11 @@ public class DietControllerIT extends AbstractControllerIT {
 		foldDto.setThigh(Integer.valueOf(343));
 		foldDto.setTriceps(Integer.valueOf(721));
 		anthropometryDto.setFold(foldDto);
+		clientRequestDto.setAnthropometry(anthropometryDto);
 		clientDto.setName("Pippo");
 		clientDto.setSurname("Costanzo");
 		clientDto.setAge(Integer.valueOf(32));
 		clientDto.setCountry("ITALY");
-		clientDto.setAnthropometries(List.of(anthropometryDto));
 		clientRequestDto.setClient(clientDto);
 		DietDetailDto dietDetailDto = new DietDetailDto();
 		dietDetailDto.setActivityLevel(ActivityLevelEnum.MODERATE);
@@ -143,7 +142,7 @@ public class DietControllerIT extends AbstractControllerIT {
 
 		// Then
 		CommonResponseDto actualResponse = gson.fromJson(result.getResponse().getContentAsString(), new TypeToken<CommonResponseDto>() {}.getType());
-		Mockito.verify(jmsTemplate, times(1)).convertAndSend(Mockito.anyString(),Mockito.any(Object.class));;
+		Mockito.verify(jmsTemplate, times(1)).convertAndSend(Mockito.anyString(),Mockito.any(Object.class));
 		Optional<AiUserEntity> actualAiUser = aiUserRepository.findByAiKey(expectedAiKey);
 		assertNotNull(actualResponse);
 		assertEquals(expectedResponse, actualResponse.getMessage());
@@ -185,11 +184,11 @@ public class DietControllerIT extends AbstractControllerIT {
 		foldDto.setThigh(Integer.valueOf(343));
 		foldDto.setTriceps(Integer.valueOf(721));
 		anthropometryDto.setFold(foldDto);
+		clientRequestDto.setAnthropometry(anthropometryDto);
 		clientDto.setName("Pippo");
 		clientDto.setSurname("Costanzo");
 		clientDto.setAge(Integer.valueOf(32));
 		clientDto.setCountry("ITALY");
-		clientDto.setAnthropometries(List.of(anthropometryDto));
 		clientRequestDto.setClient(clientDto);
 		DietDetailDto dietDetailDto = new DietDetailDto();
 		dietDetailDto.setActivityLevel(ActivityLevelEnum.MODERATE);
@@ -213,7 +212,7 @@ public class DietControllerIT extends AbstractControllerIT {
 
 		// Then
 		ErrorDetails actualErrorDetails = gson.fromJson(result.getResponse().getContentAsString(), new TypeToken<ErrorDetails>() {}.getType());
-		Mockito.verify(jmsTemplate, never()).convertAndSend(Mockito.anyString(),Mockito.any(Object.class));;
+		Mockito.verify(jmsTemplate, never()).convertAndSend(Mockito.anyString(),Mockito.any(Object.class));
 
 		assertNotNull(actualErrorDetails);
 		assertEquals(expectedErrorDetails, actualErrorDetails.getMessage());
@@ -251,11 +250,11 @@ public class DietControllerIT extends AbstractControllerIT {
 		foldDto.setThigh(Integer.valueOf(343));
 		foldDto.setTriceps(Integer.valueOf(721));
 		anthropometryDto.setFold(foldDto);
+		clientRequestDto.setAnthropometry(anthropometryDto);
 		clientDto.setName("Pippo");
 		clientDto.setSurname("Costanzo");
 		clientDto.setAge(Integer.valueOf(32));
 		clientDto.setCountry("ITALY");
-		clientDto.setAnthropometries(List.of(anthropometryDto));
 		clientRequestDto.setClient(clientDto);
 		DietDetailDto dietDetailDto = new DietDetailDto();
 		dietDetailDto.setActivityLevel(ActivityLevelEnum.MODERATE);
@@ -266,7 +265,6 @@ public class DietControllerIT extends AbstractControllerIT {
 		dietDetailDto.setPrimaryGoal(PrimaryGoalEnum.MUSCLE_GAIN);
 		clientRequestDto.setDietDetail(dietDetailDto);
 		dietRequestDto.setClientRequest(clientRequestDto);
-		
 		String request = gson.toJson(dietRequestDto);
 
 		// Expected 
@@ -279,7 +277,7 @@ public class DietControllerIT extends AbstractControllerIT {
 
 		// Then
 		ErrorDetails actualErrorDetails = gson.fromJson(result.getResponse().getContentAsString(), new TypeToken<ErrorDetails>() {}.getType());
-		Mockito.verify(jmsTemplate, never()).convertAndSend(Mockito.anyString(),Mockito.any(Object.class));;
+		Mockito.verify(jmsTemplate, never()).convertAndSend(Mockito.anyString(),Mockito.any(Object.class));
 
 		assertNotNull(actualErrorDetails);
 		assertEquals(expectedErrorDetails, actualErrorDetails.getMessage());

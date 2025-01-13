@@ -10,12 +10,10 @@ import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtTokenUtil {
-
     @Value("${jwt.secret}")
     private String secretKey;
     
@@ -33,7 +31,7 @@ public class JwtTokenUtil {
                 .setSubject(username)
                 .setIssuedAt(now) // Issued date of the token
                 .setExpiration(expirationTime) // Expiration date
-                .signWith(SignatureAlgorithm.HS256, getSigningKey())
+                .signWith(getSigningKey())
                 .compact();
     }
 
