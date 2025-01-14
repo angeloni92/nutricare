@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.angeloni.nutricare.dto.ClientDto;
 import com.angeloni.nutricare.entity.ClientEntity;
@@ -28,8 +29,9 @@ public class ClientServiceImpl implements ClientService {
 	
 	@Autowired
 	private ModelMapper modelMapper;
-	
+
 	@Override
+	@Transactional
 	public ClientDto saveClient(ClientDto clientDto) {
 		UserEntity user = userService.getUserFromAuthentication();
 		checkIfClientIsAlreadyPresent(clientDto, user);
