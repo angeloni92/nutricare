@@ -11,18 +11,18 @@ public class FoldDto implements Serializable {
 	private static final long serialVersionUID = 452739800217821387L;
 	
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
-	private Integer pectoral;
+	private Double pectoral;
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
-	private Integer axillary;
+	private Double axillary;
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
-	private Integer suprailiac;
+	private Double suprailiac;
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
-	private Integer abdominal;
+	private Double abdominal;
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
-	private Integer triceps;
+	private Double triceps;
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
-	private Integer subscapolaris;
+	private Double subscapolaris;
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
-	private Integer thigh;
+	private Double thigh;
 
 }

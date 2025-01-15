@@ -41,7 +41,7 @@ public class AnthropometryEntity implements Serializable {
 	private ClientEntity client;
 
 	@Column(name = "height", nullable = false)
-	private Integer height;
+	private Double height;
 
 	@Column(name = "weight", nullable = false)
 	private Double weight;

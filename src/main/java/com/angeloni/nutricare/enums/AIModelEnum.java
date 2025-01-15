@@ -2,8 +2,8 @@ package com.angeloni.nutricare.enums;
 
 public enum AIModelEnum {
 
-	GPT4O("Gpt-4o"),
-	OPENAIO1("OpenAI o1");
+	GPT4O("GPT4O"),
+	OPENAIO1("OPENAIO1");
 		
 	    private final String value;
 

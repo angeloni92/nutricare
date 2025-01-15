@@ -39,19 +39,19 @@ public class CircumferenceEntity implements Serializable {
 	private AnthropometryEntity anthropometry;
 
 	@Column(name = "chest", nullable = false)
-	private Integer chest;
+	private Double chest;
 	
 	@Column(name = "arm", nullable = false)
-	private Integer arm;
+	private Double arm;
 	
 	@Column(name = "waist", nullable = false)
-	private Integer waist;
+	private Double waist;
 	
 	@Column(name = "hip", nullable = false)
-	private Integer hip;
+	private Double hip;
 	
 	@Column(name = "thigh", nullable = false)
-	private Integer thigh;
+	private Double thigh;
 
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false)

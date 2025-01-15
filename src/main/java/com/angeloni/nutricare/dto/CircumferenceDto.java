@@ -11,13 +11,13 @@ public class CircumferenceDto implements Serializable {
 	private static final long serialVersionUID = -5529811047318544540L;
 	
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
-	private Integer chest;
+	private Double chest;
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
-	private Integer arm;
+	private Double arm;
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
-	private Integer waist;
+	private Double waist;
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
-	private Integer hip;
+	private Double hip;
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
-	private Integer thigh;
+	private Double thigh;
 }

@@ -14,6 +14,7 @@ public class ClientDto implements Serializable {
 
 	private static final long serialVersionUID = 2244417344498037719L;
 	
+	private Long id;
 	@NotBlank(message = "Name is required")
 	@Size(min = 2, message = "name must be min 2 characters")
 	private String name;

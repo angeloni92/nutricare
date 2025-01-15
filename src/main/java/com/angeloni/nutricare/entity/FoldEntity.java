@@ -39,25 +39,25 @@ public class FoldEntity implements Serializable {
 	private AnthropometryEntity anthropometry;
 
 	@Column(name = "pectoral", nullable = false)
-	private Integer pectoral;
+	private Double pectoral;
 	
 	@Column(name = "axillary", nullable = false)
-	private Integer axillary;
+	private Double axillary;
 	
 	@Column(name = "suprailiac", nullable = false)
-	private Integer suprailiac;
+	private Double suprailiac;
 	
 	@Column(name = "abdominal", nullable = false)
-	private Integer abdominal;
+	private Double abdominal;
 	
 	@Column(name = "triceps", nullable = false)
-	private Integer triceps;
+	private Double triceps;
 	
 	@Column(name = "subscapolaris", nullable = false)
-	private Integer subscapolaris;
+	private Double subscapolaris;
 	
 	@Column(name = "thigh", nullable = false)
-	private Integer thigh;
+	private Double thigh;
 
 	@CreationTimestamp
 	@Column(name = "created_at", updatable = false)

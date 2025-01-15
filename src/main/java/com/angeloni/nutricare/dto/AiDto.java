@@ -13,6 +13,8 @@ public class AiDto implements Serializable{
 	
 	private static final long serialVersionUID = -835673006759659771L;
 	
+	private Long id;
+	
 	@NotNull
 	private AINameEnum name;
 

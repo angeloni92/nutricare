@@ -2,7 +2,7 @@ package com.angeloni.nutricare.enums;
 
 public enum AINameEnum {
 
-	 CHATGPT("ChatGPT");
+	 CHATGPT("CHATGPT");
 		
 	    private final String value;
 
