@@ -5,8 +5,6 @@ import java.util.UUID;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -258,25 +256,6 @@ public class UserServiceImpl implements UserService {
 	 */
     private String generateConfirmationLink(String confirmationToken) {
         return String.format(UserService.CONFIRMATION_LINK_FORMAT, serverHost, serverPort, contextPath, confirmationToken);
-    }
-
-    @Override
-    public UserEntity getUserFromAuthentication() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username;
-
-        if (principal instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) principal;
-            username = userDetails.getUsername();
-        } else if (principal instanceof String) {
-            username = (String) principal;
-        } else {
-            throw new IllegalStateException("Impossibile ottenere il nome utente dall'autenticazione.");
-        }
-
-        UserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException(String.format(DietService.USER_NOT_FOUND_FORMAT, username)));
-        return user;
     }
 
 }

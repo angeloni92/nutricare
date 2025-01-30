@@ -19,7 +19,7 @@ import jakarta.annotation.PostConstruct;
 @Component
 public class AiCheckContext {
 	
-	public static final String CHATGPT = "ChatGPT";
+	public static final String CHATGPT = "CHATGPT";
 	private static final String AI_NOT_FOUND_FORMAT = "Strategy not found for AI: [%S]";
 	
 	@Autowired

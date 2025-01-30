@@ -4,7 +4,6 @@ import com.angeloni.nutricare.dto.CommonResponseDto;
 import com.angeloni.nutricare.dto.LoginRequestDto;
 import com.angeloni.nutricare.dto.LoginResponseDto;
 import com.angeloni.nutricare.dto.UserDto;
-import com.angeloni.nutricare.entity.UserEntity;
 public interface UserService {
 
 	public static final String BEARER = "Bearer ";
@@ -29,6 +28,4 @@ public interface UserService {
     LoginResponseDto loginUser(LoginRequestDto loginDto);
     
     String confirmEmail(String token);
-    
-    UserEntity getUserFromAuthentication();
 }

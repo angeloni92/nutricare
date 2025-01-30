@@ -36,7 +36,7 @@ public class DietServiceImpl implements DietService {
 	private DietStartProducer dietProducer;
 	
 	@Autowired
-	private UserService userService;
+	private AuthService authService;
 
 	/**
 	 * Generates a personalized diet plan using AI based on the provided request details.
@@ -60,7 +60,7 @@ public class DietServiceImpl implements DietService {
 	public CommonResponseDto generateDiet(DietRequestDto dietRequestDto) {
 		log.info("START generate diet using AI: [%s], model: [%s].", dietRequestDto.getAi().getName().getValue(),
 				dietRequestDto.getAi().getModel());
-		UserEntity user = userService.getUserFromAuthentication();
+		UserEntity user = authService.retrieveUserFromAuthentication();;
 		AiEntity ai = aiRepository
 				.findByNameAndModel(dietRequestDto.getAi().getName(), dietRequestDto.getAi().getModel())
 				.orElseThrow(() -> new NotFoundException(String.format(DietService.AI_NOT_FOUND_FORMAT,
