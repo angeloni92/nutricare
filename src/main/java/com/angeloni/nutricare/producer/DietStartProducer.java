@@ -21,7 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 public class DietStartProducer {
 	
 	private static String SENDING_MESSAGE_LOG_INFO = "Sending message to queue [%s]";
-	private static final String ERROR_QUEUE_MSG = "message.error.queue-start";
+	private static String SENT_MESSAGE_LOG_INFO = "Sent message to queue [%s]";
+	private static final String ERROR_QUEUE_MSG = "Error sending message";
 	
 	@Autowired
 	private JmsTemplate jmsTemplate;
@@ -51,8 +52,10 @@ public class DietStartProducer {
 			log.info(String.format(SENDING_MESSAGE_LOG_INFO, dietStartQueue));
 			ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 			jmsTemplate.convertAndSend(dietStartQueue, ow.writeValueAsString(dietStartMessage));
+			log.info(String.format(SENT_MESSAGE_LOG_INFO, dietStartQueue));
 		}catch(JmsException | JsonProcessingException e) {
-			throw new QueueException(ERROR_QUEUE_MSG);
+			System.out.println(e.getMessage());
+			throw new QueueException(ERROR_QUEUE_MSG, e);
 		}
 	}
 

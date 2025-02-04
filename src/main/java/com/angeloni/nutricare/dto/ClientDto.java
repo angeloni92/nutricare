@@ -1,7 +1,6 @@
 package com.angeloni.nutricare.dto;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
@@ -28,7 +27,5 @@ public class ClientDto implements Serializable {
 	private String country;
 	private List<String> allergies;
     private List<String> healthConditions; 
-	private LocalDateTime createdAt;
-	private LocalDateTime updatedAt;
 
 }
