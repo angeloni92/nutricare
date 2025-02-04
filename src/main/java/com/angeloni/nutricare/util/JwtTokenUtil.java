@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 @Component
@@ -32,6 +34,18 @@ public class JwtTokenUtil {
                 .setIssuedAt(now) // Issued date of the token
                 .setExpiration(expirationTime) // Expiration date
                 .signWith(getSigningKey())
+                .compact();
+    }
+    
+    public String generateRefreshToken(String username) {
+        Date now = new Date();
+        Date expirationTime = new Date(now.getTime() + 1000L * 60 * 60 * 24 * 7);
+
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(now)
+                .setExpiration(expirationTime)
+                .signWith(SignatureAlgorithm.HS512, secretKey)
                 .compact();
     }
 
@@ -63,4 +77,19 @@ public class JwtTokenUtil {
     public boolean validateToken(String token, String username) {
         return (username.equals(extractUsername(token)) && !isTokenExpired(token));
     }
+    
+    public boolean validateRefreshToken(String refreshToken) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(refreshToken)
+                    .getBody();
+
+            return !claims.getExpiration().before(new Date());
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
 }

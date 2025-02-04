@@ -25,6 +25,7 @@ import com.angeloni.nutricare.service.AuthService;
 import com.angeloni.nutricare.util.JwtAuthenticationFilter;
 import com.angeloni.nutricare.util.JwtTokenUtil;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,10 +49,10 @@ public class SecurityConfig extends OncePerRequestFilter {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.cors().and().csrf(csrf -> csrf.disable())
-				.authorizeRequests(authz -> authz
-						.requestMatchers("/auth/register", "/auth/confirm", "/auth/login").permitAll()
-						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll().anyRequest().authenticated()
-						.and().addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class))
+				.authorizeHttpRequests(
+						authz -> authz.requestMatchers("/auth/register", "/auth/confirm", "/auth/login").permitAll()
+								.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll().anyRequest().authenticated())
+				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.httpBasic(Customizer.withDefaults());
 
 		return http.build();
@@ -62,7 +63,7 @@ public class SecurityConfig extends OncePerRequestFilter {
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-		configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization"));
+		configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization", "X-Refresh-Token"));
 		configuration.setAllowCredentials(true);
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);
@@ -71,7 +72,7 @@ public class SecurityConfig extends OncePerRequestFilter {
 
 	@Bean
 	public BCryptPasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder(); // BCrypt for secure password management
+		return new BCryptPasswordEncoder();
 	}
 
 	@Override
@@ -79,59 +80,29 @@ public class SecurityConfig extends OncePerRequestFilter {
 			throws ServletException, IOException {
 		String token = getJwtFromRequest(request);
 
-		if (token != null) {
-			try {
+		try {
+			if (token != null) {
 				if (jwtTokenUtil.isTokenExpired(token)) {
-					// If the token is expired, attempt to refresh with refresh token
 					String refreshToken = getRefreshTokenFromRequest(request);
+					String username = jwtTokenUtil.extractUsername(refreshToken);
+					if (refreshToken != null && jwtTokenUtil.validateToken(refreshToken, username)) {
+						String newAccessToken = jwtTokenUtil.generateToken(username);
 
-					if (refreshToken != null) {
-						String username = jwtTokenUtil.extractUsername(refreshToken);
-
-						if (jwtTokenUtil.validateToken(refreshToken, username)) {
-							// Generate a new access token
-							String newAccessToken = jwtTokenUtil.generateToken(username);
-							response.setHeader("Authorization", "Bearer " + newAccessToken);
-
-							// Set authentication in context
-							UserEntity user = authService.getUserFromSecurityContext();
-							UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-									user, null, null);
-							SecurityContextHolder.getContext().setAuthentication(authentication);
-
-							response.getWriter().write("{ \"newAccessToken\": \"Bearer " + newAccessToken + "\" }");
-						} else {
-							// Log and respond with the appropriate message
-							System.out.println("Refresh token is expired or invalid");
-							if (!response.isCommitted()) {
-								response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-								response.getWriter().write("Refresh token is expired or invalid");
-							}
-							return;
-						}
+						response.setHeader("Authorization", "Bearer " + newAccessToken);
+						request.setAttribute("Authorization", "Bearer " + newAccessToken);
 					} else {
-						// Log and respond with the appropriate message
-						System.out.println("No refresh token provided");
-						if (!response.isCommitted()) {
-							response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-							response.getWriter().write("No refresh token provided");
-						}
+						response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+						response.getWriter().write("Refresh token is expired or invalid");
 						return;
 					}
-				} else {
-					// Valid token, continue processing
-					Authentication authentication = getAuthentication();
-					SecurityContextHolder.getContext().setAuthentication(authentication);
 				}
-			} catch (Exception e) {
-				// Log the exception for debugging
-				e.printStackTrace();
-				if (!response.isCommitted()) {
-					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					response.getWriter().write("Invalid or expired token");
-				}
-				return;
+				Authentication authentication = getAuthentication();
+				SecurityContextHolder.getContext().setAuthentication(authentication);
 			}
+		} catch (ExpiredJwtException e) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.getWriter().write("Token expired. Please login again.");
+			return;
 		}
 
 		filterChain.doFilter(request, response);
@@ -139,10 +110,7 @@ public class SecurityConfig extends OncePerRequestFilter {
 
 	private String getJwtFromRequest(HttpServletRequest request) {
 		String bearerToken = request.getHeader("Authorization");
-		if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-			return bearerToken.substring(7);
-		}
-		return null;
+		return (bearerToken != null && bearerToken.startsWith("Bearer ")) ? bearerToken.substring(7) : null;
 	}
 
 	private String getRefreshTokenFromRequest(HttpServletRequest request) {

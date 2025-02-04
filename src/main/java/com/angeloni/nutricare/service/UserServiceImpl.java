@@ -111,20 +111,24 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Override
 	public LoginResponseDto loginUser(LoginRequestDto loginDto) {
-		log.info(String.format("START login user with username or email: [%s]", loginDto.getUsername()));
-		LoginResponseDto loginResponseDto = new LoginResponseDto();
-		String token = null;
-		Boolean isAuthenticated = authenticate(loginDto.getUsername(), loginDto.getPassword());
-		if(isAuthenticated) {
-			token = jwtTokenUtil.generateToken(loginDto.getUsername());
-		}else {
-			throw new InvalidCredentialsException(UserService.INVALID_CREDENTIAL_ERROR_MESSAGE);
-		}
-		log.info(String.format("Username or email: [%s] succesfully logged", loginDto.getUsername()));
-		loginResponseDto.setStatus(UserService.SUCCESS_STATUS);
-		loginResponseDto.setToken(UserService.BEARER + token);
-		return loginResponseDto;
+	    log.info(String.format("START login user with username or email: [%s]", loginDto.getUsername()));
+	    LoginResponseDto loginResponseDto = new LoginResponseDto();
+
+	    Boolean isAuthenticated = authenticate(loginDto.getUsername(), loginDto.getPassword());
+	    if (!isAuthenticated) {
+	        throw new InvalidCredentialsException(UserService.INVALID_CREDENTIAL_ERROR_MESSAGE);
+	    }
+
+	    String accessToken = jwtTokenUtil.generateToken(loginDto.getUsername());
+
+	    log.info(String.format("Username or email: [%s] successfully logged in", loginDto.getUsername()));
+
+	    loginResponseDto.setStatus(UserService.SUCCESS_STATUS);
+	    loginResponseDto.setToken(UserService.BEARER + accessToken);
+
+	    return loginResponseDto;
 	}
+
 	
 	/**
 	 * Confirms a user's email address based on a confirmation token.
