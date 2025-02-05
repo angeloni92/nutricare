@@ -1,6 +1,5 @@
 package com.angeloni.nutricare.dto;
 
-import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.Month;
 import java.util.List;
@@ -13,9 +12,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 @Data
-public class DietDetailDto implements Serializable {
-
-	private static final long serialVersionUID = 4056766880168489452L;
+public class DietDetailDto {
 	
 	private ActivityLevelEnum activityLevel;
 	private PrimaryGoalEnum primaryGoal;

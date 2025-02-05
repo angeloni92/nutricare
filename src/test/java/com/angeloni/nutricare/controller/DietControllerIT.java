@@ -3,7 +3,6 @@ package com.angeloni.nutricare.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,10 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -58,14 +55,9 @@ public class DietControllerIT extends AbstractControllerIT {
 		UserEntity user = UserEntity.builder().username("testuser").email("testemail@gmail.com")
 				.password("Test_passw_12345678").emailConfirmed(Boolean.TRUE).build();
 		userRepository.saveAndFlush(user);
-		UserDetails userDetails = User.withUsername("testuser").password("password").roles("USER").build();
-
-		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
-				userDetails.getPassword(), userDetails.getAuthorities());
-
-		SecurityContext context = mock(SecurityContext.class);
-		SecurityContextHolder.setContext(context);
-		context.setAuthentication(authentication);
+		
+		Authentication authentication = new UsernamePasswordAuthenticationToken(user, user.getPassword(), null);
+	    SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
 
 	@AfterEach
@@ -77,7 +69,7 @@ public class DietControllerIT extends AbstractControllerIT {
 	 * GENERATE
 	 */
 	@Test
-	@WithMockUser(username = "testuser", roles = "USER")
+	@WithMockUser(username = "testuser")
 	void givenValidDietRequestDto_whenGenerateDiet_thenOKStatus200_StartGenerateDiet() throws Exception {
 		// Given
 		String expectedAiKey = "test_ai_key_1234";
@@ -151,7 +143,7 @@ public class DietControllerIT extends AbstractControllerIT {
 	}
 	
 	@Test
-	@WithMockUser(username = "testuser", roles = "USER")
+	@WithMockUser(username = "testuser")
 	void givenValidDietRequestDtoAndUserNotRegistrated_whenGenerateDiet_thenKOStatus404_NotFoundException() throws Exception {
 		// Given
 		userRepository.deleteAll();
@@ -203,7 +195,7 @@ public class DietControllerIT extends AbstractControllerIT {
 		String request = gson.toJson(dietRequestDto);
 
 		// Expected 
-		String expectedErrorDetails = String.format(DietService.USER_NOT_FOUND_FORMAT, "testuser");
+		String expectedErrorDetails = String.format(DietService.AI_NOT_FOUND_FORMAT, aiDto.getName(), aiDto.getModel());
 
 		// When
 		MvcResult result = mockMvc
@@ -219,7 +211,7 @@ public class DietControllerIT extends AbstractControllerIT {
 	}
 	
 	@Test
-	@WithMockUser(username = "testuser", roles = "USER")
+	@WithMockUser(username = "testuser")
 	void givenValidDietRequestDtoAiNotPresent_whenGenerateDiet_thenKOStatus404_NotFoundException() throws Exception {
 		// Given
 		String expectedAiKey = "test_ai_key_1234";

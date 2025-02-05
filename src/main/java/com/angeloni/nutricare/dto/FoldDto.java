@@ -1,14 +1,10 @@
 package com.angeloni.nutricare.dto;
 
-import java.io.Serializable;
-
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 @Data
-public class FoldDto implements Serializable {
-	
-	private static final long serialVersionUID = 452739800217821387L;
+public class FoldDto {
 	
 	@PositiveOrZero(message = "Value must be higher or equal to zero")
 	private Double pectoral;

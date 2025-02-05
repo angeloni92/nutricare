@@ -1,5 +1,7 @@
 package com.angeloni.nutricare.service;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,7 +68,10 @@ public class DietServiceImpl implements DietService {
 				.orElseThrow(() -> new NotFoundException(String.format(DietService.AI_NOT_FOUND_FORMAT,
 						dietRequestDto.getAi().getName().getValue(), dietRequestDto.getAi().getModel())));
 		String aiName = AINameEnum.CHATGPT.getValue();	
-	    dietGenerationContext.check(aiName, dietRequestDto.getAi(), user).orElse(saveAiUser(user, ai, dietRequestDto.getAi().getAiKey()));
+	    Optional<AiUserEntity> aiUser = dietGenerationContext.check(aiName, dietRequestDto.getAi(), user);
+	    if(aiUser.isEmpty()) {
+	    	saveAiUser(user, ai, dietRequestDto.getAi().getAiKey());
+	    }
 	    DietStartMessage dietStartMessage = prepareDietStartMessage(user.getId(), dietRequestDto);
 	    dietProducer.sendStartDietMessage(dietStartMessage);
 	    CommonResponseDto commonResponseDto = new CommonResponseDto();

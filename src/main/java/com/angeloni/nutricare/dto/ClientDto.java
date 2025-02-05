@@ -1,6 +1,5 @@
 package com.angeloni.nutricare.dto;
 
-import java.io.Serializable;
 import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
@@ -9,10 +8,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class ClientDto implements Serializable {
+public class ClientDto {
 
-	private static final long serialVersionUID = 2244417344498037719L;
-	
 	private Long id;
 	@NotBlank(message = "Name is required")
 	@Size(min = 2, message = "name must be min 2 characters")

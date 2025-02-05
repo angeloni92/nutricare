@@ -2,8 +2,6 @@ package com.angeloni.nutricare.service;
 
 import java.util.List;
 
-import javax.naming.AuthenticationException;
-
 import com.angeloni.nutricare.dto.ClientDto;
 
 public interface ClientService {

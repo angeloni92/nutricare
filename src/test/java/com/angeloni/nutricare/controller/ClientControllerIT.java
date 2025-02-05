@@ -3,7 +3,6 @@ package com.angeloni.nutricare.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -18,10 +17,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -44,14 +41,9 @@ public class ClientControllerIT extends AbstractControllerIT {
 		UserEntity user = UserEntity.builder().username("testuser").email("testemail@gmail.com")
 				.password("Test_passw_12345678").emailConfirmed(Boolean.TRUE).build();
 		userRepository.saveAndFlush(user);
-		UserDetails userDetails = User.withUsername("testuser").password("password").roles("USER").build();
-
-		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
-				userDetails.getPassword(), userDetails.getAuthorities());
-
-		SecurityContext context = mock(SecurityContext.class);
-		SecurityContextHolder.setContext(context);
-		context.setAuthentication(authentication);
+		
+		Authentication authentication = new UsernamePasswordAuthenticationToken(user, user.getPassword(), null);
+	    SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
 
 	@AfterEach
@@ -63,7 +55,7 @@ public class ClientControllerIT extends AbstractControllerIT {
 	 * SAVE
 	 */
 	@Test
-	@WithMockUser(username = "testuser", roles = "USER")
+	@WithMockUser(username = "testuser")
 	void givenValidClientDto_whenSaveClient_thenOKStatus200_ClientSaved() throws Exception {
 		// Given
 		ClientDto clientDto = new ClientDto();
@@ -103,7 +95,7 @@ public class ClientControllerIT extends AbstractControllerIT {
 	}
 
 	@Test
-	@WithMockUser(username = "testuser", roles = "USER")
+	@WithMockUser(username = "testuser")
 	void givenValidClientDtoAndClientAlreadyPresent_whenSaveClient_thenKOStatus409_ConflictException()
 			throws Exception {
 		// Given
@@ -146,7 +138,7 @@ public class ClientControllerIT extends AbstractControllerIT {
 	}
 	
 	@Test
-	@WithMockUser(username = "testuser", roles = "USER")
+	@WithMockUser(username = "testuser")
 	void givenCorrectRequest_whenGetClients_thenOKStatus200_ListOfClientsReturned()
 			throws Exception {
 		// Given
@@ -181,7 +173,7 @@ public class ClientControllerIT extends AbstractControllerIT {
 	}
 	
 	@Test
-	@WithMockUser(username = "testuser", roles = "USER")
+	@WithMockUser(username = "testuser")
 	void givenCorrectRequest_whenGetClients_thenOKStatus200_EmptyListReturned()
 			throws Exception {
 		// Expected
