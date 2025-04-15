@@ -10,4 +10,9 @@
         <sqlFile path="db/changelog/dml/ai/insert_ai.sql" dbms="h2"/>
     </changeSet>
     
+    <changeSet id="insert_ai_gpt3" author="angeloni">
+        <sqlFile path="db/changelog/dml/ai/insert_ai_gpt3.sql" dbms="mysql"/>
+        <sqlFile path="db/changelog/dml/ai/insert_ai_gpt3.sql" dbms="h2"/>
+    </changeSet>
+    
 </databaseChangeLog>

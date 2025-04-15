@@ -2,6 +2,7 @@ package com.angeloni.nutricare.enums;
 
 public enum AIModelEnum {
 
+	GPT3TURBO("GPT3TURBO"),
 	GPT4O("GPT4O"),
 	OPENAIO1("OPENAIO1");
 		
