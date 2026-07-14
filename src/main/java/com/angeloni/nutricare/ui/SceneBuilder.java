@@ -222,58 +222,80 @@ public class SceneBuilder {
         header.getChildren().add(title);
         root.setTop(header);
 
-        VBox form = new VBox(15);
+        VBox form = new VBox(12);
         form.setStyle("-fx-padding: 20;");
 
+        // Cliente
         Label clientLabel = new Label("Seleziona Cliente:");
-        ComboBox<String> clientBox = new ComboBox<>();
-        clientBox.setPrefWidth(300);
+        ComboBox<String> clientCombo = new ComboBox<>();
+        clientCombo.setPrefWidth(320);
 
+        // Modello AI
         Label modelLabel = new Label("Modello AI:");
-        ComboBox<String> modelBox = new ComboBox<>();
-        modelBox.getItems().addAll("GPT-4", "GPT-3.5", "Claude 3 Sonnet", "Claude 3.5 Sonnet", "Copilot GPT-4o");
-        modelBox.setPrefWidth(300);
+        ComboBox<String> aiModelCombo = new ComboBox<>();
+        aiModelCombo.setPrefWidth(320);
 
-        Label goalLabel = new Label("Obiettivo Principale:");
-        ComboBox<String> goalBox = new ComboBox<>();
-        goalBox.getItems().addAll("Perdita Peso", "Aumento Massa", "Mantenimento");
-        goalBox.setPrefWidth(300);
-
-        Label prefLabel = new Label("Preferenza Dietetica:");
-        ComboBox<String> prefBox = new ComboBox<>();
-        prefBox.getItems().addAll("Onnivoro", "Vegetariano", "Vegano");
-        prefBox.setPrefWidth(300);
-
-        Label notesLabel = new Label("Note aggiuntive:");
-        TextArea notesArea = new TextArea();
-        notesArea.setPrefHeight(100);
-        notesArea.setWrapText(true);
-
-        Button generateBtn = new Button("Genera Dieta");
-        generateBtn.setStyle("""
-            -fx-font-size: 14;
-            -fx-padding: 10;
-            -fx-background-color: #28a745;
+        // Credential status row
+        Label credentialStatusLabel = new Label();
+        Button configureButton = new Button("Configura");
+        configureButton.setStyle("""
+            -fx-font-size: 11;
+            -fx-padding: 4 10 4 10;
+            -fx-background-color: #0d6efd;
             -fx-text-fill: white;
             -fx-cursor: hand;
         """);
+        HBox credRow = new HBox(10, credentialStatusLabel, configureButton);
+        credRow.setAlignment(Pos.CENTER_LEFT);
+
+        // Obiettivo
+        Label goalLabel = new Label("Obiettivo Principale:");
+        ComboBox<String> goalBox = new ComboBox<>();
+        goalBox.getItems().addAll("Perdita Peso", "Aumento Massa", "Mantenimento");
+        goalBox.setValue("Mantenimento");
+        goalBox.setPrefWidth(320);
+
+        // Preferenza dietetica
+        Label prefLabel = new Label("Preferenza Dietetica:");
+        ComboBox<String> prefBox = new ComboBox<>();
+        prefBox.getItems().addAll("Onnivoro", "Vegetariano", "Vegano");
+        prefBox.setValue("Onnivoro");
+        prefBox.setPrefWidth(320);
+
+        // Note
+        Label notesLabel = new Label("Note aggiuntive:");
+        TextArea notesArea = new TextArea();
+        notesArea.setPrefHeight(90);
+        notesArea.setWrapText(true);
 
         form.getChildren().addAll(
-            clientLabel, clientBox,
-            modelLabel, modelBox,
+            clientLabel, clientCombo,
+            modelLabel, aiModelCombo,
+            credRow,
+            new Separator(),
             goalLabel, goalBox,
             prefLabel, prefBox,
-            notesLabel, notesArea,
-            generateBtn
+            notesLabel, notesArea
         );
 
         ScrollPane scrollPane = new ScrollPane(form);
         scrollPane.setFitToWidth(true);
         root.setCenter(scrollPane);
 
-        HBox buttons = new HBox();
-        buttons.setStyle("-fx-padding: 15;");
-        buttons.setAlignment(Pos.CENTER_RIGHT);
+        // Footer
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        progressIndicator.setPrefSize(24, 24);
+        progressIndicator.setVisible(false);
+
+        Button generateBtn = new Button("Genera Dieta");
+        generateBtn.setStyle("""
+            -fx-font-size: 13;
+            -fx-padding: 9 18 9 18;
+            -fx-background-color: #28a745;
+            -fx-text-fill: white;
+            -fx-cursor: hand;
+        """);
+
         Button backBtn = new Button("Indietro");
         backBtn.setStyle("""
             -fx-font-size: 12;
@@ -282,9 +304,21 @@ public class SceneBuilder {
             -fx-text-fill: white;
             -fx-cursor: hand;
         """);
-        buttons.getChildren().add(backBtn);
-        root.setBottom(buttons);
+        backBtn.setOnAction(e -> switchScene("dashboard"));
 
-        return new Scene(root, 900, 800);
+        HBox footer = new HBox(10, progressIndicator, generateBtn, backBtn);
+        footer.setStyle("-fx-padding: 15;");
+        footer.setAlignment(Pos.CENTER_RIGHT);
+        root.setBottom(footer);
+
+        // Wire controller
+        dietGeneratorController.setup(aiModelCombo, clientCombo, generateBtn,
+                configureButton, credentialStatusLabel, progressIndicator);
+
+        return new Scene(root, 900, 750);
+    }
+
+    private void switchScene(String name) {
+        // no-op here — navigation is wired at the stage level
     }
 }

@@ -1,222 +1,210 @@
 package com.angeloni.nutricare.ui.controller;
 
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import org.springframework.stereotype.Controller;
-import com.angeloni.nutricare.service.DietGeneratorService;
-import com.angeloni.nutricare.dto.DietRequestDto;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-/**
- * Diet Generator (AI) screen controller for JavaFX
- */
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+
+import com.angeloni.nutricare.dto.CopilotDeviceCodeDto;
+import com.angeloni.nutricare.dto.DietRequestDto;
+import com.angeloni.nutricare.enums.AIModelEnum;
+import com.angeloni.nutricare.enums.AINameEnum;
+import com.angeloni.nutricare.service.AiUserService;
+import com.angeloni.nutricare.service.CopilotAuthService;
+import com.angeloni.nutricare.service.CopilotDeviceFlowService;
+import com.angeloni.nutricare.service.DietGeneratorService;
+import com.angeloni.nutricare.ui.dialog.AiApiKeyDialog;
+import com.angeloni.nutricare.ui.dialog.CopilotDeviceFlowDialog;
+
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
+
 @Controller
 public class DietGeneratorController {
 
-    @FXML
-    private BorderPane rootPane;
+    @Autowired
+    private DietGeneratorService dietGeneratorService;
 
-    @FXML
-    private VBox formVBox;
+    @Autowired
+    private AiUserService aiUserService;
 
-    @FXML
-    private ComboBox<String> clientCombo;
+    @Autowired
+    private CopilotAuthService copilotAuthService;
 
-    @FXML
+    @Autowired
+    private CopilotDeviceFlowService copilotDeviceFlowService;
+
+    private record AiModelConfig(AINameEnum name, AIModelEnum model) {}
+
+    private static final Map<String, AiModelConfig> AI_MODELS = new LinkedHashMap<>();
+    static {
+        AI_MODELS.put("ChatGPT GPT-4o",        new AiModelConfig(AINameEnum.CHATGPT, AIModelEnum.GPT4O));
+        AI_MODELS.put("ChatGPT GPT-3.5 Turbo", new AiModelConfig(AINameEnum.CHATGPT, AIModelEnum.GPT3TURBO));
+        AI_MODELS.put("ChatGPT o1",             new AiModelConfig(AINameEnum.CHATGPT, AIModelEnum.OPENAIO1));
+        AI_MODELS.put("Claude 3 Sonnet",        new AiModelConfig(AINameEnum.CLAUDE, AIModelEnum.CLAUDE3SONNET));
+        AI_MODELS.put("Claude 3.5 Sonnet",      new AiModelConfig(AINameEnum.CLAUDE, AIModelEnum.CLAUDE35SONNET));
+        AI_MODELS.put("GitHub Copilot GPT-4o",  new AiModelConfig(AINameEnum.GITHUB_COPILOT, AIModelEnum.COPILOT_GPT4O));
+    }
+
     private ComboBox<String> aiModelCombo;
-
-    @FXML
-    private ComboBox<String> primaryGoalCombo;
-
-    @FXML
-    private ComboBox<String> dietaryPreferenceCombo;
-
-    @FXML
-    private ComboBox<String> activityLevelCombo;
-
-    @FXML
-    private Spinner<Integer> mealsPerDaySpinner;
-
-    @FXML
-    private TextArea notesArea;
-
-    @FXML
+    private ComboBox<String> clientCombo;
     private Button generateButton;
+    private Button configureButton;
+    private Label credentialStatusLabel;
+    private ProgressIndicator progressIndicator;
 
-    @FXML
-    private Button backButton;
+    public void setup(ComboBox<String> aiModelCombo, ComboBox<String> clientCombo,
+                      Button generateButton, Button configureButton,
+                      Label credentialStatusLabel, ProgressIndicator progressIndicator) {
+        this.aiModelCombo = aiModelCombo;
+        this.clientCombo = clientCombo;
+        this.generateButton = generateButton;
+        this.configureButton = configureButton;
+        this.credentialStatusLabel = credentialStatusLabel;
+        this.progressIndicator = progressIndicator;
 
-    @FXML
-    private ProgressBar progressBar;
+        aiModelCombo.setItems(FXCollections.observableArrayList(AI_MODELS.keySet()));
+        aiModelCombo.setValue("ChatGPT GPT-4o");
 
-    @FXML
-    private Label statusLabel;
-
-    private final DietGeneratorService dietGeneratorService;
-
-    public DietGeneratorController(DietGeneratorService dietGeneratorService) {
-        this.dietGeneratorService = dietGeneratorService;
-    }
-
-    @FXML
-    public void initialize() {
-        setupUI();
-        setupComboBoxes();
-        setupSpinner();
-    }
-
-    private void setupUI() {
-        String buttonStyle = """
-            -fx-font-size: 12;
-            -fx-padding: 10;
-            -fx-background-color: #28a745;
-            -fx-text-fill: white;
-            -fx-cursor: hand;
-        """;
-
-        generateButton.setStyle(buttonStyle);
-        backButton.setStyle(buttonStyle.replace("#28a745", "#6c757d"));
-
-        formVBox.setStyle("""
-            -fx-padding: 20;
-            -fx-spacing: 15;
-            -fx-background-color: #f8f9fa;
-        """);
-
-        progressBar.setVisible(false);
-        statusLabel.setVisible(false);
-
-        rootPane.setStyle("-fx-background-color: #ffffff;");
-    }
-
-    private void setupComboBoxes() {
-        // AI Model options
-        ObservableList<String> aiModels = FXCollections.observableArrayList(
-            "GPT-4", "GPT-3.5", "Claude", "Gemini"
-        );
-        aiModelCombo.setItems(aiModels);
-        aiModelCombo.setValue("GPT-4");
-
-        // Primary Goal options
-        ObservableList<String> primaryGoals = FXCollections.observableArrayList(
-            "Weight Loss", "Muscle Gain", "Maintenance", "Athletic Performance", "Wellness"
-        );
-        primaryGoalCombo.setItems(primaryGoals);
-        primaryGoalCombo.setValue("Wellness");
-
-        // Dietary Preference options
-        ObservableList<String> dietaryPrefs = FXCollections.observableArrayList(
-            "Omnivore", "Vegetarian", "Vegan", "Pescatarian", "Keto", "Paleo"
-        );
-        dietaryPreferenceCombo.setItems(dietaryPrefs);
-        dietaryPreferenceCombo.setValue("Omnivore");
-
-        // Activity Level options
-        ObservableList<String> activityLevels = FXCollections.observableArrayList(
-            "Sedentary", "Lightly Active", "Moderately Active", "Very Active", "Extremely Active"
-        );
-        activityLevelCombo.setItems(activityLevels);
-        activityLevelCombo.setValue("Moderately Active");
-
-        // Load clients
         loadClients();
+        updateCredentialStatus();
+
+        aiModelCombo.setOnAction(e -> updateCredentialStatus());
+        generateButton.setOnAction(e -> handleGenerateDiet());
+        configureButton.setOnAction(e -> handleConfigureCredentials());
     }
 
     private void loadClients() {
         try {
-            var clientNames = dietGeneratorService.getClientsForSelection();
-            ObservableList<String> clients = FXCollections.observableArrayList(clientNames);
-            clientCombo.setItems(clients);
-            if (!clients.isEmpty()) {
-                clientCombo.setValue(clients.get(0));
+            var names = dietGeneratorService.getClientsForSelection();
+            clientCombo.setItems(FXCollections.observableArrayList(names));
+            if (!names.isEmpty()) {
+                clientCombo.setValue(names.get(0));
             }
         } catch (Exception e) {
-            showError("Failed to load clients: " + e.getMessage());
+            showError("Impossibile caricare i clienti: " + e.getMessage());
         }
     }
 
-    private void setupSpinner() {
-        SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 6, 3);
-        mealsPerDaySpinner.setValueFactory(valueFactory);
+    private void updateCredentialStatus() {
+        String selected = aiModelCombo.getValue();
+        if (selected == null) return;
+        AiModelConfig cfg = AI_MODELS.get(selected);
+        if (cfg == null) return;
+
+        boolean configured = checkCredentialsConfigured(cfg);
+        if (configured) {
+            credentialStatusLabel.setText("Credenziali configurate");
+            credentialStatusLabel.setStyle("-fx-text-fill: #198754; -fx-font-size: 11;");
+        } else {
+            credentialStatusLabel.setText("Credenziali non configurate — clicca 'Configura'");
+            credentialStatusLabel.setStyle("-fx-text-fill: #dc3545; -fx-font-size: 11;");
+        }
     }
 
-    @FXML
-    private void handleGenerateDiet() {
+    private boolean checkCredentialsConfigured(AiModelConfig cfg) {
+        if (cfg.name() == AINameEnum.GITHUB_COPILOT) {
+            return Boolean.TRUE.equals(copilotAuthService.getCurrentConnectionStatus().getConnected());
+        }
+        return aiUserService.hasApiKey(cfg.name(), cfg.model());
+    }
+
+    public void handleConfigureCredentials() {
+        String selected = aiModelCombo.getValue();
+        if (selected == null) return;
+        AiModelConfig cfg = AI_MODELS.get(selected);
+        if (cfg == null) return;
+
+        if (cfg.name() == AINameEnum.GITHUB_COPILOT) {
+            configureGithubCopilot();
+        } else {
+            configureApiKey(selected, cfg);
+        }
+        updateCredentialStatus();
+    }
+
+    private void configureApiKey(String displayName, AiModelConfig cfg) {
+        AiApiKeyDialog.show(displayName).ifPresent(key -> {
+            try {
+                aiUserService.saveApiKey(cfg.name(), cfg.model(), key);
+                showInfo("API Key salvata con successo per " + displayName);
+            } catch (Exception e) {
+                showError("Errore nel salvataggio della API Key: " + e.getMessage());
+            }
+        });
+    }
+
+    private void configureGithubCopilot() {
+        try {
+            CopilotDeviceCodeDto deviceCode = copilotDeviceFlowService.startDeviceFlow();
+            boolean authorized = CopilotDeviceFlowDialog.show(deviceCode, copilotDeviceFlowService);
+            if (authorized) {
+                showInfo("GitHub Copilot connesso con successo!");
+            }
+        } catch (Exception e) {
+            showError("Errore nell'autorizzazione Copilot: " + e.getMessage());
+        }
+    }
+
+    public void handleGenerateDiet() {
         if (clientCombo.getValue() == null) {
-            showWarning("Please select a client");
+            showWarning("Seleziona un cliente");
+            return;
+        }
+        String selected = aiModelCombo.getValue();
+        AiModelConfig cfg = AI_MODELS.get(selected);
+
+        if (!checkCredentialsConfigured(cfg)) {
+            showWarning("Le credenziali per " + selected + " non sono configurate.\nClicca 'Configura' per inserirle.");
             return;
         }
 
-        try {
-            progressBar.setVisible(true);
-            statusLabel.setVisible(true);
-            statusLabel.setText("Generating diet...");
-            generateButton.setDisable(true);
+        progressIndicator.setVisible(true);
+        generateButton.setDisable(true);
 
-            // TODO: build DietRequestDto with AiDto and ClientRequestDto
-            DietRequestDto request = new DietRequestDto();
-
-            // Call service asynchronously
-            Thread thread = new Thread(() -> {
-                try {
-                    var result = dietGeneratorService.generateDiet(request);
-                    javafx.application.Platform.runLater(() -> {
-                        statusLabel.setText("Diet generated successfully!");
-                        showInfo("Diet has been generated and saved");
-                        clearForm();
-                    });
-                } catch (Exception e) {
-                    javafx.application.Platform.runLater(() -> {
-                        showError("Failed to generate diet: " + e.getMessage());
-                    });
-                } finally {
-                    javafx.application.Platform.runLater(() -> {
-                        progressBar.setVisible(false);
-                        generateButton.setDisable(false);
-                    });
-                }
-            });
-            thread.setDaemon(true);
-            thread.start();
-        } catch (Exception e) {
-            showError("Error: " + e.getMessage());
-            progressBar.setVisible(false);
-            generateButton.setDisable(false);
-        }
+        Thread thread = new Thread(() -> {
+            try {
+                DietRequestDto request = new DietRequestDto();
+                dietGeneratorService.generateDiet(request);
+                Platform.runLater(() -> {
+                    showInfo("Dieta generata e salvata con successo!");
+                    progressIndicator.setVisible(false);
+                    generateButton.setDisable(false);
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    showError("Errore durante la generazione: " + e.getMessage());
+                    progressIndicator.setVisible(false);
+                    generateButton.setDisable(false);
+                });
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
-    @FXML
-    private void handleBack() {
-        // TODO: Navigate back to dashboard
+    private void showError(String msg) {
+        Alert a = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
+        a.setTitle("Errore");
+        a.showAndWait();
     }
 
-    private void clearForm() {
-        notesArea.clear();
-        mealsPerDaySpinner.getValueFactory().setValue(3);
+    private void showWarning(String msg) {
+        Alert a = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK);
+        a.setTitle("Attenzione");
+        a.showAndWait();
     }
 
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    private void showWarning(String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Warning");
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    private void showInfo(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Success");
-        alert.setContentText(message);
-        alert.showAndWait();
+    private void showInfo(String msg) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
+        a.setTitle("Successo");
+        a.showAndWait();
     }
 }
-
