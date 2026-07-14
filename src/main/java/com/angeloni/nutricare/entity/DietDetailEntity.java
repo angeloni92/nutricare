@@ -65,7 +65,7 @@ public class DietDetailEntity implements Serializable {
 	private Integer caloryTarget;
 	
 	@Enumerated(EnumType.STRING)
-	@Column(name = "month", nullable = false, length = 255)
+	@Column(name = "diet_month", nullable = false, length = 255)
 	private Month month;
 	
 	@Enumerated(EnumType.STRING)

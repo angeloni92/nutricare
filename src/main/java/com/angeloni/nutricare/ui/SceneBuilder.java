@@ -10,20 +10,20 @@ import javafx.geometry.Pos;
 import org.springframework.stereotype.Component;
 import com.angeloni.nutricare.ui.controller.*;
 
-/**
- * Builds and creates JavaFX scenes programmatically
- */
 @Component
 public class SceneBuilder {
 
+    private final StageManager stageManager;
     private final DashboardController dashboardController;
     private final ClientController clientController;
     private final DietController dietController;
     private final DietGeneratorController dietGeneratorController;
 
-    public SceneBuilder(DashboardController dashboardController,
+    public SceneBuilder(StageManager stageManager,
+                        DashboardController dashboardController,
                         ClientController clientController, DietController dietController,
                         DietGeneratorController dietGeneratorController) {
+        this.stageManager = stageManager;
         this.dashboardController = dashboardController;
         this.clientController = clientController;
         this.dietController = dietController;
@@ -84,6 +84,10 @@ public class SceneBuilder {
         clientsButton.setStyle(buttonStyle);
         dietButton.setStyle(buttonStyle);
         dietGenButton.setStyle(buttonStyle);
+
+        clientsButton.setOnAction(e -> stageManager.switchScene("client"));
+        dietButton.setOnAction(e -> stageManager.switchScene("diet"));
+        dietGenButton.setOnAction(e -> stageManager.switchScene("diet-generator"));
 
         VBox spacer = new VBox();
         VBox.setVgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
@@ -151,6 +155,7 @@ public class SceneBuilder {
         deleteBtn.setStyle(buttonStyle + "-fx-background-color: #dc3545; -fx-text-fill: white;");
         Button backBtn = new Button("Indietro");
         backBtn.setStyle(buttonStyle + "-fx-background-color: #6c757d; -fx-text-fill: white;");
+        backBtn.setOnAction(e -> stageManager.switchScene("dashboard"));
 
         buttons.getChildren().addAll(addBtn, editBtn, deleteBtn, backBtn);
         root.setBottom(buttons);
@@ -201,6 +206,7 @@ public class SceneBuilder {
         deleteBtn.setStyle(buttonStyle + "-fx-background-color: #dc3545; -fx-text-fill: white;");
         Button backBtn = new Button("Indietro");
         backBtn.setStyle(buttonStyle + "-fx-background-color: #6c757d; -fx-text-fill: white;");
+        backBtn.setOnAction(e -> stageManager.switchScene("dashboard"));
 
         buttons.getChildren().addAll(viewBtn, generateBtn, deleteBtn, backBtn);
         root.setBottom(buttons);
@@ -304,21 +310,16 @@ public class SceneBuilder {
             -fx-text-fill: white;
             -fx-cursor: hand;
         """);
-        backBtn.setOnAction(e -> switchScene("dashboard"));
+        backBtn.setOnAction(e -> stageManager.switchScene("dashboard"));
 
         HBox footer = new HBox(10, progressIndicator, generateBtn, backBtn);
         footer.setStyle("-fx-padding: 15;");
         footer.setAlignment(Pos.CENTER_RIGHT);
         root.setBottom(footer);
 
-        // Wire controller
         dietGeneratorController.setup(aiModelCombo, clientCombo, generateBtn,
                 configureButton, credentialStatusLabel, progressIndicator);
 
         return new Scene(root, 900, 750);
-    }
-
-    private void switchScene(String name) {
-        // no-op here — navigation is wired at the stage level
     }
 }
