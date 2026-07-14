@@ -57,4 +57,10 @@ public class ClientServiceImpl implements ClientService {
 				.collect(Collectors.toList());
 	}
 
+	@Override
+	@Transactional
+	public void deleteClientById(Long id) {
+		clientRepository.deleteById(id);
+	}
+
 }

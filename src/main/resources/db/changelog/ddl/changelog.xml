@@ -7,34 +7,52 @@
 
     <changeSet id="create_users" author="angeloni">
         <sqlFile path="db/changelog/ddl/users/create_users.sql" dbms="mysql"/>
+        <sqlFile path="db/changelog/ddl/users/create_users.sql" dbms="h2"/>
     </changeSet>
     
     <changeSet id="create_ai" author="angeloni">
         <sqlFile path="db/changelog/ddl/ai/create_ai.sql" dbms="mysql"/>
+        <sqlFile path="db/changelog/ddl/ai/create_ai.sql" dbms="h2"/>
     </changeSet>
     
     <changeSet id="create_ai_users" author="angeloni">
         <sqlFile path="db/changelog/ddl/ai_users/create_ai_users.sql" dbms="mysql"/>
+        <sqlFile path="db/changelog/ddl/ai_users/create_ai_users.sql" dbms="h2"/>
     </changeSet>
     
     <changeSet id="create_clients" author="angeloni">
         <sqlFile path="db/changelog/ddl/clients/create_clients.sql" dbms="mysql"/>
+        <sqlFile path="db/changelog/ddl/clients/create_clients.sql" dbms="h2"/>
     </changeSet>
     
     <changeSet id="create_diet_details" author="angeloni">
         <sqlFile path="db/changelog/ddl/diet_details/create_diet_details.sql" dbms="mysql"/>
+        <sqlFile path="db/changelog/ddl/diet_details/create_diet_details.sql" dbms="h2"/>
     </changeSet>
     
     <changeSet id="create_anthropometries" author="angeloni">
         <sqlFile path="db/changelog/ddl/anthropometries/create_anthropometries.sql" dbms="mysql"/>
+        <sqlFile path="db/changelog/ddl/anthropometries/create_anthropometries.sql" dbms="h2"/>
     </changeSet>
     
     <changeSet id="create_folds" author="angeloni">
         <sqlFile path="db/changelog/ddl/folds/create_folds.sql" dbms="mysql"/>
+        <sqlFile path="db/changelog/ddl/folds/create_folds.sql" dbms="h2"/>
     </changeSet>
     
     <changeSet id="create_circumferences" author="angeloni">
         <sqlFile path="db/changelog/ddl/circumferences/create_circumferences.sql" dbms="mysql"/>
+        <sqlFile path="db/changelog/ddl/circumferences/create_circumferences.sql" dbms="h2"/>
+    </changeSet>
+
+    <changeSet id="create_copilot_connections" author="angeloni">
+        <sqlFile path="db/changelog/ddl/copilot_connections/create_copilot_connections.sql" dbms="mysql"/>
+        <sqlFile path="db/changelog/ddl/copilot_connections/create_copilot_connections.sql" dbms="h2"/>
+    </changeSet>
+
+    <changeSet id="create_diet_results" author="angeloni">
+        <sqlFile path="db/changelog/ddl/diet_results/create_diet_results.sql" dbms="mysql"/>
+        <sqlFile path="db/changelog/ddl/diet_results/create_diet_results.sql" dbms="h2"/>
     </changeSet>
 
 </databaseChangeLog>

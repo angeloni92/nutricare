@@ -1,5 +1,7 @@
 package com.angeloni.nutricare.service;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.angeloni.nutricare.check.AiCheckContext;
 import com.angeloni.nutricare.dto.CommonResponseDto;
+import com.angeloni.nutricare.dto.DietDetailDto;
 import com.angeloni.nutricare.dto.DietRequestDto;
 import com.angeloni.nutricare.entity.AiEntity;
 import com.angeloni.nutricare.entity.AiUserEntity;
@@ -40,6 +43,9 @@ public class DietServiceImpl implements DietService {
 	@Autowired
 	private AuthService authService;
 
+	@Autowired
+	private CopilotAuthService copilotAuthService;
+
 	/**
 	 * Generates a personalized diet plan using AI based on the provided request details.
 	 * 
@@ -67,9 +73,13 @@ public class DietServiceImpl implements DietService {
 				.findByNameAndModel(dietRequestDto.getAi().getName(), dietRequestDto.getAi().getModel())
 				.orElseThrow(() -> new NotFoundException(String.format(DietService.AI_NOT_FOUND_FORMAT,
 						dietRequestDto.getAi().getName().getValue(), dietRequestDto.getAi().getModel())));
-		String aiName = AINameEnum.CHATGPT.getValue();	
+		String aiName = dietRequestDto.getAi().getName().getValue();
+		if (AINameEnum.GITHUB_COPILOT.getValue().equals(aiName) && dietRequestDto.getAi().getAiKey() == null) {
+			// For Copilot SSO we hydrate the runtime token from encrypted server-side storage.
+			dietRequestDto.getAi().setAiKey(copilotAuthService.resolveAccessTokenForUser(user));
+		}
 	    Optional<AiUserEntity> aiUser = dietGenerationContext.check(aiName, dietRequestDto.getAi(), user);
-	    if(aiUser.isEmpty()) {
+	    if(aiUser.isEmpty() && !AINameEnum.GITHUB_COPILOT.getValue().equals(aiName)) {
 	    	saveAiUser(user, ai, dietRequestDto.getAi().getAiKey());
 	    }
 	    DietStartMessage dietStartMessage = prepareDietStartMessage(user.getId(), dietRequestDto);
@@ -122,6 +132,16 @@ public class DietServiceImpl implements DietService {
 	 * @see UserEntity
 	 * @see AiEntity
 	 */
+	@Override
+	public List<DietDetailDto> getAllDiets() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public void deleteDiet(Long id) {
+		// TODO: implement
+	}
+
 	private AiUserEntity saveAiUser(UserEntity user, AiEntity ai, String aiKey) {
 		log.info(String.format(SAVE_AI_KEY_FORMAT, aiKey, user.getId()));
 		return aiUserRepository.saveAndFlush(AiUserEntity.builder().user(user).ai(ai).aiKey(aiKey).build());

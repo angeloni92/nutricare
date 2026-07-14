@@ -1,6 +1,9 @@
 package com.angeloni.nutricare.service;
 
+import java.util.List;
+
 import com.angeloni.nutricare.dto.CommonResponseDto;
+import com.angeloni.nutricare.dto.DietDetailDto;
 import com.angeloni.nutricare.dto.DietRequestDto;
 
 public interface DietService {
@@ -12,4 +15,8 @@ public interface DietService {
 	public static final String SUCCESS_STATUS = "Success";
 	
 	CommonResponseDto generateDiet(DietRequestDto dietRequest);
+
+	List<DietDetailDto> getAllDiets();
+
+	void deleteDiet(Long id);
 }

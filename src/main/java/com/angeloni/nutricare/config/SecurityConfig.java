@@ -50,8 +50,14 @@ public class SecurityConfig extends OncePerRequestFilter {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.cors().and().csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(
-						authz -> authz.requestMatchers("/auth/register", "/auth/confirm", "/auth/login").permitAll()
-								.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll().anyRequest().authenticated())
+						authz -> authz
+								.requestMatchers("/", "/index.html", "/static/**", "/assets/**", "/*.css", "/*.js").permitAll()
+								.requestMatchers("/auth/register", "/auth/confirm", "/auth/login", "/auth/copilot/callback")
+								.permitAll()
+								.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+								.requestMatchers("/swagger-ui**", "/v3/api-docs/**").permitAll()
+								.requestMatchers("/actuator/**").permitAll()
+								.anyRequest().authenticated())
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.httpBasic(Customizer.withDefaults());
 
@@ -61,10 +67,18 @@ public class SecurityConfig extends OncePerRequestFilter {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
-		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-		configuration.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization", "X-Refresh-Token"));
+		// Allow localhost on any port and common development origins
+		configuration.setAllowedOrigins(Arrays.asList(
+			"http://localhost:4200",
+			"http://localhost:8080",
+			"http://localhost:3000",
+			"http://127.0.0.1:4200",
+			"http://127.0.0.1:8080"
+		));
+		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+		configuration.setAllowedHeaders(Arrays.asList("*"));
 		configuration.setAllowCredentials(true);
+		configuration.setMaxAge(3600L);
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);
 		return source;

@@ -9,6 +9,8 @@ public interface ClientService {
 	public static final String CLIENT_ALREADY_PRESENT_FORMAT = "Client name: [%s], surname : [%s] is already present";
 	
 	ClientDto saveClient(ClientDto clientDto);
-	
+
 	List<ClientDto> getClients();
+
+	void deleteClientById(Long id);
 }

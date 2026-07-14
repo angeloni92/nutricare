@@ -13,7 +13,8 @@ import lombok.Data;
 
 @Data
 public class DietDetailDto {
-	
+
+	private Long id;
 	private ActivityLevelEnum activityLevel;
 	private PrimaryGoalEnum primaryGoal;
 	private DietaryPreferenceEnum dietaryPreference;

@@ -11,6 +11,7 @@ import com.angeloni.nutricare.dto.AiDto;
 import com.angeloni.nutricare.entity.AiEntity;
 import com.angeloni.nutricare.entity.AiUserEntity;
 import com.angeloni.nutricare.entity.UserEntity;
+import com.angeloni.nutricare.enums.AINameEnum;
 import com.angeloni.nutricare.exception.AiKeyException;
 import com.angeloni.nutricare.repository.AiUserRepository;
 
@@ -19,17 +20,27 @@ import jakarta.annotation.PostConstruct;
 @Component
 public class AiCheckContext {
 	
-	public static final String CHATGPT = "CHATGPT";
+  public static final String CHATGPT = AINameEnum.CHATGPT.getValue();
+  public static final String CLAUDE = AINameEnum.CLAUDE.getValue();
+  public static final String GITHUB_COPILOT = AINameEnum.GITHUB_COPILOT.getValue();
 	private static final String AI_NOT_FOUND_FORMAT = "Strategy not found for AI: [%S]";
 	
 	@Autowired
 	private ChatGptCheckStrategy chatGptDietGenerationStrategy;
+
+  @Autowired
+  private ClaudeCheckStrategy claudeCheckStrategy;
+
+  @Autowired
+  private GithubCopilotCheckStrategy githubCopilotCheckStrategy;
 	
 	private final Map<String, AiCheckStrategy> strategies = new HashMap<>();
 
     @PostConstruct
     public void initStrategies() {
         strategies.put(CHATGPT, chatGptDietGenerationStrategy);
+		strategies.put(CLAUDE, claudeCheckStrategy);
+		strategies.put(GITHUB_COPILOT, githubCopilotCheckStrategy);
     }
 
     /**

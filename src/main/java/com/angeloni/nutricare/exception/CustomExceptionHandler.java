@@ -130,4 +130,11 @@ public class CustomExceptionHandler {
 				request.getDescription(false));
 		return new ResponseEntity<>(errorDetails, HttpStatus.CONFLICT);
 	}
+
+	@ExceptionHandler(AuthException.class)
+	public ResponseEntity<ErrorDetails> handleAuthException(AuthException ex, WebRequest request) {
+		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
+				request.getDescription(false));
+		return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
+	}
 }
