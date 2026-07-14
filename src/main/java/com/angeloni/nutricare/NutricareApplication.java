@@ -22,7 +22,8 @@ import javafx.stage.Stage;
 @EnableJpaRepositories(basePackages = "com.angeloni.nutricare.repository")
 @EntityScan("com.angeloni.nutricare.entity")
 public class NutricareApplication extends Application {
-	
+
+	public static Stage primaryStage;
 	private static String[] appArgs;
 	private static org.springframework.context.ConfigurableApplicationContext springContext;
 
@@ -33,6 +34,7 @@ public class NutricareApplication extends Application {
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+		NutricareApplication.primaryStage = primaryStage;
 		// Start Spring Boot context in a separate thread
 		new Thread(() -> {
 			springContext = SpringApplication.run(NutricareApplication.class, appArgs);

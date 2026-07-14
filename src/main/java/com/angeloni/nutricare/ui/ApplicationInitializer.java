@@ -3,6 +3,7 @@ package com.angeloni.nutricare.ui;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import com.angeloni.nutricare.NutricareApplication;
 import javafx.stage.Stage;
 import javafx.application.Platform;
 
@@ -30,6 +31,9 @@ public class ApplicationInitializer {
 
     private void initializeUI() {
         try {
+            // Wire the JavaFX primary stage (created before Spring Boot started)
+            stageManager.setPrimaryStage(NutricareApplication.primaryStage);
+
             // Build all scenes
             stageManager.setDashboardScene(sceneBuilder.buildDashboardScene());
             stageManager.setClientScene(sceneBuilder.buildClientScene());
