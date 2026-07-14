@@ -53,7 +53,7 @@ public class FoldEntity implements Serializable {
 	@Column(name = "triceps", nullable = false)
 	private Double triceps;
 	
-	@Column(name = "subscapolaris", nullable = false)
+	@Column(name = "subscapularis", nullable = false)
 	private Double subscapolaris;
 	
 	@Column(name = "thigh", nullable = false)

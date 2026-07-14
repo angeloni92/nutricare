@@ -93,9 +93,9 @@ public class CopilotDeviceFlowDialog {
 
         dialog.setScene(new Scene(root, 460, 460));
 
-        CompletableFuture<Void> polling = service.pollForToken(deviceCode.getDeviceCode(), deviceCode.getInterval());
+        CompletableFuture<String> polling = service.pollForToken(deviceCode.getDeviceCode(), deviceCode.getInterval());
 
-        polling.thenRun(() -> Platform.runLater(() -> {
+        polling.thenAccept(login -> Platform.runLater(() -> {
             authorized.set(true);
             dialog.close();
         })).exceptionally(ex -> {

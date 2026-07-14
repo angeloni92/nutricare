@@ -1,21 +1,32 @@
 package com.angeloni.nutricare.ui.controller;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import com.angeloni.nutricare.dto.CopilotDeviceCodeDto;
+import com.angeloni.nutricare.dto.AiDto;
+import com.angeloni.nutricare.dto.AnthropometryDto;
+import com.angeloni.nutricare.dto.ClientDto;
+import com.angeloni.nutricare.dto.ClientRequestDto;
+import com.angeloni.nutricare.dto.DietDetailDto;
 import com.angeloni.nutricare.dto.DietRequestDto;
+import com.angeloni.nutricare.enums.ActivityLevelEnum;
 import com.angeloni.nutricare.enums.AIModelEnum;
 import com.angeloni.nutricare.enums.AINameEnum;
+import com.angeloni.nutricare.enums.DietaryPreferenceEnum;
+import com.angeloni.nutricare.enums.PrimaryGoalEnum;
 import com.angeloni.nutricare.service.AiUserService;
-import com.angeloni.nutricare.service.CopilotAuthService;
+import com.angeloni.nutricare.service.AnthropometryService;
+import com.angeloni.nutricare.service.ClientService;
 import com.angeloni.nutricare.service.CopilotDeviceFlowService;
 import com.angeloni.nutricare.service.DietGeneratorService;
 import com.angeloni.nutricare.ui.dialog.AiApiKeyDialog;
-import com.angeloni.nutricare.ui.dialog.CopilotDeviceFlowDialog;
+import com.angeloni.nutricare.ui.dialog.CopilotAuthDialog;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -25,6 +36,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TextArea;
 
 @Controller
 public class DietGeneratorController {
@@ -36,56 +48,140 @@ public class DietGeneratorController {
     private AiUserService aiUserService;
 
     @Autowired
-    private CopilotAuthService copilotAuthService;
-
-    @Autowired
     private CopilotDeviceFlowService copilotDeviceFlowService;
 
-    private record AiModelConfig(AINameEnum name, AIModelEnum model) {}
+    @Autowired
+    private AnthropometryService anthropometryService;
 
-    private static final Map<String, AiModelConfig> AI_MODELS = new LinkedHashMap<>();
+    @Autowired
+    private ClientService clientService;
+
+    private static final Map<String, AINameEnum> PROVIDERS = new LinkedHashMap<>();
+    private static final Map<AINameEnum, Map<String, AIModelEnum>> PROVIDER_MODELS = new LinkedHashMap<>();
+
     static {
-        AI_MODELS.put("ChatGPT GPT-4o",        new AiModelConfig(AINameEnum.CHATGPT, AIModelEnum.GPT4O));
-        AI_MODELS.put("ChatGPT GPT-3.5 Turbo", new AiModelConfig(AINameEnum.CHATGPT, AIModelEnum.GPT3TURBO));
-        AI_MODELS.put("ChatGPT o1",             new AiModelConfig(AINameEnum.CHATGPT, AIModelEnum.OPENAIO1));
-        AI_MODELS.put("Claude 3 Sonnet",        new AiModelConfig(AINameEnum.CLAUDE, AIModelEnum.CLAUDE3SONNET));
-        AI_MODELS.put("Claude 3.5 Sonnet",      new AiModelConfig(AINameEnum.CLAUDE, AIModelEnum.CLAUDE35SONNET));
-        AI_MODELS.put("GitHub Copilot GPT-4o",  new AiModelConfig(AINameEnum.GITHUB_COPILOT, AIModelEnum.COPILOT_GPT4O));
+        PROVIDERS.put("ChatGPT (OpenAI)", AINameEnum.CHATGPT);
+        PROVIDERS.put("Claude (Anthropic)", AINameEnum.CLAUDE);
+        PROVIDERS.put("GitHub Copilot", AINameEnum.GITHUB_COPILOT);
+
+        Map<String, AIModelEnum> chatgptModels = new LinkedHashMap<>();
+        chatgptModels.put("GPT-4o  (consigliato)", AIModelEnum.GPT4O);
+        chatgptModels.put("GPT-4o mini  (economico)", AIModelEnum.GPT4O_MINI);
+        chatgptModels.put("GPT-4 Turbo", AIModelEnum.GPT4TURBO);
+        chatgptModels.put("GPT-4", AIModelEnum.GPT4);
+        chatgptModels.put("GPT-3.5 Turbo  (legacy)", AIModelEnum.GPT3TURBO);
+        chatgptModels.put("o1  (ragionamento avanzato)", AIModelEnum.OPENAIO1);
+        chatgptModels.put("o1-mini  (ragionamento leggero)", AIModelEnum.OPENAIO1MINI);
+        chatgptModels.put("o3-mini  (ragionamento v2)", AIModelEnum.OPENAIO3MINI);
+        chatgptModels.put("o4-mini  (ragionamento recente)", AIModelEnum.OPENAIO4MINI);
+        PROVIDER_MODELS.put(AINameEnum.CHATGPT, chatgptModels);
+
+        Map<String, AIModelEnum> claudeModels = new LinkedHashMap<>();
+        claudeModels.put("Claude Sonnet 4  (consigliato)", AIModelEnum.CLAUDE4SONNET);
+        claudeModels.put("Claude Opus 4  (potente)", AIModelEnum.CLAUDE4OPUS);
+        claudeModels.put("Claude 3.7 Sonnet  (avanzato)", AIModelEnum.CLAUDE37SONNET);
+        claudeModels.put("Claude 3.5 Sonnet", AIModelEnum.CLAUDE35SONNET);
+        claudeModels.put("Claude 3.5 Haiku  (veloce)", AIModelEnum.CLAUDE35HAIKU);
+        claudeModels.put("Claude 3 Opus  (legacy)", AIModelEnum.CLAUDE3OPUS);
+        claudeModels.put("Claude 3 Sonnet  (legacy)", AIModelEnum.CLAUDE3SONNET);
+        claudeModels.put("Claude 3 Haiku  (legacy veloce)", AIModelEnum.CLAUDE3HAIKU);
+        PROVIDER_MODELS.put(AINameEnum.CLAUDE, claudeModels);
+
+        Map<String, AIModelEnum> copilotModels = new LinkedHashMap<>();
+        copilotModels.put("GPT-4o  (consigliato)", AIModelEnum.COPILOT_GPT4O);
+        copilotModels.put("GPT-4o mini", AIModelEnum.COPILOT_GPT4O_MINI);
+        copilotModels.put("o1  (ragionamento)", AIModelEnum.COPILOT_O1);
+        copilotModels.put("o3-mini  (ragionamento v2)", AIModelEnum.COPILOT_O3MINI);
+        copilotModels.put("Claude 3.5 Sonnet", AIModelEnum.COPILOT_CLAUDE35SONNET);
+        copilotModels.put("Claude 3.7 Sonnet", AIModelEnum.COPILOT_CLAUDE37SONNET);
+        copilotModels.put("Gemini 1.5 Pro", AIModelEnum.COPILOT_GEMINI15PRO);
+        copilotModels.put("Gemini 2.0 Flash", AIModelEnum.COPILOT_GEMINI20FLASH);
+        PROVIDER_MODELS.put(AINameEnum.GITHUB_COPILOT, copilotModels);
     }
 
+    private ComboBox<String> providerCombo;
     private ComboBox<String> aiModelCombo;
     private ComboBox<String> clientCombo;
     private Button generateButton;
     private Button configureButton;
     private Label credentialStatusLabel;
     private ProgressIndicator progressIndicator;
+    private ComboBox<String> goalBox;
+    private ComboBox<String> prefBox;
+    private ComboBox<String> activityBox;
+    private TextArea notesArea;
 
-    public void setup(ComboBox<String> aiModelCombo, ComboBox<String> clientCombo,
-                      Button generateButton, Button configureButton,
-                      Label credentialStatusLabel, ProgressIndicator progressIndicator) {
+    private List<ClientDto> clientList = new ArrayList<>();
+
+    public void setup(ComboBox<String> providerCombo, ComboBox<String> aiModelCombo,
+                      ComboBox<String> clientCombo, Button generateButton,
+                      Button configureButton, Label credentialStatusLabel,
+                      ProgressIndicator progressIndicator,
+                      ComboBox<String> goalBox, ComboBox<String> prefBox,
+                      ComboBox<String> activityBox, TextArea notesArea) {
+        this.providerCombo = providerCombo;
         this.aiModelCombo = aiModelCombo;
         this.clientCombo = clientCombo;
         this.generateButton = generateButton;
         this.configureButton = configureButton;
         this.credentialStatusLabel = credentialStatusLabel;
         this.progressIndicator = progressIndicator;
+        this.goalBox = goalBox;
+        this.prefBox = prefBox;
+        this.activityBox = activityBox;
+        this.notesArea = notesArea;
 
-        aiModelCombo.setItems(FXCollections.observableArrayList(AI_MODELS.keySet()));
-        aiModelCombo.setValue("ChatGPT GPT-4o");
+        providerCombo.setItems(FXCollections.observableArrayList(PROVIDERS.keySet()));
+        providerCombo.setValue("ChatGPT (OpenAI)");
+        refreshModelCombo();
 
         loadClients();
+        clientCombo.setOnShowing(e -> loadClients());
         updateCredentialStatus();
 
+        providerCombo.setOnAction(e -> {
+            refreshModelCombo();
+            updateCredentialStatus();
+        });
         aiModelCombo.setOnAction(e -> updateCredentialStatus());
         generateButton.setOnAction(e -> handleGenerateDiet());
         configureButton.setOnAction(e -> handleConfigureCredentials());
     }
 
+    private void refreshModelCombo() {
+        AINameEnum provider = selectedProvider();
+        if (provider == null) return;
+        Map<String, AIModelEnum> models = PROVIDER_MODELS.get(provider);
+        if (models == null) return;
+        aiModelCombo.setItems(FXCollections.observableArrayList(models.keySet()));
+        aiModelCombo.getSelectionModel().selectFirst();
+    }
+
+    private AINameEnum selectedProvider() {
+        String p = providerCombo.getValue();
+        return p == null ? null : PROVIDERS.get(p);
+    }
+
+    private AIModelEnum selectedModel() {
+        AINameEnum provider = selectedProvider();
+        if (provider == null) return null;
+        String m = aiModelCombo.getValue();
+        if (m == null) return null;
+        Map<String, AIModelEnum> models = PROVIDER_MODELS.get(provider);
+        return models == null ? null : models.get(m);
+    }
+
     private void loadClients() {
         try {
-            var names = dietGeneratorService.getClientsForSelection();
+            clientList = clientService.getClients();
+            List<String> names = clientList.stream()
+                    .map(c -> c.getName() + " " + c.getSurname())
+                    .collect(Collectors.toList());
+            String current = clientCombo.getValue();
             clientCombo.setItems(FXCollections.observableArrayList(names));
-            if (!names.isEmpty()) {
+            if (current != null && names.contains(current)) {
+                clientCombo.setValue(current);
+            } else if (!names.isEmpty()) {
                 clientCombo.setValue(names.get(0));
             }
         } catch (Exception e) {
@@ -94,62 +190,44 @@ public class DietGeneratorController {
     }
 
     private void updateCredentialStatus() {
-        String selected = aiModelCombo.getValue();
-        if (selected == null) return;
-        AiModelConfig cfg = AI_MODELS.get(selected);
-        if (cfg == null) return;
+        AINameEnum provider = selectedProvider();
+        AIModelEnum model = selectedModel();
+        if (provider == null || model == null) return;
 
-        boolean configured = checkCredentialsConfigured(cfg);
+        boolean configured = aiUserService.hasApiKey(provider, model);
         if (configured) {
             credentialStatusLabel.setText("Credenziali configurate");
-            credentialStatusLabel.setStyle("-fx-text-fill: #198754; -fx-font-size: 11;");
+            credentialStatusLabel.getStyleClass().removeAll("credential-missing");
+            credentialStatusLabel.getStyleClass().add("credential-ok");
         } else {
-            credentialStatusLabel.setText("Credenziali non configurate — clicca 'Configura'");
-            credentialStatusLabel.setStyle("-fx-text-fill: #dc3545; -fx-font-size: 11;");
+            credentialStatusLabel.setText("Credenziali non configurate");
+            credentialStatusLabel.getStyleClass().removeAll("credential-ok");
+            credentialStatusLabel.getStyleClass().add("credential-missing");
         }
-    }
-
-    private boolean checkCredentialsConfigured(AiModelConfig cfg) {
-        if (cfg.name() == AINameEnum.GITHUB_COPILOT) {
-            return Boolean.TRUE.equals(copilotAuthService.getCurrentConnectionStatus().getConnected());
-        }
-        return aiUserService.hasApiKey(cfg.name(), cfg.model());
     }
 
     public void handleConfigureCredentials() {
-        String selected = aiModelCombo.getValue();
-        if (selected == null) return;
-        AiModelConfig cfg = AI_MODELS.get(selected);
-        if (cfg == null) return;
+        AINameEnum provider = selectedProvider();
+        AIModelEnum model = selectedModel();
+        if (provider == null || model == null) return;
 
-        if (cfg.name() == AINameEnum.GITHUB_COPILOT) {
-            configureGithubCopilot();
+        if (provider == AINameEnum.GITHUB_COPILOT) {
+            CopilotAuthDialog.show(copilotDeviceFlowService).ifPresent(result -> {
+                String login = result.substring(3);
+                updateCredentialStatus();
+                showInfo("GitHub Copilot connesso come: " + login);
+            });
         } else {
-            configureApiKey(selected, cfg);
-        }
-        updateCredentialStatus();
-    }
-
-    private void configureApiKey(String displayName, AiModelConfig cfg) {
-        AiApiKeyDialog.show(displayName).ifPresent(key -> {
-            try {
-                aiUserService.saveApiKey(cfg.name(), cfg.model(), key);
-                showInfo("API Key salvata con successo per " + displayName);
-            } catch (Exception e) {
-                showError("Errore nel salvataggio della API Key: " + e.getMessage());
-            }
-        });
-    }
-
-    private void configureGithubCopilot() {
-        try {
-            CopilotDeviceCodeDto deviceCode = copilotDeviceFlowService.startDeviceFlow();
-            boolean authorized = CopilotDeviceFlowDialog.show(deviceCode, copilotDeviceFlowService);
-            if (authorized) {
-                showInfo("GitHub Copilot connesso con successo!");
-            }
-        } catch (Exception e) {
-            showError("Errore nell'autorizzazione Copilot: " + e.getMessage());
+            String displayName = providerCombo.getValue() + " - " + aiModelCombo.getValue();
+            AiApiKeyDialog.show(displayName).ifPresent(key -> {
+                try {
+                    aiUserService.saveApiKey(provider, model, key);
+                    updateCredentialStatus();
+                    showInfo("API Key salvata con successo per " + displayName);
+                } catch (Exception e) {
+                    showError("Errore nel salvataggio della API Key: " + e.getMessage());
+                }
+            });
         }
     }
 
@@ -158,36 +236,126 @@ public class DietGeneratorController {
             showWarning("Seleziona un cliente");
             return;
         }
-        String selected = aiModelCombo.getValue();
-        AiModelConfig cfg = AI_MODELS.get(selected);
+        AINameEnum provider = selectedProvider();
+        AIModelEnum model = selectedModel();
+        if (provider == null || model == null) {
+            showWarning("Seleziona un modello AI");
+            return;
+        }
+        if (!aiUserService.hasApiKey(provider, model)) {
+            showWarning("Le credenziali per " + providerCombo.getValue() + " non sono configurate.\nClicca 'Configura Credenziali' per inserirle.");
+            return;
+        }
 
-        if (!checkCredentialsConfigured(cfg)) {
-            showWarning("Le credenziali per " + selected + " non sono configurate.\nClicca 'Configura' per inserirle.");
+        String selectedName = clientCombo.getValue();
+        ClientDto selectedClient = clientList.stream()
+                .filter(c -> (c.getName() + " " + c.getSurname()).equals(selectedName))
+                .findFirst()
+                .orElse(null);
+        if (selectedClient == null) {
+            showWarning("Cliente non trovato. Ricarica la lista.");
             return;
         }
 
         progressIndicator.setVisible(true);
         generateButton.setDisable(true);
 
+        final AINameEnum finalProvider = provider;
+        final AIModelEnum finalModel = model;
+        final ClientDto finalClient = selectedClient;
+
         Thread thread = new Thread(() -> {
             try {
+                AnthropometryDto latestAnthro = null;
+                try {
+                    List<AnthropometryDto> visits = anthropometryService.getVisitsByClient(finalClient.getId());
+                    if (!visits.isEmpty()) latestAnthro = visits.get(0);
+                } catch (Exception ignored) {}
+
+                AiDto ai = new AiDto();
+                ai.setName(finalProvider);
+                ai.setModel(finalModel);
+
+                ClientRequestDto clientRequest = new ClientRequestDto();
+                clientRequest.setClient(finalClient);
+                clientRequest.setAnthropometry(latestAnthro);
+                clientRequest.setDietDetail(buildDietDetail());
+
                 DietRequestDto request = new DietRequestDto();
-                dietGeneratorService.generateDiet(request);
+                request.setAi(ai);
+                request.setClientRequest(clientRequest);
+
+                String result = dietGeneratorService.generateDiet(request);
+
                 Platform.runLater(() -> {
-                    showInfo("Dieta generata e salvata con successo!");
                     progressIndicator.setVisible(false);
                     generateButton.setDisable(false);
+                    showDietResult(result);
                 });
             } catch (Exception e) {
                 Platform.runLater(() -> {
-                    showError("Errore durante la generazione: " + e.getMessage());
                     progressIndicator.setVisible(false);
                     generateButton.setDisable(false);
+                    showError("Errore durante la generazione: " + e.getMessage());
                 });
             }
         });
         thread.setDaemon(true);
         thread.start();
+    }
+
+    private DietDetailDto buildDietDetail() {
+        DietDetailDto detail = new DietDetailDto();
+        if (goalBox != null && goalBox.getValue() != null)
+            detail.setPrimaryGoal(mapGoal(goalBox.getValue()));
+        if (prefBox != null && prefBox.getValue() != null)
+            detail.setDietaryPreference(mapPref(prefBox.getValue()));
+        if (activityBox != null && activityBox.getValue() != null)
+            detail.setActivityLevel(mapActivity(activityBox.getValue()));
+        if (notesArea != null && notesArea.getText() != null && !notesArea.getText().isBlank())
+            detail.setFoodPreferences(List.of(notesArea.getText().trim()));
+        return detail;
+    }
+
+    private PrimaryGoalEnum mapGoal(String v) {
+        return switch (v) {
+            case "Perdita Peso" -> PrimaryGoalEnum.WEIGHT_LOSS;
+            case "Aumento Massa Muscolare", "Performance Atletica" -> PrimaryGoalEnum.MUSCLE_GAIN;
+            case "Miglioramento Salute" -> PrimaryGoalEnum.ENERGY_IMPROVMENT;
+            default -> PrimaryGoalEnum.GENERAL_HEALTH;
+        };
+    }
+
+    private DietaryPreferenceEnum mapPref(String v) {
+        return switch (v) {
+            case "Vegetariano" -> DietaryPreferenceEnum.VEGETARIAN;
+            case "Vegano"      -> DietaryPreferenceEnum.VEGAN;
+            case "Ketogenica"  -> DietaryPreferenceEnum.KETO;
+            default            -> DietaryPreferenceEnum.OMNIVORE;
+        };
+    }
+
+    private ActivityLevelEnum mapActivity(String v) {
+        return switch (v) {
+            case "Molto Attivo"         -> ActivityLevelEnum.ACTIVE;
+            case "Atleta"               -> ActivityLevelEnum.VERY_ACTIVE;
+            case "Moderatamente Attivo" -> ActivityLevelEnum.MODERATE;
+            default                     -> ActivityLevelEnum.SEDENTARY;
+        };
+    }
+
+    private void showDietResult(String diet) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Dieta Generata");
+        alert.setHeaderText("Piano nutrizionale generato con successo!");
+        TextArea ta = new TextArea(diet);
+        ta.setWrapText(true);
+        ta.setEditable(false);
+        ta.setPrefWidth(700);
+        ta.setPrefHeight(500);
+        alert.getDialogPane().setContent(ta);
+        alert.getDialogPane().setPrefWidth(740);
+        alert.showAndWait();
     }
 
     private void showError(String msg) {

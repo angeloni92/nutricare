@@ -6,5 +6,5 @@ import java.util.concurrent.CompletableFuture;
 
 public interface CopilotDeviceFlowService {
     CopilotDeviceCodeDto startDeviceFlow();
-    CompletableFuture<Void> pollForToken(String deviceCode, int intervalSeconds);
+    CompletableFuture<String> pollForToken(String deviceCode, int intervalSeconds);
 }

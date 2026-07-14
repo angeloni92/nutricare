@@ -11,8 +11,10 @@ import com.angeloni.nutricare.entity.AiUserEntity;
 import com.angeloni.nutricare.entity.UserEntity;
 import com.angeloni.nutricare.enums.AIModelEnum;
 import com.angeloni.nutricare.enums.AINameEnum;
+import com.angeloni.nutricare.enums.OAuthProviderEnum;
 import com.angeloni.nutricare.repository.AiRepository;
 import com.angeloni.nutricare.repository.AiUserRepository;
+import com.angeloni.nutricare.repository.CopilotConnectionRepository;
 import com.angeloni.nutricare.util.TokenCryptoUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,9 @@ public class AiUserServiceImpl implements AiUserService {
 	private ModelMapper modelMapper;
 
 	@Autowired
+	private CopilotConnectionRepository copilotConnectionRepository;
+
+	@Autowired
 	private TokenCryptoUtil tokenCryptoUtil;
 
 	@Override
@@ -47,6 +52,11 @@ public class AiUserServiceImpl implements AiUserService {
 	@Override
 	public boolean hasApiKey(AINameEnum name, AIModelEnum model) {
 		UserEntity user = userContextService.getCurrentUser();
+		if (name == AINameEnum.GITHUB_COPILOT) {
+			return copilotConnectionRepository.findByUserAndProvider(user, OAuthProviderEnum.GITHUB_COPILOT)
+					.map(c -> c.getEncryptedAccessToken() != null && !c.getEncryptedAccessToken().isBlank())
+					.orElse(false);
+		}
 		return aiRepository.findByNameAndModel(name, model)
 				.flatMap(ai -> aiUserRepository.findByUserAndAi(user, ai))
 				.map(entity -> entity.getAiKey() != null && !entity.getAiKey().isBlank())

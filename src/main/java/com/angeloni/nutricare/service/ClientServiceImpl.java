@@ -51,6 +51,7 @@ public class ClientServiceImpl implements ClientService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<ClientDto> getClients() {
 		UserEntity user = userContextService.getCurrentUser();
 		return clientRepository.findByUser(user).stream().map(x -> modelMapper.map(x, ClientDto.class))

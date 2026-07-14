@@ -1,4 +1,1 @@
-INSERT INTO ai (id, name, model)
-VALUES 
-(3, 'CHATGPT', 'GPT3TURBO');
-
+-- Seeding handled by AiDataInitializer at runtime

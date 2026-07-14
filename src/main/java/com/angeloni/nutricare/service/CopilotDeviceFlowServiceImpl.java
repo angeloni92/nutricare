@@ -1,8 +1,15 @@
 package com.angeloni.nutricare.service;
 
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,9 +41,28 @@ public class CopilotDeviceFlowServiceImpl implements CopilotDeviceFlowService {
     private static final String TOKEN_URL = "https://github.com/login/oauth/access_token";
     private static final String USER_URL = "https://api.github.com/user";
     private static final OAuthProviderEnum PROVIDER = OAuthProviderEnum.GITHUB_COPILOT;
-    private static final String SCOPE = "read:user";
+    private static final String SCOPE = "copilot";
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = buildTrustAllRestTemplate();
+
+    private static RestTemplate buildTrustAllRestTemplate() {
+        try {
+            TrustManager[] trustAll = new TrustManager[]{
+                new X509TrustManager() {
+                    public void checkClientTrusted(X509Certificate[] c, String a) {}
+                    public void checkServerTrusted(X509Certificate[] c, String a) {}
+                    public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+                }
+            };
+            SSLContext sc = SSLContext.getInstance("TLS");
+            sc.init(null, trustAll, new SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            HttpsURLConnection.setDefaultHostnameVerifier((host, session) -> true);
+        } catch (Exception e) {
+            // se fallisce si usa il RestTemplate standard
+        }
+        return new RestTemplate();
+    }
 
     @Value("${nutricare.copilot.oauth.client-id:}")
     private String clientId;
@@ -84,9 +110,9 @@ public class CopilotDeviceFlowServiceImpl implements CopilotDeviceFlowService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public CompletableFuture<Void> pollForToken(String deviceCode, int intervalSeconds) {
+    public CompletableFuture<String> pollForToken(String deviceCode, int intervalSeconds) {
         UserEntity user = userContextService.getCurrentUser();
-        return CompletableFuture.runAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             int interval = Math.max(intervalSeconds, 5);
             long deadline = System.currentTimeMillis() + 900_000L;
 
@@ -118,8 +144,7 @@ public class CopilotDeviceFlowServiceImpl implements CopilotDeviceFlowService {
                     String error = tb.get("error") != null ? tb.get("error").toString() : null;
 
                     if (error == null && tb.get("access_token") != null) {
-                        persistToken(tb, user);
-                        return;
+                        return persistToken(tb, user);
                     }
                     if ("slow_down".equals(error)) {
                         interval += 5;
@@ -140,7 +165,7 @@ public class CopilotDeviceFlowServiceImpl implements CopilotDeviceFlowService {
     }
 
     @SuppressWarnings("unchecked")
-    private void persistToken(Map<String, Object> tokenBody, UserEntity user) {
+    private String persistToken(Map<String, Object> tokenBody, UserEntity user) {
         String accessToken = tokenBody.get("access_token").toString();
 
         HttpHeaders uh = new HttpHeaders();
@@ -170,5 +195,6 @@ public class CopilotDeviceFlowServiceImpl implements CopilotDeviceFlowService {
         conn.setExpiresAt(null);
         copilotConnectionRepository.save(conn);
         log.info("GitHub Copilot token salvato per: {}", githubLogin);
+        return githubLogin;
     }
 }

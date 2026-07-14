@@ -2,23 +2,44 @@ package com.angeloni.nutricare.enums;
 
 public enum AIModelEnum {
 
-	GPT3TURBO("GPT3TURBO"),
-	GPT4O("GPT4O"),
-	OPENAIO1("OPENAIO1"),
-	CLAUDE3SONNET("CLAUDE3SONNET"),
-	CLAUDE35SONNET("CLAUDE35SONNET"),
-	COPILOT_GPT4O("COPILOT_GPT4O");
-		
-	    private final String value;
+    // OpenAI / ChatGPT
+    GPT4O("GPT4O"),
+    GPT4O_MINI("GPT4O_MINI"),
+    GPT4TURBO("GPT4TURBO"),
+    GPT4("GPT4"),
+    GPT3TURBO("GPT3TURBO"),
+    OPENAIO1("OPENAIO1"),
+    OPENAIO1MINI("OPENAIO1MINI"),
+    OPENAIO3MINI("OPENAIO3MINI"),
+    OPENAIO4MINI("OPENAIO4MINI"),
 
-	    
-	    AIModelEnum(String value) {
-	        this.value = value;
-	    }
+    // Anthropic / Claude
+    CLAUDE4SONNET("CLAUDE4SONNET"),
+    CLAUDE4OPUS("CLAUDE4OPUS"),
+    CLAUDE37SONNET("CLAUDE37SONNET"),
+    CLAUDE35SONNET("CLAUDE35SONNET"),
+    CLAUDE35HAIKU("CLAUDE35HAIKU"),
+    CLAUDE3OPUS("CLAUDE3OPUS"),
+    CLAUDE3SONNET("CLAUDE3SONNET"),
+    CLAUDE3HAIKU("CLAUDE3HAIKU"),
 
-	    
-	    public String getValue() {
-	        return value;
-	    }
+    // GitHub Copilot
+    COPILOT_GPT4O("COPILOT_GPT4O"),
+    COPILOT_GPT4O_MINI("COPILOT_GPT4O_MINI"),
+    COPILOT_O1("COPILOT_O1"),
+    COPILOT_O3MINI("COPILOT_O3MINI"),
+    COPILOT_CLAUDE35SONNET("COPILOT_CLAUDE35SONNET"),
+    COPILOT_CLAUDE37SONNET("COPILOT_CLAUDE37SONNET"),
+    COPILOT_GEMINI15PRO("COPILOT_GEMINI15PRO"),
+    COPILOT_GEMINI20FLASH("COPILOT_GEMINI20FLASH");
 
+    private final String value;
+
+    AIModelEnum(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
 }

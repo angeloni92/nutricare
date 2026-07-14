@@ -1,8 +1,1 @@
-INSERT INTO ai (id, name, model)
-VALUES 
-(1, 'CHATGPT', 'GPT4O'),
-(2, 'CHATGPT', 'OPENAIO1'),
-(4, 'CLAUDE', 'CLAUDE3SONNET'),
-(5, 'CLAUDE', 'CLAUDE35SONNET'),
-(6, 'GITHUB_COPILOT', 'COPILOT_GPT4O');
-
+-- Seeding handled by AiDataInitializer at runtime
