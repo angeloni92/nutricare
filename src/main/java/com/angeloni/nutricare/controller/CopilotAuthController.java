@@ -16,7 +16,6 @@ import com.angeloni.nutricare.dto.CopilotAuthStartDto;
 import com.angeloni.nutricare.dto.CopilotConnectionStatusDto;
 import com.angeloni.nutricare.service.CopilotAuthService;
 
-import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.NotBlank;
 
 @RestController
@@ -27,26 +26,22 @@ public class CopilotAuthController {
 	@Autowired
 	private CopilotAuthService copilotAuthService;
 
-	@Operation(summary = "start github copilot oauth")
 	@GetMapping("/start")
 	public ResponseEntity<CopilotAuthStartDto> startAuthorization() {
 		return new ResponseEntity<>(copilotAuthService.startAuthorization(), HttpStatus.OK);
 	}
 
-	@Operation(summary = "oauth callback for github copilot")
 	@GetMapping("/callback")
 	public ResponseEntity<CopilotAuthResultDto> completeAuthorization(@RequestParam("code") @NotBlank String code,
 			@RequestParam("state") @NotBlank String state) {
 		return new ResponseEntity<>(copilotAuthService.completeAuthorization(code, state), HttpStatus.OK);
 	}
 
-	@Operation(summary = "get copilot connection status")
 	@GetMapping("/status")
 	public ResponseEntity<CopilotConnectionStatusDto> getConnectionStatus() {
 		return new ResponseEntity<>(copilotAuthService.getCurrentConnectionStatus(), HttpStatus.OK);
 	}
 
-	@Operation(summary = "disconnect github copilot account")
 	@DeleteMapping
 	public ResponseEntity<CommonResponseDto> disconnect() {
 		copilotAuthService.disconnectCurrentUser();

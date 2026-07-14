@@ -13,19 +13,19 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class AiUserServiceImpl implements AiUserService {
-	
+
 	@Autowired
 	private AiUserRepository aiUserRepository;
-	
+
 	@Autowired
-	private AuthService authService;
-	
+	private UserContextService userContextService;
+
 	@Autowired
 	private ModelMapper modelMapper;
 
 	@Override
 	public AiUserDto getByUser() {
-		UserEntity user = authService.retrieveUserFromAuthentication();
+		UserEntity user = userContextService.getCurrentUser();
 		return aiUserRepository.findByUser(user).map(x -> modelMapper.map(x, AiUserDto.class)).orElse(new AiUserDto());
 	}
 

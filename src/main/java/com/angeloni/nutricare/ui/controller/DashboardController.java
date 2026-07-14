@@ -100,12 +100,12 @@ public class DashboardController {
 
     private void handleLogout() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Logout");
-        alert.setHeaderText("Confirm Logout");
-        alert.setContentText("Are you sure you want to logout?");
+        alert.setTitle("Esci");
+        alert.setHeaderText("Conferma uscita");
+        alert.setContentText("Sei sicuro di voler uscire dall'applicazione?");
 
         if (alert.showAndWait().get() == ButtonType.OK) {
-            stageManager.switchScene("login");
+            System.exit(0);
         }
     }
 

@@ -45,7 +45,7 @@ public class CopilotAuthServiceImpl implements CopilotAuthService {
 	private final Map<String, OAuthStateData> pendingStates = new ConcurrentHashMap<>();
 
 	@Autowired
-	private AuthService authService;
+	private UserContextService userContextService;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -86,7 +86,7 @@ public class CopilotAuthServiceImpl implements CopilotAuthService {
 	@Override
 	public CopilotAuthStartDto startAuthorization() {
 		validateOauthConfiguration();
-		UserEntity currentUser = authService.retrieveUserFromAuthentication();
+		UserEntity currentUser = userContextService.getCurrentUser();
 		String state = UUID.randomUUID().toString();
 		pendingStates.put(state, new OAuthStateData(currentUser.getId(), Instant.now().plusSeconds(stateTtlSeconds)));
 
@@ -169,7 +169,7 @@ public class CopilotAuthServiceImpl implements CopilotAuthService {
 
 	@Override
 	public CopilotConnectionStatusDto getCurrentConnectionStatus() {
-		UserEntity user = authService.retrieveUserFromAuthentication();
+		UserEntity user = userContextService.getCurrentUser();
 		Optional<CopilotConnectionEntity> connection = copilotConnectionRepository.findByUserAndProvider(user, PROVIDER);
 		CopilotConnectionStatusDto status = new CopilotConnectionStatusDto();
 		if (connection.isPresent()) {
@@ -186,7 +186,7 @@ public class CopilotAuthServiceImpl implements CopilotAuthService {
 	@Override
 	@Transactional
 	public void disconnectCurrentUser() {
-		UserEntity user = authService.retrieveUserFromAuthentication();
+		UserEntity user = userContextService.getCurrentUser();
 		copilotConnectionRepository.deleteByUserAndProvider(user, PROVIDER);
 	}
 

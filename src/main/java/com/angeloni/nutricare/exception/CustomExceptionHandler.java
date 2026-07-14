@@ -16,41 +16,6 @@ import org.springframework.web.context.request.WebRequest;
 @RestControllerAdvice
 public class CustomExceptionHandler {
 
-	/**
-	 * Handles {@link InvalidCredentialsException} and returns a standardized error
-	 * response.
-	 *
-	 * @param ex      the {@link InvalidCredentialsException} thrown when invalid
-	 *                credentials are provided
-	 * @param request the {@link WebRequest} associated with the current request
-	 * @return a {@link ResponseEntity} containing {@link ErrorDetails} and an HTTP
-	 *         status of {@link HttpStatus#UNAUTHORIZED}
-	 *
-	 *         This method captures the exception, constructs an
-	 *         {@link ErrorDetails} object with the current timestamp, exception
-	 *         message, and request details, and returns it as the response body.
-	 */
-	@ExceptionHandler(InvalidCredentialsException.class)
-	public ResponseEntity<ErrorDetails> handleInvalidCredentialsException(InvalidCredentialsException ex,
-			WebRequest request) {
-		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
-				request.getDescription(false));
-		return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
-	}
-
-	/**
-	 * Handles generic {@link Exception} instances and returns a standardized error
-	 * response.
-	 *
-	 * @param ex      the {@link Exception} thrown during request processing
-	 * @param request the {@link WebRequest} associated with the current request
-	 * @return a {@link ResponseEntity} containing {@link ErrorDetails} and an HTTP
-	 *         status of {@link HttpStatus#INTERNAL_SERVER_ERROR}
-	 *
-	 *         This method captures any unhandled exceptions, constructs an
-	 *         {@link ErrorDetails} object with the current timestamp, exception
-	 *         message, and request details, and returns it as the response body.
-	 */
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorDetails> handleInternalServerException(Exception ex, WebRequest request) {
 		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
@@ -58,74 +23,42 @@ public class CustomExceptionHandler {
 		return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
-	/**
-	 * Handles validation exceptions thrown during the processing of request bodies annotated with {@code @Valid}.
-	 *
-	 * <p>This method captures validation errors, typically thrown as {@link MethodArgumentNotValidException}, 
-	 * and constructs a list of {@link ErrorDetails} objects that contain the details of each validation error.
-	 * Each {@link ErrorDetails} includes a timestamp, a description of the error, and the request details.
-	 *
-	 * @param ex      the exception containing validation error details, including the invalid fields and messages
-	 * @param request the current web request, used to extract contextual information such as the request description
-	 * @return a {@link ResponseEntity} containing a list of {@link ErrorDetails} and an HTTP status of {@link HttpStatus#BadRequest}
-	 */
 	@SuppressWarnings("unused")
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<List<ErrorDetails>> handleValidationExceptions(MethodArgumentNotValidException ex,
 			WebRequest request) {
 		List<ErrorDetails> errorDetailsList = new ArrayList<>();
 		for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-			ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), error.getDefaultMessage(),
-					request.getDescription(false));
+			ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()),
+					error.getDefaultMessage(), request.getDescription(false));
 			errorDetailsList.add(errorDetails);
 		}
 		return new ResponseEntity<>(errorDetailsList, HttpStatus.BAD_REQUEST);
 	}
-	
-	
-	@ExceptionHandler(EmailException.class)
-	public ResponseEntity<ErrorDetails> handleEmailException(EmailException ex,
-			WebRequest request) {
-		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
-				request.getDescription(false));
-		return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
-	}
-	
+
 	@ExceptionHandler(NotFoundException.class)
-	public ResponseEntity<ErrorDetails> handleNotFoundException(NotFoundException ex,
-			WebRequest request) {
+	public ResponseEntity<ErrorDetails> handleNotFoundException(NotFoundException ex, WebRequest request) {
 		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
 				request.getDescription(false));
 		return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
 	}
-	
-	@ExceptionHandler(QueueException.class)
-	public ResponseEntity<ErrorDetails> handleQueueException(QueueException ex,
-			WebRequest request) {
-		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
-				request.getDescription(false));
-		return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
-	}
-	
+
 	@ExceptionHandler(AiKeyException.class)
-	public ResponseEntity<ErrorDetails> handleAiKeyException(AiKeyException ex,
-			WebRequest request) {
+	public ResponseEntity<ErrorDetails> handleAiKeyException(AiKeyException ex, WebRequest request) {
 		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
 				request.getDescription(false));
 		return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
 	}
-	
+
 	@ExceptionHandler(IllegalArgumentException.class)
-	public ResponseEntity<ErrorDetails> handleIllegalArgumentException(IllegalArgumentException ex,
-			WebRequest request) {
+	public ResponseEntity<ErrorDetails> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
 		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
 				request.getDescription(false));
 		return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
-	
+
 	@ExceptionHandler(ConflictException.class)
-	public ResponseEntity<ErrorDetails> handleConflictException(ConflictException ex,
-			WebRequest request) {
+	public ResponseEntity<ErrorDetails> handleConflictException(ConflictException ex, WebRequest request) {
 		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(ZoneId.systemDefault()), ex.getMessage(),
 				request.getDescription(false));
 		return new ResponseEntity<>(errorDetails, HttpStatus.CONFLICT);

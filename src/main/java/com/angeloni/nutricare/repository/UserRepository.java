@@ -8,15 +8,8 @@ import org.springframework.stereotype.Repository;
 import com.angeloni.nutricare.entity.UserEntity;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserEntity, Long>{
-	
-	Optional<UserEntity> findById(Long id);
-	
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
+
 	Optional<UserEntity> findByUsername(String username);
-	
-	Optional<UserEntity> findByEmail(String email);
-	
-	Optional<UserEntity> findByUsernameAndEmailConfirmedTrue(String username);
-	
-	Optional<UserEntity> findByConfirmationToken(String confirmationToken);
+
 }

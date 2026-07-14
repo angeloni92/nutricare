@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 public class StageManager {
 
     private Stage stage;
-    private Scene loginScene;
     private Scene dashboardScene;
     private Scene clientScene;
     private Scene dietScene;
@@ -23,17 +22,12 @@ public class StageManager {
 
     public void switchScene(String sceneName) {
         switch (sceneName) {
-            case "login" -> stage.setScene(loginScene);
             case "dashboard" -> stage.setScene(dashboardScene);
             case "client" -> stage.setScene(clientScene);
             case "diet" -> stage.setScene(dietScene);
             case "diet-generator" -> stage.setScene(dietGeneratorScene);
             default -> throw new IllegalArgumentException("Scene not found: " + sceneName);
         }
-    }
-
-    public void setLoginScene(Scene scene) {
-        this.loginScene = scene;
     }
 
     public void setDashboardScene(Scene scene) {

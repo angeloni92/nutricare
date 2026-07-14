@@ -31,14 +31,13 @@ public class ApplicationInitializer {
     private void initializeUI() {
         try {
             // Build all scenes
-            stageManager.setLoginScene(sceneBuilder.buildLoginScene());
             stageManager.setDashboardScene(sceneBuilder.buildDashboardScene());
             stageManager.setClientScene(sceneBuilder.buildClientScene());
             stageManager.setDietScene(sceneBuilder.buildDietScene());
             stageManager.setDietGeneratorScene(sceneBuilder.buildDietGeneratorScene());
 
-            // Start with login scene
-            stageManager.switchScene("login");
+            // Start directly with dashboard (desktop app, no login required)
+            stageManager.switchScene("dashboard");
 
             // Configure window
             Stage primaryStage = stageManager.getPrimaryStage();

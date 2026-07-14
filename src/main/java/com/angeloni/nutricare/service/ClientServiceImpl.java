@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ClientServiceImpl implements ClientService {
 
 	@Autowired
-	private AuthService authService;
+	private UserContextService userContextService;
 
 	@Autowired
 	private ClientRepository clientRepository;
@@ -33,7 +33,7 @@ public class ClientServiceImpl implements ClientService {
 	@Override
 	@Transactional
 	public ClientDto saveClient(ClientDto clientDto) {
-		UserEntity user = authService.retrieveUserFromAuthentication();
+		UserEntity user = userContextService.getCurrentUser();
 		checkIfClientIsAlreadyPresent(clientDto, user);
 		ClientEntity client = modelMapper.map(clientDto, ClientEntity.class);
 		client.setUser(user);
@@ -52,7 +52,7 @@ public class ClientServiceImpl implements ClientService {
 
 	@Override
 	public List<ClientDto> getClients() {
-		UserEntity user = authService.retrieveUserFromAuthentication();
+		UserEntity user = userContextService.getCurrentUser();
 		return clientRepository.findByUser(user).stream().map(x -> modelMapper.map(x, ClientDto.class))
 				.collect(Collectors.toList());
 	}

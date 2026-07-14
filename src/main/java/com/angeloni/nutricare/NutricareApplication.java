@@ -3,7 +3,6 @@ package com.angeloni.nutricare;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
@@ -13,15 +12,12 @@ import javafx.stage.Stage;
 /**
  * Main Nutricare Desktop Application
  * Spring Boot + JavaFX integration
- * 
+ *
  * This application serves as both the backend (Spring Boot services, database access)
  * and the frontend (JavaFX UI) in a single compiled JAR.
+ * Web servlet is enabled for GitHub Copilot OAuth callback (localhost:8080).
  */
-@SpringBootApplication(
-	exclude = {
-		DispatcherServletAutoConfiguration.class  // Disable web servlet (desktop app, not web app)
-	}
-)
+@SpringBootApplication
 @ComponentScan(basePackages = "com.angeloni.nutricare")
 @EnableJpaRepositories(basePackages = "com.angeloni.nutricare.repository")
 @EntityScan("com.angeloni.nutricare.entity")

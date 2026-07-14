@@ -11,7 +11,7 @@ public class AiUserDto implements Serializable {
 
 	private Long id;
 
-	private UserDto user;
+	private Long userId;
 
 	private AiDto ai;
 

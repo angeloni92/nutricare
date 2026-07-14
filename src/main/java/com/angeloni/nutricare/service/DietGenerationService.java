@@ -34,12 +34,12 @@ public class DietGenerationService {
 	private DietResultRepository dietResultRepository;
 
 	@Autowired
-	private AuthService authService;
+	private UserContextService userContextService;
 
 	@Transactional
 	public CompletableFuture<String> generateDietAsync(DietRequestDto payload) {
 		log.info("START generating diet asynchronously");
-		UserEntity user = authService.retrieveUserFromAuthentication();
+		UserEntity user = userContextService.getCurrentUser();
 
 		return CompletableFuture.supplyAsync(() -> {
 			try {
