@@ -46,8 +46,10 @@ public class ApplicationInitializer {
             // Configure window
             Stage primaryStage = stageManager.getPrimaryStage();
             primaryStage.setTitle("Nutricare - Nutrition Management System");
-            primaryStage.setWidth(1000);
-            primaryStage.setHeight(700);
+            primaryStage.setWidth(1100);
+            primaryStage.setHeight(720);
+            primaryStage.setMinWidth(900);
+            primaryStage.setMinHeight(600);
             primaryStage.centerOnScreen();
 
             // Setup event handlers
