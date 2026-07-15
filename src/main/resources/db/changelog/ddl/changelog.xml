@@ -51,4 +51,8 @@
         <sqlFile path="db/changelog/ddl/diet_results/create_diet_results.sql" dbms="h2"/>
     </changeSet>
 
+    <changeSet id="cleanup_copilot_ai_rows" author="angeloni">
+        <sqlFile path="db/changelog/ddl/cleanup_copilot/cleanup_copilot.sql" dbms="h2"/>
+    </changeSet>
+
 </databaseChangeLog>

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 @Component
@@ -22,6 +23,11 @@ public class StageManager {
 
     public void setPrimaryStage(Stage stage) {
         this.stage = stage;
+        try {
+            Image icon = new Image(StageManager.class.getResourceAsStream("/images/logo.png"));
+            stage.getIcons().add(icon);
+            stage.setTitle("NutriCare — Nutrition Management");
+        } catch (Exception ignored) {}
     }
 
     public void registerRefresh(String sceneName, Runnable callback) {

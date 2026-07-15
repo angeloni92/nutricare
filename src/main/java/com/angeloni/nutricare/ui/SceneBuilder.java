@@ -15,6 +15,8 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import org.springframework.stereotype.Component;
 
@@ -67,11 +69,26 @@ SceneBuilder {
         // Logo area
         VBox logoArea = new VBox(4);
         logoArea.getStyleClass().add("sidebar-logo-area");
-        Label appName = new Label("NUTRICARE");
+
+        HBox logoRow = new HBox(10);
+        logoRow.setAlignment(Pos.CENTER_LEFT);
+        try {
+            Image logoImg = new Image(getClass().getResourceAsStream("/images/logo-64.png"));
+            ImageView logoView = new ImageView(logoImg);
+            logoView.setFitWidth(38);
+            logoView.setFitHeight(38);
+            logoRow.getChildren().add(logoView);
+        } catch (Exception ignored) {}
+
+        VBox logoText = new VBox(1);
+        Label appName = new Label("NutriCare");
         appName.getStyleClass().add("sidebar-logo");
         Label appSub = new Label("Nutrition Management");
         appSub.getStyleClass().add("sidebar-subtitle");
-        logoArea.getChildren().addAll(appName, appSub);
+        logoText.getChildren().addAll(appName, appSub);
+        logoRow.getChildren().add(logoText);
+
+        logoArea.getChildren().add(logoRow);
 
         // Nav section
         VBox navContainer = new VBox(2);

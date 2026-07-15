@@ -15,9 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.angeloni.nutricare.dto.AnthropometryDto;
@@ -171,6 +173,8 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
                     Map.class);
             List<Map<String, Object>> content = (List<Map<String, Object>>) response.get("content");
             return content.get(0).get("text").toString();
+        } catch (HttpClientErrorException e) {
+            throw new RuntimeException(mapApiError("Claude (Anthropic)", e), e);
         } catch (Exception e) {
             throw new RuntimeException("Errore chiamata API Claude: " + e.getMessage(), e);
         }
@@ -199,6 +203,8 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
             List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
             Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
             return message.get("content").toString();
+        } catch (HttpClientErrorException e) {
+            throw new RuntimeException(mapApiError("OpenAI (ChatGPT)", e), e);
         } catch (Exception e) {
             throw new RuntimeException("Errore chiamata API OpenAI: " + e.getMessage(), e);
         }
@@ -227,9 +233,39 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
             List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
             Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
             return message.get("content").toString();
+        } catch (HttpClientErrorException e) {
+            throw new RuntimeException(mapApiError("Google Gemini", e), e);
         } catch (Exception e) {
             throw new RuntimeException("Errore chiamata API Gemini: " + e.getMessage(), e);
         }
+    }
+
+    private String mapApiError(String providerLabel, HttpClientErrorException e) {
+        int status = e.getStatusCode().value();
+        String body = e.getResponseBodyAsString().toLowerCase();
+
+        boolean isQuota = status == 402 || status == 429
+                || body.contains("insufficient_quota")
+                || body.contains("quota")
+                || body.contains("credit")
+                || body.contains("billing")
+                || body.contains("resource_exhausted")
+                || body.contains("rate limit")
+                || body.contains("overloaded");
+
+        if (isQuota) {
+            return "Token esauriti o credito insufficiente per " + providerLabel + ".\n"
+                    + "Verifica il piano e ricarica i crediti sul sito del provider.";
+        }
+        if (status == 401) {
+            return "API Key non valida per " + providerLabel + ".\n"
+                    + "Riconfigura le credenziali nella schermata Genera Dieta.";
+        }
+        if (status == 403) {
+            return "Accesso negato per " + providerLabel + " (HTTP 403).\n"
+                    + "Verifica che la tua API Key abbia i permessi necessari.";
+        }
+        return "Errore HTTP " + status + " da " + providerLabel + ": " + e.getMessage();
     }
 
     private String resolveApiKey(AINameEnum provider, AIModelEnum model, String propertyKey, String label) {

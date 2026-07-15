@@ -1,0 +1,86 @@
+name: Build macOS DMG
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-mac:
+    runs-on: macos-13  # Intel runner — più stabile per packaging Java
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Liberica JDK Full include JavaFX nativo macOS — necessario per jpackage
+      - name: Set up Liberica JDK 21 Full (con JavaFX)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'liberica'
+          java-package: 'jdk+fx'
+          cache: maven
+
+      # Estrae la versione dal pom.xml e rimuove il suffisso -SNAPSHOT
+      - name: Resolve version
+        id: ver
+        run: |
+          FULL=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout \
+                  -s .mvn/ci-settings.xml)
+          CLEAN="${FULL%-SNAPSHOT}"
+          echo "FULL=$FULL"   >> $GITHUB_OUTPUT
+          echo "CLEAN=$CLEAN" >> $GITHUB_OUTPUT
+
+      - name: Build fat JAR
+        run: mvn package -DskipTests -s .mvn/ci-settings.xml --no-transfer-progress
+
+      # Converte logo.png in formato .icns (richiesto da macOS per le icone app)
+      - name: Crea icona .icns dal logo PNG
+        run: |
+          ICONSET=NutriCare.iconset
+          mkdir -p "$ICONSET"
+          sips -z 16  16  src/main/resources/images/logo.png    --out "$ICONSET/icon_16x16.png"
+          sips -z 32  32  src/main/resources/images/logo.png    --out "$ICONSET/icon_16x16@2x.png"
+          sips -z 32  32  src/main/resources/images/logo.png    --out "$ICONSET/icon_32x32.png"
+          sips -z 64  64  src/main/resources/images/logo.png    --out "$ICONSET/icon_32x32@2x.png"
+          sips -z 128 128 src/main/resources/images/logo.png    --out "$ICONSET/icon_128x128.png"
+          sips -z 256 256 src/main/resources/images/logo-256.png --out "$ICONSET/icon_128x128@2x.png"
+          sips -z 256 256 src/main/resources/images/logo-256.png --out "$ICONSET/icon_256x256.png"
+          sips -z 512 512 src/main/resources/images/logo.png    --out "$ICONSET/icon_256x256@2x.png"
+          sips -z 512 512 src/main/resources/images/logo.png    --out "$ICONSET/icon_512x512.png"
+          iconutil -c icns "$ICONSET"
+
+      - name: Crea DMG con jpackage
+        run: |
+          mkdir -p dist
+          jpackage \
+            --type dmg \
+            --name "NutriCare" \
+            --app-version "${{ steps.ver.outputs.CLEAN }}" \
+            --input target/ \
+            --main-jar "nutricare-${{ steps.ver.outputs.FULL }}.jar" \
+            --icon NutriCare.icns \
+            --mac-package-identifier com.angeloni.nutricare \
+            --mac-package-name "NutriCare" \
+            --dest dist/ \
+            --java-options "-Xms256m" \
+            --java-options "-Xmx1g" \
+            --java-options "--add-modules=javafx.controls,javafx.fxml,javafx.graphics,javafx.swing" \
+            --java-options "--add-opens=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED"
+
+      - name: Upload DMG come artefatto
+        uses: actions/upload-artifact@v4
+        with:
+          name: NutriCare-macOS-${{ steps.ver.outputs.CLEAN }}
+          path: dist/*.dmg
+          retention-days: 30
+
+      # Crea una GitHub Release automatica quando si pusha un tag v*
+      - name: Pubblica GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.dmg
+          generate_release_notes: true
