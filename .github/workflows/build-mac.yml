@@ -9,6 +9,8 @@ on:
 jobs:
   build-mac:
     runs-on: macos-latest  # Apple Silicon M1 — disponibilità migliore
+    permissions:
+      contents: write  # necessario per creare GitHub Releases
 
     steps:
       - name: Checkout
