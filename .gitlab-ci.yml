@@ -1,36 +1,83 @@
-image: maven:3-eclipse-temurin-17
+stages:
+  - package
 
 variables:
-  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
-  GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  HOMEBREW_NO_AUTO_UPDATE: "1"
 
-stages:
-  - sonarqube-check
-  - sonarqube-vulnerability-report
+build-mac-dmg:
+  stage: package
 
-sonarqube-check:
-  stage: sonarqube-check
-  
-  script: 
-    - mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-  allow_failure: true
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
-    - if: $CI_COMMIT_BRANCH == 'main'
-    - if: $CI_COMMIT_BRANCH == 'develop'
+  # Runner macOS GitLab SaaS (Apple Silicon M1)
+  # Richiede piano Premium su gitlab.com, oppure un runner self-hosted su Mac
+  tags:
+    - saas-macos-medium-m1
 
-sonarqube-vulnerability-report:
-  stage: sonarqube-vulnerability-report
+  cache:
+    key: maven-$CI_COMMIT_REF_SLUG
+    paths:
+      - .m2/repository/
+
+  before_script:
+    # Installa Liberica JDK 21 Full — include JavaFX nativo macOS (necessario per jpackage)
+    - brew tap bell-sw/liberica
+    - brew install --cask liberica-jdk21-full
+    - export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+    - export PATH="$JAVA_HOME/bin:$PATH"
+    - java -version
+    - mvn -version
+
   script:
-    - 'curl -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/issues/gitlab_sast_export?projectKey=com.angeloni:nutricare&branch=${CI_COMMIT_BRANCH}&pullRequest=${CI_MERGE_REQUEST_IID}" -o gl-sast-sonar-report.json'
-  allow_failure: true
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
-    - if: $CI_COMMIT_BRANCH == 'main'
-    - if: $CI_COMMIT_BRANCH == 'develop'
+    # Estrae la versione dal pom.xml e rimuove eventuale suffisso -SNAPSHOT
+    - VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout -s .mvn/ci-settings.xml)
+    - CLEAN_VERSION="${VERSION%-SNAPSHOT}"
+    - echo ">>> Build NutriCare $CLEAN_VERSION"
+
+    # Compila e crea il fat JAR (Spring Boot + JavaFX + tutte le dipendenze)
+    - mvn package -DskipTests -s .mvn/ci-settings.xml --no-transfer-progress
+
+    # Converte logo.png in formato .icns (icona nativa macOS)
+    - mkdir -p NutriCare.iconset
+    - sips -z 16  16  src/main/resources/images/logo.png     --out NutriCare.iconset/icon_16x16.png
+    - sips -z 32  32  src/main/resources/images/logo.png     --out NutriCare.iconset/icon_16x16@2x.png
+    - sips -z 32  32  src/main/resources/images/logo.png     --out NutriCare.iconset/icon_32x32.png
+    - sips -z 64  64  src/main/resources/images/logo.png     --out NutriCare.iconset/icon_32x32@2x.png
+    - sips -z 128 128 src/main/resources/images/logo.png     --out NutriCare.iconset/icon_128x128.png
+    - sips -z 256 256 src/main/resources/images/logo-256.png --out NutriCare.iconset/icon_128x128@2x.png
+    - sips -z 256 256 src/main/resources/images/logo-256.png --out NutriCare.iconset/icon_256x256.png
+    - sips -z 512 512 src/main/resources/images/logo.png     --out NutriCare.iconset/icon_256x256@2x.png
+    - sips -z 512 512 src/main/resources/images/logo.png     --out NutriCare.iconset/icon_512x512.png
+    - iconutil -c icns NutriCare.iconset
+
+    # Crea il .dmg con jpackage (bundla JRE + app in un pacchetto macOS nativo)
+    - mkdir -p dist
+    - |
+      jpackage \
+        --type dmg \
+        --name "NutriCare" \
+        --app-version "$CLEAN_VERSION" \
+        --input target/ \
+        --main-jar "nutricare-${VERSION}.jar" \
+        --icon NutriCare.icns \
+        --mac-package-identifier com.angeloni.nutricare \
+        --mac-package-name "NutriCare" \
+        --dest dist/ \
+        --java-options "-Xms256m" \
+        --java-options "-Xmx1g" \
+        --java-options "--add-modules=javafx.controls,javafx.fxml,javafx.graphics,javafx.swing" \
+        --java-options "--add-opens=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED"
+
+    - echo ">>> DMG creato:"
+    - ls -lh dist/
+
   artifacts:
-    expire_in: 1 day
-    reports:
-      sast: gl-sast-sonar-report.json
+    name: "NutriCare-macOS-$CI_COMMIT_TAG"
+    paths:
+      - dist/*.dmg
+    expire_in: 30 days
+    when: on_success
+
+  # Si attiva su tag v* oppure manualmente da GitLab UI (pulsante "Run pipeline")
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v.*/'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
