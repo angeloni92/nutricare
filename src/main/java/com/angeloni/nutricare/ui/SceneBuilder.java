@@ -2,8 +2,8 @@ package com.angeloni.nutricare.ui;
 
 import com.angeloni.nutricare.dto.AnthropometryDto;
 import com.angeloni.nutricare.dto.ClientDto;
+import com.angeloni.nutricare.entity.DietResultEntity;
 import com.angeloni.nutricare.repository.ClientRepository;
-import com.angeloni.nutricare.repository.CopilotConnectionRepository;
 import com.angeloni.nutricare.repository.DietResultRepository;
 import com.angeloni.nutricare.ui.controller.ClientController;
 import com.angeloni.nutricare.ui.controller.DashboardController;
@@ -22,7 +22,8 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 @Component
-public class SceneBuilder {
+public class
+SceneBuilder {
 
     private final StageManager stageManager;
     private final DashboardController dashboardController;
@@ -31,16 +32,13 @@ public class SceneBuilder {
     private final DietGeneratorController dietGeneratorController;
     private final ClientRepository clientRepository;
     private final DietResultRepository dietResultRepository;
-    private final CopilotConnectionRepository copilotConnectionRepository;
-
     public SceneBuilder(StageManager stageManager,
                         DashboardController dashboardController,
                         ClientController clientController,
                         DietController dietController,
                         DietGeneratorController dietGeneratorController,
                         ClientRepository clientRepository,
-                        DietResultRepository dietResultRepository,
-                        CopilotConnectionRepository copilotConnectionRepository) {
+                        DietResultRepository dietResultRepository) {
         this.stageManager = stageManager;
         this.dashboardController = dashboardController;
         this.clientController = clientController;
@@ -48,8 +46,10 @@ public class SceneBuilder {
         this.dietGeneratorController = dietGeneratorController;
         this.clientRepository = clientRepository;
         this.dietResultRepository = dietResultRepository;
-        this.copilotConnectionRepository = copilotConnectionRepository;
     }
+
+    private Label dashClientCountLabel;
+    private Label dashDietCountLabel;
 
     private void addStyles(Scene scene) {
         String css = getClass().getResource("/styles/nutricare.css").toExternalForm();
@@ -150,19 +150,18 @@ public class SceneBuilder {
         VBox content = new VBox(24);
         content.getStyleClass().add("content-area");
 
-        long clientCount  = safeCount(() -> clientRepository.count());
-        long dietCount    = safeCount(() -> dietResultRepository.count());
-        long copilotCount = safeCount(() -> copilotConnectionRepository.count());
+        long clientCount = safeCount(() -> clientRepository.count());
+        long dietCount   = safeCount(() -> dietResultRepository.count());
 
         // Stat cards
+        dashClientCountLabel = new Label(String.valueOf(clientCount));
+        dashDietCountLabel   = new Label(String.valueOf(dietCount));
         HBox statsRow = new HBox(16);
         statsRow.getChildren().addAll(
-            buildStatCard(String.valueOf(clientCount), "Clienti",        "Pazienti registrati",        "#6366f1", "#eef2ff"),
-            buildStatCard(String.valueOf(dietCount),   "Diete Generate", "Piani nutrizionali AI",      "#10b981", "#ecfdf5"),
-            buildStatCard("25",                        "Modelli AI",     "ChatGPT, Claude, Copilot",   "#f59e0b", "#fffbeb"),
-            buildStatCard(copilotCount > 0 ? "ON" : "OFF", "Copilot",   copilotCount > 0 ? "Connesso" : "Non configurato",
-                          copilotCount > 0 ? "#10b981" : "#94a3b8",
-                          copilotCount > 0 ? "#ecfdf5" : "#f8fafc")
+            buildDynamicStatCard(dashClientCountLabel, "Clienti",        "Pazienti registrati",       "#6366f1", "#eef2ff"),
+            buildDynamicStatCard(dashDietCountLabel,   "Diete Generate", "Piani nutrizionali AI",     "#10b981", "#ecfdf5"),
+            buildStatCard("28",                        "Modelli AI",     "ChatGPT, Claude, Gemini",   "#f59e0b", "#fffbeb"),
+            buildStatCard("3",                         "Provider",       "OpenAI, Anthropic, Google", "#8b5cf6", "#f5f3ff")
         );
 
         // Quick actions
@@ -195,11 +194,11 @@ public class SceneBuilder {
             "4. Seleziona il paziente e genera il piano"
         );
         VBox infoCard2 = buildInfoCard(
-            "Modelli AI supportati (25 totali)",
-            "ChatGPT: GPT-4o, GPT-4o mini, GPT-4 Turbo, GPT-4, GPT-3.5, o1, o1-mini, o3-mini, o4-mini\n" +
-            "Claude: Sonnet 4, Opus 4, 3.7 Sonnet, 3.5 Sonnet, 3.5 Haiku, 3 Opus, 3 Sonnet, 3 Haiku\n" +
-            "Copilot: GPT-4o, GPT-4o mini, o1, o3-mini, Claude 3.5/3.7, Gemini 1.5 Pro, Gemini 2.0 Flash\n\n" +
-            "Configura le API Key o credenziali nella schermata Genera Dieta"
+            "Modelli AI supportati (28 totali)",
+            "ChatGPT: GPT-4o, GPT-4o mini, o3, o3-mini, o4-mini, o1, o1-mini, GPT-4 Turbo, GPT-4, GPT-3.5\n" +
+            "Claude: Fable 5, Sonnet 5, Sonnet 4, Opus 4.8, Opus 4, 3.7 Sonnet, 3.5 Sonnet, 4.5 Haiku, 3.5 Haiku, 3 Opus, 3 Sonnet, 3 Haiku\n" +
+            "Gemini: 2.5 Pro, 2.5 Flash, 2.0 Flash, 2.0 Flash Lite, 1.5 Flash, 1.5 Pro\n\n" +
+            "Configura le API Key nella schermata Genera Dieta"
         );
         HBox.setHgrow(infoCard1, Priority.ALWAYS);
         HBox.setHgrow(infoCard2, Priority.ALWAYS);
@@ -212,9 +211,18 @@ public class SceneBuilder {
         scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
         root.setCenter(scrollPane);
 
+        stageManager.registerRefresh("dashboard", this::refreshDashboard);
+
         Scene scene = new Scene(root, 1100, 720);
         addStyles(scene);
         return scene;
+    }
+
+    public void refreshDashboard() {
+        if (dashClientCountLabel != null)
+            dashClientCountLabel.setText(String.valueOf(safeCount(() -> clientRepository.count())));
+        if (dashDietCountLabel != null)
+            dashDietCountLabel.setText(String.valueOf(safeCount(() -> dietResultRepository.count())));
     }
 
     private String getGreeting() {
@@ -246,6 +254,25 @@ public class SceneBuilder {
         Label descEl = new Label(description);
         descEl.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
 
+        card.getChildren().addAll(valueLabel, labelEl, descEl);
+        return card;
+    }
+
+    private VBox buildDynamicStatCard(Label valueLabel, String label, String description,
+                                      String accentColor, String bgColor) {
+        valueLabel.setStyle("-fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: " + accentColor + ";");
+        VBox card = new VBox(6);
+        card.setStyle(
+            "-fx-background-color: " + bgColor + ";" +
+            "-fx-background-radius: 14;" +
+            "-fx-padding: 20;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 2);"
+        );
+        HBox.setHgrow(card, Priority.ALWAYS);
+        Label labelEl = new Label(label);
+        labelEl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0f172a;");
+        Label descEl = new Label(description);
+        descEl.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
         card.getChildren().addAll(valueLabel, labelEl, descEl);
         return card;
     }
@@ -361,27 +388,50 @@ public class SceneBuilder {
 
         VBox historyPanel = new VBox(8, historyLabel, historyTable);
         historyPanel.getStyleClass().add("content-area");
+        VBox.setVgrow(historyTable, Priority.ALWAYS);
 
-        SplitPane splitPane = new SplitPane(clientPanel, historyPanel);
+        // ─── Anthropometric detail pane ──────────────────────────────────
+        VBox visitDetailBox = new VBox(12);
+        visitDetailBox.setPadding(new Insets(16));
+        visitDetailBox.setStyle("-fx-background-color: white;");
+        Label detailPlaceholder = new Label("Seleziona una visita per vedere il dettaglio antropometrico");
+        detailPlaceholder.setStyle("-fx-font-size: 13px; -fx-text-fill: #94a3b8;");
+        visitDetailBox.getChildren().add(detailPlaceholder);
+
+        ScrollPane detailScroll = new ScrollPane(visitDetailBox);
+        detailScroll.setFitToWidth(true);
+        detailScroll.setStyle("-fx-background: white; -fx-background-color: white;");
+
+        SplitPane bottomSplit = new SplitPane(historyPanel, detailScroll);
+        bottomSplit.setDividerPositions(0.55);
+
+        SplitPane splitPane = new SplitPane(clientPanel, bottomSplit);
         splitPane.setOrientation(Orientation.VERTICAL);
-        splitPane.setDividerPositions(0.52);
+        splitPane.setDividerPositions(0.45);
         root.setCenter(splitPane);
 
         // ─── Footer ──────────────────────────────────────────────────────
         HBox footer = new HBox(10);
         footer.getStyleClass().add("scene-footer");
-        footer.setAlignment(Pos.CENTER_RIGHT);
+        footer.setAlignment(Pos.CENTER_LEFT);
+
+        Button exportExcelBtn = new Button("  Esporta Excel");
+        exportExcelBtn.getStyleClass().add("btn-secondary");
+
+        Region footerSpacer = new Region();
+        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
+
         Button newVisitBtn = new Button("  Nuova Visita");
         newVisitBtn.getStyleClass().add("btn-success");
         Button editBtn   = new Button("  Modifica");
         editBtn.getStyleClass().add("btn-info");
         Button deleteBtn = new Button("  Elimina");
         deleteBtn.getStyleClass().add("btn-danger");
-        footer.getChildren().addAll(newVisitBtn, editBtn, deleteBtn);
+        footer.getChildren().addAll(exportExcelBtn, footerSpacer, newVisitBtn, editBtn, deleteBtn);
         root.setBottom(footer);
 
         clientController.setup(clientTable, searchField, addBtn, editBtn, deleteBtn,
-                newVisitBtn, historyTable, historyLabel);
+                newVisitBtn, historyTable, historyLabel, visitDetailBox, exportExcelBtn);
 
         Scene scene = new Scene(root, 1100, 720);
         addStyles(scene);
@@ -409,34 +459,33 @@ public class SceneBuilder {
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
 
-        ComboBox<String> filterBox = new ComboBox<>();
-        filterBox.getItems().addAll("Tutte le diete", "Ultimi 7 giorni", "Ultimo mese");
-        filterBox.setValue("Tutte le diete");
-        filterBox.getStyleClass().add("form-combo");
-        filterBox.setPrefWidth(180);
-
         Button genBtn = new Button("  Genera Nuova Dieta");
         genBtn.getStyleClass().add("btn-success");
         genBtn.setOnAction(e -> stageManager.switchScene("diet-generator"));
 
-        header.getChildren().addAll(headerBlock, headerSpacer, filterBox, genBtn);
+        header.getChildren().addAll(headerBlock, headerSpacer, genBtn);
         root.setTop(header);
 
-        TableView<String> dietTable = new TableView<>();
+        TableView<DietResultEntity> dietTable = new TableView<>();
         dietTable.getStyleClass().add("styled-table");
-        dietTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         dietTable.setPlaceholder(new Label("Nessuna dieta generata. Usa \"Genera Nuova Dieta\" per iniziare."));
 
-        TableColumn<String, String> clientCol = new TableColumn<>("Cliente");
-        TableColumn<String, String> modelCol  = new TableColumn<>("Modello AI");
-        TableColumn<String, String> dateCol   = new TableColumn<>("Data Generazione");
+        TextField searchField = new TextField();
+        searchField.setPromptText("Cerca per cliente...");
+        searchField.setMaxWidth(300);
+        searchField.setStyle(
+            "-fx-font-size: 13px; -fx-background-radius: 8; -fx-border-radius: 8;" +
+            "-fx-border-color: #d1d5db; -fx-padding: 7 12 7 12;"
+        );
 
-        dietTable.getColumns().addAll(clientCol, modelCol, dateCol);
+        HBox searchBar = new HBox(searchField);
+        searchBar.setStyle("-fx-padding: 12 24 8 24; -fx-background-color: transparent;");
+        searchBar.setAlignment(Pos.CENTER_LEFT);
 
         VBox tableWrapper = new VBox();
         tableWrapper.getStyleClass().add("content-area");
         VBox.setVgrow(dietTable, Priority.ALWAYS);
-        tableWrapper.getChildren().add(dietTable);
+        tableWrapper.getChildren().addAll(searchBar, dietTable);
         root.setCenter(tableWrapper);
 
         HBox footer = new HBox(10);
@@ -448,6 +497,10 @@ public class SceneBuilder {
         deleteBtn.getStyleClass().add("btn-danger");
         footer.getChildren().addAll(viewBtn, deleteBtn);
         root.setBottom(footer);
+
+        dietController.setup(dietTable, viewBtn, deleteBtn);
+        dietController.setupSearchField(searchField);
+        stageManager.registerRefresh("diet", dietController::refresh);
 
         Scene scene = new Scene(root, 1100, 720);
         addStyles(scene);

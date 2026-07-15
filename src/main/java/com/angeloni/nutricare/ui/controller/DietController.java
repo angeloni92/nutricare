@@ -1,174 +1,157 @@
 package com.angeloni.nutricare.ui.controller;
 
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Controller;
+
+import com.angeloni.nutricare.dto.ClientDto;
+import com.angeloni.nutricare.entity.DietResultEntity;
+import com.angeloni.nutricare.repository.DietResultRepository;
+import com.angeloni.nutricare.service.ClientService;
+import com.angeloni.nutricare.service.UserContextService;
+import com.angeloni.nutricare.ui.dialog.DietResultDialog;
+
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.springframework.stereotype.Controller;
-import com.angeloni.nutricare.service.DietService;
-import com.angeloni.nutricare.dto.DietDetailDto;
+import javafx.collections.transformation.FilteredList;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 
-/**
- * Diet management screen controller for JavaFX
- */
 @Controller
 public class DietController {
 
-    @FXML
-    private BorderPane rootPane;
+    private final DietResultRepository dietResultRepository;
+    private final ClientService clientService;
+    private final UserContextService userContextService;
 
-    @FXML
-    private TableView<DietDetailDto> dietTable;
+    private TableView<DietResultEntity> dietTable;
+    private final ObservableList<DietResultEntity> dietData = FXCollections.observableArrayList();
+    private FilteredList<DietResultEntity> filteredData;
+    private final Map<Long, String> clientNames = new HashMap<>();
+    private String searchFilter = "";
 
-    @FXML
-    private TableColumn<DietDetailDto, String> clientColumn;
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-    @FXML
-    private TableColumn<DietDetailDto, String> dateColumn;
-
-    @FXML
-    private TableColumn<DietDetailDto, String> statusColumn;
-
-    @FXML
-    private ComboBox<String> filterCombo;
-
-    @FXML
-    private Button viewButton;
-
-    @FXML
-    private Button generateButton;
-
-    @FXML
-    private Button deleteButton;
-
-    @FXML
-    private Button backButton;
-
-    private final DietService dietService;
-
-    public DietController(DietService dietService) {
-        this.dietService = dietService;
+    public DietController(DietResultRepository dietResultRepository,
+                          ClientService clientService,
+                          UserContextService userContextService) {
+        this.dietResultRepository = dietResultRepository;
+        this.clientService = clientService;
+        this.userContextService = userContextService;
     }
 
-    @FXML
-    public void initialize() {
-        setupTableColumns();
-        setupUI();
-        setupFilters();
-        loadDiets();
+    public void setup(TableView<DietResultEntity> table, Button viewBtn, Button deleteBtn) {
+        this.dietTable = table;
+
+        TableColumn<DietResultEntity, String> clientCol = new TableColumn<>("Cliente");
+        clientCol.setCellValueFactory(cd -> new SimpleStringProperty(getClientName(cd.getValue().getClientId())));
+
+        TableColumn<DietResultEntity, String> modelCol = new TableColumn<>("Modello AI");
+        modelCol.setCellValueFactory(cd -> new SimpleStringProperty(
+                cd.getValue().getAiModel() != null ? cd.getValue().getAiModel() : "-"));
+
+        TableColumn<DietResultEntity, String> dateCol = new TableColumn<>("Data Generazione");
+        dateCol.setCellValueFactory(cd -> new SimpleStringProperty(
+                cd.getValue().getCreatedAt() != null ? cd.getValue().getCreatedAt().format(DATE_FMT) : "-"));
+
+        table.getColumns().addAll(clientCol, modelCol, dateCol);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        filteredData = new FilteredList<>(dietData, this::matchesFilter);
+        table.setItems(filteredData);
+
+        viewBtn.setOnAction(e -> handleView());
+        deleteBtn.setOnAction(e -> handleDelete());
+
+        refresh();
     }
 
-    private void setupTableColumns() {
-        clientColumn.setCellValueFactory(cellData ->
-            new javafx.beans.property.SimpleStringProperty("")
-        );
-        dateColumn.setCellValueFactory(cellData ->
-            new javafx.beans.property.SimpleStringProperty("")
-        );
-        statusColumn.setCellValueFactory(cellData ->
-            new javafx.beans.property.SimpleStringProperty("")
-        );
-    }
-
-    private void setupUI() {
-        String buttonStyle = """
-            -fx-font-size: 12;
-            -fx-padding: 10;
-            -fx-background-color: #007bff;
-            -fx-text-fill: white;
-            -fx-cursor: hand;
-        """;
-
-        viewButton.setStyle(buttonStyle);
-        generateButton.setStyle(buttonStyle.replace("#007bff", "#28a745"));
-        deleteButton.setStyle(buttonStyle.replace("#007bff", "#dc3545"));
-        backButton.setStyle(buttonStyle.replace("#007bff", "#6c757d"));
-
-        rootPane.setStyle("-fx-background-color: #f8f9fa;");
-    }
-
-    private void setupFilters() {
-        ObservableList<String> filters = FXCollections.observableArrayList(
-            "All", "Active", "Completed", "Archived"
-        );
-        filterCombo.setItems(filters);
-        filterCombo.setValue("All");
-        filterCombo.setOnAction(e -> loadDiets());
-    }
-
-    private void loadDiets() {
-        try {
-            var diets = dietService.getAllDiets(); // TODO: replace DietDetailDto with proper result DTO
-            ObservableList<DietDetailDto> data = FXCollections.observableArrayList(diets);
-            dietTable.setItems(data);
-        } catch (Exception e) {
-            showError("Failed to load diets: " + e.getMessage());
-        }
-    }
-
-    @FXML
-    private void handleViewDiet() {
-        DietDetailDto selected = dietTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showWarning("Please select a diet to view");
-            return;
-        }
-        // TODO: Open diet detail view
-    }
-
-    @FXML
-    private void handleGenerateDiet() {
-        // TODO: Navigate to diet generator
-    }
-
-    @FXML
-    private void handleDeleteDiet() {
-        DietDetailDto selected = dietTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showWarning("Please select a diet to delete");
-            return;
-        }
-
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete Diet");
-        alert.setContentText("Are you sure you want to delete this diet?");
-
-        if (alert.showAndWait().get() == ButtonType.OK) {
-            try {
-                dietService.deleteDiet(selected.getId());
-                loadDiets();
-                showInfo("Diet deleted successfully");
-            } catch (Exception e) {
-                showError("Failed to delete diet: " + e.getMessage());
+    public void setupSearchField(TextField searchField) {
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            searchFilter = newVal == null ? "" : newVal.trim().toLowerCase();
+            if (filteredData != null) {
+                filteredData.setPredicate(this::matchesFilter);
             }
+        });
+    }
+
+    private boolean matchesFilter(DietResultEntity item) {
+        if (searchFilter.isBlank()) return true;
+        String clientName = getClientName(item.getClientId()).toLowerCase();
+        return clientName.contains(searchFilter);
+    }
+
+    public void refresh() {
+        loadClientNames();
+        try {
+            List<DietResultEntity> diets = dietResultRepository.findByUser(userContextService.getCurrentUser());
+            diets.sort((a, b) -> {
+                if (a.getCreatedAt() == null) return 1;
+                if (b.getCreatedAt() == null) return -1;
+                return b.getCreatedAt().compareTo(a.getCreatedAt());
+            });
+            dietData.setAll(diets);
+            if (filteredData != null) filteredData.setPredicate(this::matchesFilter);
+        } catch (Exception e) {
+            dietData.clear();
         }
+        if (dietTable != null) dietTable.refresh();
     }
 
-    @FXML
-    private void handleBack() {
-        // TODO: Navigate back to dashboard
+    private void loadClientNames() {
+        try {
+            clientNames.clear();
+            for (ClientDto c : clientService.getClients()) {
+                clientNames.put(c.getId(), c.getName() + " " + c.getSurname());
+            }
+        } catch (Exception ignored) {}
     }
 
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setContentText(message);
-        alert.showAndWait();
+    private String getClientName(Long clientId) {
+        if (clientId == null) return "-";
+        return clientNames.getOrDefault(clientId, "Cliente #" + clientId);
     }
 
-    private void showWarning(String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Warning");
-        alert.setContentText(message);
-        alert.showAndWait();
+    private void handleView() {
+        DietResultEntity selected = dietTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            new Alert(Alert.AlertType.WARNING, "Seleziona una dieta da visualizzare.", ButtonType.OK).showAndWait();
+            return;
+        }
+        DietResultDialog.show(
+                selected.getGeneratedDiet(),
+                getClientName(selected.getClientId()),
+                selected.getAiModel() != null ? selected.getAiModel() : "AI");
     }
 
-    private void showInfo(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Success");
-        alert.setContentText(message);
-        alert.showAndWait();
+    private void handleDelete() {
+        DietResultEntity selected = dietTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            new Alert(Alert.AlertType.WARNING, "Seleziona una dieta da eliminare.", ButtonType.OK).showAndWait();
+            return;
+        }
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "Eliminare il piano nutrizionale per " + getClientName(selected.getClientId()) + "?",
+                ButtonType.YES, ButtonType.NO);
+        confirm.setTitle("Conferma eliminazione");
+        confirm.showAndWait().ifPresent(bt -> {
+            if (bt == ButtonType.YES) {
+                try {
+                    dietResultRepository.deleteById(selected.getId());
+                    dietData.remove(selected);
+                } catch (Exception e) {
+                    new Alert(Alert.AlertType.ERROR,
+                            "Errore durante l'eliminazione: " + e.getMessage(), ButtonType.OK).showAndWait();
+                }
+            }
+        });
     }
 }
-

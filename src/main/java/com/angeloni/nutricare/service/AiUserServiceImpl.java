@@ -6,15 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.angeloni.nutricare.dto.AiUserDto;
-import com.angeloni.nutricare.entity.AiEntity;
 import com.angeloni.nutricare.entity.AiUserEntity;
 import com.angeloni.nutricare.entity.UserEntity;
 import com.angeloni.nutricare.enums.AIModelEnum;
 import com.angeloni.nutricare.enums.AINameEnum;
-import com.angeloni.nutricare.enums.OAuthProviderEnum;
 import com.angeloni.nutricare.repository.AiRepository;
 import com.angeloni.nutricare.repository.AiUserRepository;
-import com.angeloni.nutricare.repository.CopilotConnectionRepository;
 import com.angeloni.nutricare.util.TokenCryptoUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -36,9 +33,6 @@ public class AiUserServiceImpl implements AiUserService {
 	private ModelMapper modelMapper;
 
 	@Autowired
-	private CopilotConnectionRepository copilotConnectionRepository;
-
-	@Autowired
 	private TokenCryptoUtil tokenCryptoUtil;
 
 	@Override
@@ -52,27 +46,23 @@ public class AiUserServiceImpl implements AiUserService {
 	@Override
 	public boolean hasApiKey(AINameEnum name, AIModelEnum model) {
 		UserEntity user = userContextService.getCurrentUser();
-		if (name == AINameEnum.GITHUB_COPILOT) {
-			return copilotConnectionRepository.findByUserAndProvider(user, OAuthProviderEnum.GITHUB_COPILOT)
-					.map(c -> c.getEncryptedAccessToken() != null && !c.getEncryptedAccessToken().isBlank())
-					.orElse(false);
-		}
-		return aiRepository.findByNameAndModel(name, model)
-				.flatMap(ai -> aiUserRepository.findByUserAndAi(user, ai))
-				.map(entity -> entity.getAiKey() != null && !entity.getAiKey().isBlank())
-				.orElse(false);
+		return aiRepository.findByName(name).stream()
+				.anyMatch(ai -> aiUserRepository.findByUserAndAi(user, ai)
+						.map(e -> e.getAiKey() != null && !e.getAiKey().isBlank())
+						.orElse(false));
 	}
 
 	@Override
 	@Transactional
 	public void saveApiKey(AINameEnum name, AIModelEnum model, String plainApiKey) {
 		UserEntity user = userContextService.getCurrentUser();
-		AiEntity ai = aiRepository.findByNameAndModel(name, model)
-				.orElseThrow(() -> new IllegalArgumentException("AI non trovata: " + name + "/" + model));
-		AiUserEntity entity = aiUserRepository.findByUserAndAi(user, ai)
-				.orElse(AiUserEntity.builder().user(user).ai(ai).build());
-		entity.setAiKey(tokenCryptoUtil.encrypt(plainApiKey));
-		aiUserRepository.save(entity);
-		log.info("API Key salvata per AI: {}/{}", name, model);
+		String encryptedKey = tokenCryptoUtil.encrypt(plainApiKey);
+		aiRepository.findByName(name).forEach(ai -> {
+			AiUserEntity entity = aiUserRepository.findByUserAndAi(user, ai)
+					.orElse(AiUserEntity.builder().user(user).ai(ai).build());
+			entity.setAiKey(encryptedKey);
+			aiUserRepository.save(entity);
+		});
+		log.info("API Key salvata per tutti i modelli di: {}", name);
 	}
 }

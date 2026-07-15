@@ -45,8 +45,8 @@ public class AiDataInitializer {
 
     private AINameEnum resolveProvider(AIModelEnum model) {
         String name = model.name();
-        if (name.startsWith("COPILOT_")) return AINameEnum.GITHUB_COPILOT;
-        if (name.startsWith("CLAUDE"))   return AINameEnum.CLAUDE;
+        if (name.startsWith("CLAUDE"))  return AINameEnum.CLAUDE;
+        if (name.startsWith("GEMINI_")) return AINameEnum.GEMINI;
         return AINameEnum.CHATGPT;
     }
 }

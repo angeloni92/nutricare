@@ -2,20 +2,17 @@ package com.angeloni.nutricare.enums;
 
 public enum AINameEnum {
 
-	 CHATGPT("CHATGPT"),
-	 CLAUDE("CLAUDE"),
-	 GITHUB_COPILOT("GITHUB_COPILOT");
-		
-	    private final String value;
+     CHATGPT("CHATGPT"),
+     CLAUDE("CLAUDE"),
+     GEMINI("GEMINI");
 
-	    
-	    AINameEnum(String value) {
-	        this.value = value;
-	    }
+    private final String value;
 
-	    
-	    public String getValue() {
-	        return value;
-	    }
+    AINameEnum(String value) {
+        this.value = value;
+    }
 
+    public String getValue() {
+        return value;
+    }
 }

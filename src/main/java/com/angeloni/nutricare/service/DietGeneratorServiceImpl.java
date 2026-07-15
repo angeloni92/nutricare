@@ -24,7 +24,6 @@ import com.angeloni.nutricare.dto.AnthropometryDto;
 import com.angeloni.nutricare.dto.ClientDto;
 import com.angeloni.nutricare.dto.DietDetailDto;
 import com.angeloni.nutricare.dto.DietRequestDto;
-import com.angeloni.nutricare.entity.AiEntity;
 import com.angeloni.nutricare.entity.AiUserEntity;
 import com.angeloni.nutricare.entity.DietResultEntity;
 import com.angeloni.nutricare.entity.UserEntity;
@@ -65,6 +64,9 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
     @Value("${nutricare.openai.api-key:}")
     private String openaiApiKey;
 
+    @Value("${nutricare.gemini.api-key:}")
+    private String geminiApiKey;
+
     private final RestTemplate restTemplate = buildTrustAllRestTemplate();
 
     @Override
@@ -91,8 +93,10 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
             generatedDiet = callClaude(model, prompt);
         } else if (provider == AINameEnum.CHATGPT) {
             generatedDiet = callOpenAi(model, prompt);
+        } else if (provider == AINameEnum.GEMINI) {
+            generatedDiet = callGemini(model, prompt);
         } else {
-            generatedDiet = "Generazione via GitHub Copilot non ancora supportata in questa versione.";
+            throw new RuntimeException("Provider AI non supportato: " + provider);
         }
 
         UserEntity user = userContextService.getCurrentUser();
@@ -200,29 +204,69 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private String callGemini(AIModelEnum model, String prompt) {
+        String apiKey = resolveApiKey(AINameEnum.GEMINI, model, geminiApiKey, "Gemini");
+        String modelId = geminiModelId(model);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
+
+        Map<String, Object> body = Map.of(
+                "model", modelId,
+                "max_tokens", 4096,
+                "messages", List.of(Map.of("role", "user", "content", prompt))
+        );
+
+        try {
+            Map<String, Object> response = restTemplate.postForObject(
+                    "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                    new HttpEntity<>(body, headers),
+                    Map.class);
+            List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+            Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+            return message.get("content").toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Errore chiamata API Gemini: " + e.getMessage(), e);
+        }
+    }
+
     private String resolveApiKey(AINameEnum provider, AIModelEnum model, String propertyKey, String label) {
         if (propertyKey != null && !propertyKey.isBlank() && !"replace-me".equals(propertyKey)) {
             return propertyKey;
         }
         UserEntity user = userContextService.getCurrentUser();
-        AiEntity ai = aiRepository.findByNameAndModel(provider, model)
-                .orElseThrow(() -> new RuntimeException("Modello " + label + " non trovato nel database"));
-        AiUserEntity aiUser = aiUserRepository.findByUserAndAi(user, ai)
+        java.util.Optional<AiUserEntity> aiUser = aiRepository.findByNameAndModel(provider, model)
+                .flatMap(ai -> aiUserRepository.findByUserAndAi(user, ai));
+        if (aiUser.isEmpty()) {
+            aiUser = aiRepository.findByName(provider).stream()
+                    .map(ai -> aiUserRepository.findByUserAndAi(user, ai))
+                    .filter(java.util.Optional::isPresent)
+                    .map(java.util.Optional::get)
+                    .filter(e -> e.getAiKey() != null && !e.getAiKey().isBlank())
+                    .findFirst();
+        }
+        return aiUser
+                .map(e -> tokenCryptoUtil.decrypt(e.getAiKey()))
                 .orElseThrow(() -> new RuntimeException("API Key " + label + " non configurata. Clicca su 'Configura Credenziali'."));
-        return tokenCryptoUtil.decrypt(aiUser.getAiKey());
     }
 
     private String claudeModelId(AIModelEnum model) {
         return switch (model) {
-            case CLAUDE4SONNET   -> "claude-sonnet-4-5";
-            case CLAUDE4OPUS     -> "claude-opus-4-5";
-            case CLAUDE37SONNET  -> "claude-3-7-sonnet-20250219";
-            case CLAUDE35SONNET  -> "claude-3-5-sonnet-20241022";
-            case CLAUDE35HAIKU   -> "claude-3-5-haiku-20241022";
-            case CLAUDE3OPUS     -> "claude-3-opus-20240229";
-            case CLAUDE3SONNET   -> "claude-3-sonnet-20240229";
-            case CLAUDE3HAIKU    -> "claude-3-haiku-20240307";
-            default              -> "claude-3-5-sonnet-20241022";
+            case CLAUDE5FABLE  -> "claude-fable-5";
+            case CLAUDE5SONNET -> "claude-sonnet-5";
+            case CLAUDE4SONNET -> "claude-sonnet-4-5";
+            case CLAUDE48OPUS  -> "claude-opus-4-8";
+            case CLAUDE4OPUS   -> "claude-opus-4-5";
+            case CLAUDE37SONNET-> "claude-3-7-sonnet-20250219";
+            case CLAUDE35SONNET-> "claude-3-5-sonnet-20241022";
+            case CLAUDE35HAIKU -> "claude-3-5-haiku-20241022";
+            case CLAUDE45HAIKU -> "claude-haiku-4-5-20251001";
+            case CLAUDE3OPUS   -> "claude-3-opus-20240229";
+            case CLAUDE3SONNET -> "claude-3-sonnet-20240229";
+            case CLAUDE3HAIKU  -> "claude-3-haiku-20240307";
+            default            -> "claude-sonnet-5";
         };
     }
 
@@ -235,9 +279,22 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
             case GPT3TURBO    -> "gpt-3.5-turbo";
             case OPENAIO1     -> "o1";
             case OPENAIO1MINI -> "o1-mini";
+            case OPENAIO3     -> "o3";
             case OPENAIO3MINI -> "o3-mini";
             case OPENAIO4MINI -> "o4-mini";
             default           -> "gpt-4o";
+        };
+    }
+
+    private String geminiModelId(AIModelEnum model) {
+        return switch (model) {
+            case GEMINI_25_PRO        -> "gemini-2.5-pro";
+            case GEMINI_25_FLASH      -> "gemini-2.5-flash";
+            case GEMINI_20_FLASH      -> "gemini-2.0-flash";
+            case GEMINI_20_FLASH_LITE -> "gemini-2.0-flash-lite";
+            case GEMINI_15_FLASH      -> "gemini-1.5-flash";
+            case GEMINI_15_PRO        -> "gemini-1.5-pro";
+            default                   -> "gemini-2.5-flash";
         };
     }
 

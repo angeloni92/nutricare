@@ -17,19 +17,14 @@ public class AIHandlerFactory {
 	@Autowired
 	private ClaudeHandler claudeHandler;
 
-	@Autowired
-	private CopilotHandler copilotHandler;
-
 	private AbstractAIHandler chain;
 
 	public AIHandlerFactory() {
 	}
 
 	public void initialize() {
-		// Chain: ChatGPT4 --> Claude --> Copilot
 		chatGPT4Handler.setNext(claudeHandler);
-		claudeHandler.setNext(copilotHandler);
-		copilotHandler.setNext(null);
+		claudeHandler.setNext(null);
 		this.chain = chatGPT4Handler;
 		log.info("AI Handler chain initialized");
 	}
@@ -41,4 +36,3 @@ public class AIHandlerFactory {
 		return chain.handle(aiModel, prompt);
 	}
 }
-

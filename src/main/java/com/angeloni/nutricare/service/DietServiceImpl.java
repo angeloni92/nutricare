@@ -15,7 +15,6 @@ import com.angeloni.nutricare.dto.DietRequestDto;
 import com.angeloni.nutricare.entity.AiEntity;
 import com.angeloni.nutricare.entity.AiUserEntity;
 import com.angeloni.nutricare.entity.UserEntity;
-import com.angeloni.nutricare.enums.AINameEnum;
 import com.angeloni.nutricare.exception.NotFoundException;
 import com.angeloni.nutricare.repository.AiRepository;
 import com.angeloni.nutricare.repository.AiUserRepository;
@@ -41,9 +40,6 @@ public class DietServiceImpl implements DietService {
 	@Autowired
 	private UserContextService userContextService;
 
-	@Autowired
-	private CopilotAuthService copilotAuthService;
-
 	@Override
 	@Transactional
 	public CommonResponseDto generateDiet(DietRequestDto dietRequestDto) {
@@ -55,11 +51,8 @@ public class DietServiceImpl implements DietService {
 				.orElseThrow(() -> new NotFoundException(String.format(DietService.AI_NOT_FOUND_FORMAT,
 						dietRequestDto.getAi().getName().getValue(), dietRequestDto.getAi().getModel())));
 		String aiName = dietRequestDto.getAi().getName().getValue();
-		if (AINameEnum.GITHUB_COPILOT.getValue().equals(aiName) && dietRequestDto.getAi().getAiKey() == null) {
-			dietRequestDto.getAi().setAiKey(copilotAuthService.resolveAccessTokenForUser(user));
-		}
 		Optional<AiUserEntity> aiUser = dietGenerationContext.check(aiName, dietRequestDto.getAi(), user);
-		if (aiUser.isEmpty() && !AINameEnum.GITHUB_COPILOT.getValue().equals(aiName)) {
+		if (aiUser.isEmpty()) {
 			saveAiUser(user, ai, dietRequestDto.getAi().getAiKey());
 		}
 		dietGenerationService.generateDietAsync(dietRequestDto);

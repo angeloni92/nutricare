@@ -45,10 +45,6 @@
         <sqlFile path="db/changelog/ddl/circumferences/create_circumferences.sql" dbms="h2"/>
     </changeSet>
 
-    <changeSet id="create_copilot_connections" author="angeloni">
-        <sqlFile path="db/changelog/ddl/copilot_connections/create_copilot_connections.sql" dbms="mysql"/>
-        <sqlFile path="db/changelog/ddl/copilot_connections/create_copilot_connections.sql" dbms="h2"/>
-    </changeSet>
 
     <changeSet id="create_diet_results" author="angeloni">
         <sqlFile path="db/changelog/ddl/diet_results/create_diet_results.sql" dbms="mysql"/>

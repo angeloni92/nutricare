@@ -23,10 +23,11 @@ import com.angeloni.nutricare.enums.PrimaryGoalEnum;
 import com.angeloni.nutricare.service.AiUserService;
 import com.angeloni.nutricare.service.AnthropometryService;
 import com.angeloni.nutricare.service.ClientService;
-import com.angeloni.nutricare.service.CopilotDeviceFlowService;
 import com.angeloni.nutricare.service.DietGeneratorService;
+import com.angeloni.nutricare.ui.StageManager;
 import com.angeloni.nutricare.ui.dialog.AiApiKeyDialog;
-import com.angeloni.nutricare.ui.dialog.CopilotAuthDialog;
+import com.angeloni.nutricare.ui.dialog.DietGenerationProgressDialog;
+import com.angeloni.nutricare.ui.dialog.DietResultDialog;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -42,13 +43,13 @@ import javafx.scene.control.TextArea;
 public class DietGeneratorController {
 
     @Autowired
+    private StageManager stageManager;
+
+    @Autowired
     private DietGeneratorService dietGeneratorService;
 
     @Autowired
     private AiUserService aiUserService;
-
-    @Autowired
-    private CopilotDeviceFlowService copilotDeviceFlowService;
 
     @Autowired
     private AnthropometryService anthropometryService;
@@ -62,41 +63,44 @@ public class DietGeneratorController {
     static {
         PROVIDERS.put("ChatGPT (OpenAI)", AINameEnum.CHATGPT);
         PROVIDERS.put("Claude (Anthropic)", AINameEnum.CLAUDE);
-        PROVIDERS.put("GitHub Copilot", AINameEnum.GITHUB_COPILOT);
+        PROVIDERS.put("Google Gemini", AINameEnum.GEMINI);
 
         Map<String, AIModelEnum> chatgptModels = new LinkedHashMap<>();
         chatgptModels.put("GPT-4o  (consigliato)", AIModelEnum.GPT4O);
         chatgptModels.put("GPT-4o mini  (economico)", AIModelEnum.GPT4O_MINI);
+        chatgptModels.put("o3  (ragionamento completo)", AIModelEnum.OPENAIO3);
+        chatgptModels.put("o3-mini  (ragionamento)", AIModelEnum.OPENAIO3MINI);
+        chatgptModels.put("o4-mini  (ragionamento recente)", AIModelEnum.OPENAIO4MINI);
+        chatgptModels.put("o1  (ragionamento avanzato)", AIModelEnum.OPENAIO1);
+        chatgptModels.put("o1-mini  (ragionamento leggero)", AIModelEnum.OPENAIO1MINI);
         chatgptModels.put("GPT-4 Turbo", AIModelEnum.GPT4TURBO);
         chatgptModels.put("GPT-4", AIModelEnum.GPT4);
         chatgptModels.put("GPT-3.5 Turbo  (legacy)", AIModelEnum.GPT3TURBO);
-        chatgptModels.put("o1  (ragionamento avanzato)", AIModelEnum.OPENAIO1);
-        chatgptModels.put("o1-mini  (ragionamento leggero)", AIModelEnum.OPENAIO1MINI);
-        chatgptModels.put("o3-mini  (ragionamento v2)", AIModelEnum.OPENAIO3MINI);
-        chatgptModels.put("o4-mini  (ragionamento recente)", AIModelEnum.OPENAIO4MINI);
         PROVIDER_MODELS.put(AINameEnum.CHATGPT, chatgptModels);
 
         Map<String, AIModelEnum> claudeModels = new LinkedHashMap<>();
-        claudeModels.put("Claude Sonnet 4  (consigliato)", AIModelEnum.CLAUDE4SONNET);
-        claudeModels.put("Claude Opus 4  (potente)", AIModelEnum.CLAUDE4OPUS);
-        claudeModels.put("Claude 3.7 Sonnet  (avanzato)", AIModelEnum.CLAUDE37SONNET);
+        claudeModels.put("Claude Fable 5  (il più potente)", AIModelEnum.CLAUDE5FABLE);
+        claudeModels.put("Claude Sonnet 5  (consigliato)", AIModelEnum.CLAUDE5SONNET);
+        claudeModels.put("Claude Sonnet 4", AIModelEnum.CLAUDE4SONNET);
+        claudeModels.put("Claude Opus 4.8  (avanzato)", AIModelEnum.CLAUDE48OPUS);
+        claudeModels.put("Claude Opus 4", AIModelEnum.CLAUDE4OPUS);
+        claudeModels.put("Claude 3.7 Sonnet", AIModelEnum.CLAUDE37SONNET);
         claudeModels.put("Claude 3.5 Sonnet", AIModelEnum.CLAUDE35SONNET);
+        claudeModels.put("Claude 4.5 Haiku  (veloce)", AIModelEnum.CLAUDE45HAIKU);
         claudeModels.put("Claude 3.5 Haiku  (veloce)", AIModelEnum.CLAUDE35HAIKU);
         claudeModels.put("Claude 3 Opus  (legacy)", AIModelEnum.CLAUDE3OPUS);
         claudeModels.put("Claude 3 Sonnet  (legacy)", AIModelEnum.CLAUDE3SONNET);
-        claudeModels.put("Claude 3 Haiku  (legacy veloce)", AIModelEnum.CLAUDE3HAIKU);
+        claudeModels.put("Claude 3 Haiku  (legacy)", AIModelEnum.CLAUDE3HAIKU);
         PROVIDER_MODELS.put(AINameEnum.CLAUDE, claudeModels);
 
-        Map<String, AIModelEnum> copilotModels = new LinkedHashMap<>();
-        copilotModels.put("GPT-4o  (consigliato)", AIModelEnum.COPILOT_GPT4O);
-        copilotModels.put("GPT-4o mini", AIModelEnum.COPILOT_GPT4O_MINI);
-        copilotModels.put("o1  (ragionamento)", AIModelEnum.COPILOT_O1);
-        copilotModels.put("o3-mini  (ragionamento v2)", AIModelEnum.COPILOT_O3MINI);
-        copilotModels.put("Claude 3.5 Sonnet", AIModelEnum.COPILOT_CLAUDE35SONNET);
-        copilotModels.put("Claude 3.7 Sonnet", AIModelEnum.COPILOT_CLAUDE37SONNET);
-        copilotModels.put("Gemini 1.5 Pro", AIModelEnum.COPILOT_GEMINI15PRO);
-        copilotModels.put("Gemini 2.0 Flash", AIModelEnum.COPILOT_GEMINI20FLASH);
-        PROVIDER_MODELS.put(AINameEnum.GITHUB_COPILOT, copilotModels);
+        Map<String, AIModelEnum> geminiModels = new LinkedHashMap<>();
+        geminiModels.put("Gemini 2.5 Pro  (più recente)", AIModelEnum.GEMINI_25_PRO);
+        geminiModels.put("Gemini 2.5 Flash  (consigliato)", AIModelEnum.GEMINI_25_FLASH);
+        geminiModels.put("Gemini 2.0 Flash", AIModelEnum.GEMINI_20_FLASH);
+        geminiModels.put("Gemini 2.0 Flash Lite  (leggero)", AIModelEnum.GEMINI_20_FLASH_LITE);
+        geminiModels.put("Gemini 1.5 Flash", AIModelEnum.GEMINI_15_FLASH);
+        geminiModels.put("Gemini 1.5 Pro", AIModelEnum.GEMINI_15_PRO);
+        PROVIDER_MODELS.put(AINameEnum.GEMINI, geminiModels);
     }
 
     private ComboBox<String> providerCombo;
@@ -211,24 +215,16 @@ public class DietGeneratorController {
         AIModelEnum model = selectedModel();
         if (provider == null || model == null) return;
 
-        if (provider == AINameEnum.GITHUB_COPILOT) {
-            CopilotAuthDialog.show(copilotDeviceFlowService).ifPresent(result -> {
-                String login = result.substring(3);
+        String displayName = providerCombo.getValue() + " - " + aiModelCombo.getValue();
+        AiApiKeyDialog.show(displayName, provider).ifPresent(key -> {
+            try {
+                aiUserService.saveApiKey(provider, model, key);
                 updateCredentialStatus();
-                showInfo("GitHub Copilot connesso come: " + login);
-            });
-        } else {
-            String displayName = providerCombo.getValue() + " - " + aiModelCombo.getValue();
-            AiApiKeyDialog.show(displayName).ifPresent(key -> {
-                try {
-                    aiUserService.saveApiKey(provider, model, key);
-                    updateCredentialStatus();
-                    showInfo("API Key salvata con successo per " + displayName);
-                } catch (Exception e) {
-                    showError("Errore nel salvataggio della API Key: " + e.getMessage());
-                }
-            });
-        }
+                showInfo("API Key salvata con successo per " + displayName);
+            } catch (Exception e) {
+                showError("Errore nel salvataggio della API Key: " + e.getMessage());
+            }
+        });
     }
 
     public void handleGenerateDiet() {
@@ -257,8 +253,11 @@ public class DietGeneratorController {
             return;
         }
 
-        progressIndicator.setVisible(true);
         generateButton.setDisable(true);
+        if (progressIndicator != null) progressIndicator.setVisible(false);
+
+        DietGenerationProgressDialog progressDialog = new DietGenerationProgressDialog();
+        progressDialog.show();
 
         final AINameEnum finalProvider = provider;
         final AIModelEnum finalModel = model;
@@ -287,14 +286,14 @@ public class DietGeneratorController {
 
                 String result = dietGeneratorService.generateDiet(request);
 
+                progressDialog.done();
                 Platform.runLater(() -> {
-                    progressIndicator.setVisible(false);
                     generateButton.setDisable(false);
                     showDietResult(result);
                 });
             } catch (Exception e) {
+                progressDialog.done();
                 Platform.runLater(() -> {
-                    progressIndicator.setVisible(false);
                     generateButton.setDisable(false);
                     showError("Errore durante la generazione: " + e.getMessage());
                 });
@@ -345,17 +344,12 @@ public class DietGeneratorController {
     }
 
     private void showDietResult(String diet) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Dieta Generata");
-        alert.setHeaderText("Piano nutrizionale generato con successo!");
-        TextArea ta = new TextArea(diet);
-        ta.setWrapText(true);
-        ta.setEditable(false);
-        ta.setPrefWidth(700);
-        ta.setPrefHeight(500);
-        alert.getDialogPane().setContent(ta);
-        alert.getDialogPane().setPrefWidth(740);
-        alert.showAndWait();
+        String clientName    = clientCombo.getValue() != null ? clientCombo.getValue() : "Cliente";
+        String providerModel = (providerCombo.getValue() != null ? providerCombo.getValue() : "")
+                + (aiModelCombo.getValue() != null ? " — " + aiModelCombo.getValue() : "");
+        DietResultDialog.show(diet, clientName, providerModel);
+        stageManager.refreshScene("dashboard");
+        stageManager.refreshScene("diet");
     }
 
     private void showError(String msg) {

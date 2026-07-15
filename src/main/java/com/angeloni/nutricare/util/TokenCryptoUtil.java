@@ -24,7 +24,7 @@ public class TokenCryptoUtil {
 	private final SecureRandom secureRandom = new SecureRandom();
 
 	public TokenCryptoUtil(
-			@Value("${nutricare.copilot.crypto.secret:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}") String base64Secret) {
+			@Value("${nutricare.crypto.secret:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}") String base64Secret) {
 		byte[] decoded = Base64.getDecoder().decode(base64Secret);
 		if (decoded.length != 16 && decoded.length != 24 && decoded.length != 32) {
 			throw new IllegalArgumentException("nutricare.copilot.crypto.secret must decode to 16, 24 or 32 bytes");
