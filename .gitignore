@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### NutriCare runtime data ###
+data/
+*.mv.db
+*.trace.db
