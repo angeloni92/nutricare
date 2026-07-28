@@ -1,14 +1,20 @@
 package com.angeloni.nutricare.ui;
 
+import java.nio.file.Path;
+
+import org.springframework.stereotype.Component;
+
 import com.angeloni.nutricare.dto.AnthropometryDto;
 import com.angeloni.nutricare.dto.ClientDto;
 import com.angeloni.nutricare.entity.DietResultEntity;
 import com.angeloni.nutricare.repository.ClientRepository;
 import com.angeloni.nutricare.repository.DietResultRepository;
+import com.angeloni.nutricare.service.BackupService;
 import com.angeloni.nutricare.ui.controller.ClientController;
 import com.angeloni.nutricare.ui.controller.DashboardController;
 import com.angeloni.nutricare.ui.controller.DietController;
 import com.angeloni.nutricare.ui.controller.DietGeneratorController;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -18,7 +24,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import org.springframework.stereotype.Component;
+import javafx.stage.DirectoryChooser;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -34,13 +40,16 @@ SceneBuilder {
     private final DietGeneratorController dietGeneratorController;
     private final ClientRepository clientRepository;
     private final DietResultRepository dietResultRepository;
+    private final BackupService backupService;
+
     public SceneBuilder(StageManager stageManager,
                         DashboardController dashboardController,
                         ClientController clientController,
                         DietController dietController,
                         DietGeneratorController dietGeneratorController,
                         ClientRepository clientRepository,
-                        DietResultRepository dietResultRepository) {
+                        DietResultRepository dietResultRepository,
+                        BackupService backupService) {
         this.stageManager = stageManager;
         this.dashboardController = dashboardController;
         this.clientController = clientController;
@@ -48,6 +57,7 @@ SceneBuilder {
         this.dietGeneratorController = dietGeneratorController;
         this.clientRepository = clientRepository;
         this.dietResultRepository = dietResultRepository;
+        this.backupService = backupService;
     }
 
     private Label dashClientCountLabel;
@@ -198,7 +208,10 @@ SceneBuilder {
         Button goDietList = new Button("  Storico Diete");
         goDietList.getStyleClass().add("btn-secondary");
         goDietList.setOnAction(e -> stageManager.switchScene("diet"));
-        actions.getChildren().addAll(goClients, goDietGen, goDietList);
+        Button backupBtn = new Button("  Backup Dati");
+        backupBtn.getStyleClass().add("btn-secondary");
+        backupBtn.setOnAction(e -> handleBackup());
+        actions.getChildren().addAll(goClients, goDietGen, goDietList, backupBtn);
         actionsCard.getChildren().addAll(actionsTitle, actions);
 
         // Info card
@@ -312,6 +325,24 @@ SceneBuilder {
             return fn.call();
         } catch (Exception e) {
             return 0L;
+        }
+    }
+
+    private void handleBackup() {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Scegli cartella di destinazione backup");
+        chooser.setInitialDirectory(Path.of(System.getProperty("user.home")).toFile());
+        java.io.File dir = chooser.showDialog(stageManager.getPrimaryStage());
+        if (dir == null) return;
+        try {
+            Path backupFile = backupService.backup(dir.toPath());
+            new Alert(Alert.AlertType.INFORMATION,
+                    "Backup completato con successo!\n\n" + backupFile.toAbsolutePath(),
+                    ButtonType.OK).showAndWait();
+        } catch (Exception ex) {
+            new Alert(Alert.AlertType.ERROR,
+                    "Errore durante il backup:\n" + ex.getMessage(),
+                    ButtonType.OK).showAndWait();
         }
     }
 
