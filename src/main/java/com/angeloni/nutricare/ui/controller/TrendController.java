@@ -10,6 +10,7 @@ import com.angeloni.nutricare.dto.ClientDto;
 import com.angeloni.nutricare.entity.AnthropometryEntity;
 import com.angeloni.nutricare.repository.AnthropometryRepository;
 import com.angeloni.nutricare.service.ClientService;
+import com.angeloni.nutricare.service.I18nService;
 
 import javafx.collections.FXCollections;
 import javafx.scene.chart.LineChart;
@@ -29,6 +30,9 @@ public class TrendController {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private I18nService i18n;
 
     private ComboBox<ClientDto> clientCombo;
     private LineChart<String, Number> weightChart;
@@ -101,9 +105,9 @@ public class TrendController {
         noDataBox.setManaged(false);
 
         XYChart.Series<String, Number> weightSeries = new XYChart.Series<>();
-        weightSeries.setName("Peso (kg)");
+        weightSeries.setName(i18n.t("trend.axis.weight"));
         XYChart.Series<String, Number> bmiSeries = new XYChart.Series<>();
-        bmiSeries.setName("BMI");
+        bmiSeries.setName(i18n.t("trend.axis.bmi"));
 
         for (AnthropometryEntity a : data) {
             String date = a.getCreatedAt() != null ? a.getCreatedAt().format(DATE_FMT) : "-";
