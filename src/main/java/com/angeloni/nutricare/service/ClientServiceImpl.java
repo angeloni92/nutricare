@@ -13,6 +13,7 @@ import com.angeloni.nutricare.dto.ClientDto;
 import com.angeloni.nutricare.entity.ClientEntity;
 import com.angeloni.nutricare.entity.UserEntity;
 import com.angeloni.nutricare.exception.ConflictException;
+import com.angeloni.nutricare.exception.NotFoundException;
 import com.angeloni.nutricare.repository.ClientRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +66,10 @@ public class ClientServiceImpl implements ClientService {
 	@Override
 	@Transactional
 	public void deleteClientById(Long id) {
-		clientRepository.deleteById(id);
+		UserEntity user = userContextService.getCurrentUser();
+		ClientEntity client = clientRepository.findByIdAndUser(id, user)
+				.orElseThrow(() -> new NotFoundException("Cliente con id [" + id + "] non trovato"));
+		clientRepository.delete(client);
 	}
 
 }

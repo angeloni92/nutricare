@@ -13,6 +13,8 @@ import com.angeloni.nutricare.entity.UserEntity;
 public interface ClientRepository extends JpaRepository<ClientEntity, Long> {
 	
 	Optional<ClientEntity> findByNameAndSurnameAndUser(String name, String Surname, UserEntity user);
-	
+
+	Optional<ClientEntity> findByIdAndUser(Long id, UserEntity user);
+
 	List<ClientEntity> findByUser(UserEntity user);
 }
