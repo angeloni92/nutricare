@@ -252,13 +252,38 @@ public class ExportUtils {
                 empty.setSpacingAfter(80);
                 continue;
             }
-            if (isHeader(trimmed)) {
+            boolean isDayHdr     = isDayHeader(trimmed);
+            boolean isCalories   = !isDayHdr && isCaloriesLine(trimmed);
+            boolean isSectionHdr = !isDayHdr && !isCalories && isHeader(trimmed);
+            boolean isBullet     = !isDayHdr && !isSectionHdr && !isCalories && isBulletItem(trimmed);
+            if (isDayHdr) {
+                XWPFParagraph p = doc.createParagraph();
+                p.setSpacingBefore(480); p.setSpacingAfter(120);
+                setParaBg(p, "131C2E");
+                XWPFRun r = p.createRun();
+                r.setText(trimmed); r.setBold(true); r.setFontSize(13);
+                r.setColor("FFFFFF"); r.setFontFamily("Calibri");
+            } else if (isCalories) {
+                XWPFParagraph p = doc.createParagraph();
+                p.setSpacingBefore(100); p.setSpacingAfter(80);
+                p.setIndentationLeft(200);
+                XWPFRun r = p.createRun();
+                r.setText(trimmed); r.setBold(true); r.setFontSize(11);
+                r.setColor("059669"); r.setFontFamily("Calibri");
+            } else if (isSectionHdr) {
                 XWPFParagraph p = doc.createParagraph();
                 p.setSpacingBefore(360); p.setSpacingAfter(80);
                 addSectionBorder(p, "4F46E5");
                 XWPFRun r = p.createRun();
                 r.setText(trimmed); r.setBold(true); r.setFontSize(12);
                 r.setColor("3730A3"); r.setFontFamily("Calibri");
+            } else if (isBullet) {
+                XWPFParagraph p = doc.createParagraph();
+                p.setSpacingAfter(60);
+                p.setIndentationLeft(400);
+                XWPFRun r = p.createRun();
+                r.setText(trimmed); r.setFontSize(11);
+                r.setColor("374151"); r.setFontFamily("Calibri");
             } else {
                 XWPFParagraph p = doc.createParagraph();
                 p.setSpacingAfter(60);
@@ -407,6 +432,7 @@ public class ExportUtils {
         private static final int[] C_GRAY         = {148, 163, 184};
         private static final int[] C_LTBLUE       = {191, 208, 232};
         private static final int[] C_BORDER       = {226, 232, 240};
+        private static final int[] C_GREEN        = {16,  185, 129};
 
         private static final float BOX_H   = 80f;
         private static final float BODY_FS = 10.5f;
@@ -436,20 +462,41 @@ public class ExportUtils {
             for (String rawLine : (dietText != null ? dietText : "").split("\n")) {
                 String line = sanitize(rawLine.trim());
                 if (line.isEmpty()) { yPos -= 5f; continue; }
-                boolean isHdr = isHeader(rawLine.trim());
-                if (isHdr) {
+                boolean isDayHdr   = isDayHeader(rawLine.trim());
+                boolean isCalories = !isDayHdr && isCaloriesLine(rawLine.trim());
+                boolean isHdr      = !isDayHdr && !isCalories && isHeader(rawLine.trim());
+                boolean isBullet   = !isDayHdr && !isHdr && !isCalories && isBulletItem(line);
+                if (isDayHdr) {
+                    if (yPos < MB + HDR_LH + 36) { endPage(); startPage(); drawRunningHeader(); }
+                    yPos -= 14f;
+                    emitFilledRect(ML - 12, yPos - 6, USABLE + 24, HDR_LH + 10, C_NAVY);
+                    emitText(ML, yPos, line, "F2", HDR_FS + 1f, C_WHITE);
+                    yPos -= (HDR_LH + 8f);
+                } else if (isCalories) {
+                    if (yPos < MB + BODY_LH) { endPage(); startPage(); drawRunningHeader(); }
+                    for (String wl : wrapChars(line, 93)) {
+                        if (yPos < MB + BODY_LH) { endPage(); startPage(); drawRunningHeader(); }
+                        emitText(ML + 8, yPos, wl, "F2", BODY_FS, C_GREEN);
+                        yPos -= BODY_LH;
+                    }
+                } else if (isHdr) {
                     if (yPos < MB + HDR_LH + 24) { endPage(); startPage(); drawRunningHeader(); }
                     yPos -= 10f;
                     drawLine(yPos + 2, C_LIGHT_INDIGO, 0.5f);
                     yPos -= 12f;
+                    for (String wl : wrapChars(line, 88)) {
+                        if (yPos < MB + BODY_LH) { endPage(); startPage(); drawRunningHeader(); }
+                        emitText(ML, yPos, wl, "F2", HDR_FS, C_SECTION);
+                        yPos -= HDR_LH;
+                    }
                 } else {
                     if (yPos < MB + BODY_LH) { endPage(); startPage(); drawRunningHeader(); }
-                }
-                for (String wl : wrapChars(line, isHdr ? 88 : 95)) {
-                    if (yPos < MB + BODY_LH) { endPage(); startPage(); drawRunningHeader(); }
-                    emitText(ML, yPos, wl, isHdr ? "F2" : "F1", isHdr ? HDR_FS : BODY_FS,
-                             isHdr ? C_SECTION : C_BODY);
-                    yPos -= (isHdr ? HDR_LH : BODY_LH);
+                    float xOff = isBullet ? ML + 14 : ML;
+                    for (String wl : wrapChars(line, isBullet ? 93 : 95)) {
+                        if (yPos < MB + BODY_LH) { endPage(); startPage(); drawRunningHeader(); }
+                        emitText(xOff, yPos, wl, "F1", BODY_FS, C_BODY);
+                        yPos -= BODY_LH;
+                    }
                 }
             }
             endPage();
@@ -603,6 +650,31 @@ public class ExportUtils {
     }
 
     // ─── SHARED HELPERS ───────────────────────────────────────────────────────
+
+    private static final java.util.Set<String> DAY_NAMES_UPPER = java.util.Set.of(
+        "LUNEDI", "MARTEDI", "MERCOLEDI", "GIOVEDI", "VENERDI", "SABATO", "DOMENICA",
+        "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
+    );
+
+    private static boolean isDayHeader(String line) {
+        if (line == null) return false;
+        String t = line.trim().replaceAll("[:\\-*\\s0-9]+$", "").trim();
+        String normalized = t.toUpperCase()
+            .replace("À","A").replace("È","E").replace("É","E")
+            .replace("Ì","I").replace("Ò","O").replace("Ù","U");
+        return DAY_NAMES_UPPER.contains(normalized);
+    }
+
+    private static boolean isCaloriesLine(String line) {
+        if (line == null) return false;
+        String upper = line.toUpperCase();
+        return upper.contains("CALORIE TOTALI") || upper.contains("TOTAL CALORIES")
+               || upper.contains("TOTALE CALORIE");
+    }
+
+    private static boolean isBulletItem(String line) {
+        return line != null && (line.startsWith("-") || line.startsWith("*") || line.startsWith("•"));
+    }
 
     private static boolean isHeader(String line) {
         if (line == null || line.length() <= 3) return false;
