@@ -17,6 +17,7 @@ import com.angeloni.nutricare.repository.ClientRepository;
 import com.angeloni.nutricare.repository.DietResultRepository;
 import com.angeloni.nutricare.service.BackupService;
 import com.angeloni.nutricare.service.I18nService;
+import com.angeloni.nutricare.service.LicenseService;
 import com.angeloni.nutricare.service.UserContextService;
 import com.angeloni.nutricare.ui.controller.ClientController;
 import com.angeloni.nutricare.ui.controller.DashboardController;
@@ -52,6 +53,7 @@ public class SceneBuilder {
     private final TrendController trendController;
     private final I18nService i18n;
     private final UserContextService userContextService;
+    private final LicenseService licenseService;
 
     @Value("${app.version:dev}")
     private String appVersion;
@@ -66,7 +68,8 @@ public class SceneBuilder {
                         BackupService backupService,
                         TrendController trendController,
                         I18nService i18n,
-                        UserContextService userContextService) {
+                        UserContextService userContextService,
+                        LicenseService licenseService) {
         this.stageManager = stageManager;
         this.dashboardController = dashboardController;
         this.clientController = clientController;
@@ -78,6 +81,7 @@ public class SceneBuilder {
         this.trendController = trendController;
         this.i18n = i18n;
         this.userContextService = userContextService;
+        this.licenseService = licenseService;
     }
 
     private Label dashClientCountLabel;
@@ -174,7 +178,18 @@ public class SceneBuilder {
         versionLabel.getStyleClass().add("sidebar-subtitle");
         versionLabel.setPadding(new Insets(4, 8, 0, 8));
 
-        bottomArea.getChildren().addAll(sep, langRow, exitBtn, versionLabel);
+        LicenseService.Status licStatus = licenseService.getStatus();
+        if (licStatus == LicenseService.Status.TRIAL_ACTIVE) {
+            long daysLeft = licenseService.getTrialDaysRemaining();
+            Label trialBanner = new Label(i18n.t("license.trial.banner", daysLeft));
+            trialBanner.setStyle(
+                "-fx-font-size: 11px; -fx-text-fill: #f59e0b; -fx-font-weight: bold;" +
+                "-fx-padding: 4 8 0 8;"
+            );
+            bottomArea.getChildren().addAll(sep, langRow, trialBanner, exitBtn, versionLabel);
+        } else {
+            bottomArea.getChildren().addAll(sep, langRow, exitBtn, versionLabel);
+        }
 
         sidebar.getChildren().addAll(logoArea, navContainer, spacer, bottomArea);
         return sidebar;

@@ -7,7 +7,9 @@ import com.angeloni.nutricare.NutricareApplication;
 import com.angeloni.nutricare.event.LocaleChangedEvent;
 import com.angeloni.nutricare.service.AuthService;
 import com.angeloni.nutricare.service.I18nService;
+import com.angeloni.nutricare.service.LicenseService;
 import com.angeloni.nutricare.service.UserContextService;
+import com.angeloni.nutricare.ui.dialog.LicenseDialog;
 import com.angeloni.nutricare.ui.dialog.LoginDialog;
 import javafx.stage.Stage;
 import javafx.application.Platform;
@@ -20,15 +22,20 @@ public class ApplicationInitializer {
     private final I18nService i18nService;
     private final AuthService authService;
     private final UserContextService userContextService;
+    private final LicenseService licenseService;
+    private final LicenseDialog licenseDialog;
 
     public ApplicationInitializer(StageManager stageManager, SceneBuilder sceneBuilder,
                                   I18nService i18nService, AuthService authService,
-                                  UserContextService userContextService) {
+                                  UserContextService userContextService,
+                                  LicenseService licenseService, LicenseDialog licenseDialog) {
         this.stageManager = stageManager;
         this.sceneBuilder = sceneBuilder;
         this.i18nService = i18nService;
         this.authService = authService;
         this.userContextService = userContextService;
+        this.licenseService = licenseService;
+        this.licenseDialog = licenseDialog;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -52,6 +59,11 @@ public class ApplicationInitializer {
                 if (userContextService.getCurrentUser() == null) {
                     System.exit(0);
                 }
+            }
+
+            if (licenseService.getStatus() == LicenseService.Status.TRIAL_EXPIRED) {
+                boolean activated = licenseDialog.show();
+                if (!activated) { Platform.exit(); return; }
             }
 
             stageManager.setDashboardScene(sceneBuilder.buildDashboardScene());
