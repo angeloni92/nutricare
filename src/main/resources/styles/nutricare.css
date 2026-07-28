@@ -288,11 +288,11 @@
 }
 
 /* === FREE MEAL CHECKBOXES === */
-.free-meal-check .label {
+.free-meal-check {
     -fx-text-fill: #374151;
     -fx-font-size: 13px;
 }
-.free-meal-check:selected .label {
+.free-meal-check:selected {
     -fx-text-fill: #4f46e5;
     -fx-font-weight: bold;
 }
