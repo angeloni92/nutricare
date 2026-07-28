@@ -18,6 +18,7 @@ public class StageManager {
     private Scene clientScene;
     private Scene dietScene;
     private Scene dietGeneratorScene;
+    private Scene trendScene;
 
     private final Map<String, Runnable> refreshCallbacks = new HashMap<>();
 
@@ -47,14 +48,16 @@ public class StageManager {
             case "client"    -> stage.setScene(clientScene);
             case "diet"      -> { stage.setScene(dietScene); refreshScene("diet"); }
             case "diet-generator" -> stage.setScene(dietGeneratorScene);
+            case "trend"         -> { stage.setScene(trendScene); refreshScene("trend"); }
             default -> throw new IllegalArgumentException("Scene not found: " + sceneName);
         }
     }
 
-    public void setDashboardScene(Scene scene) { this.dashboardScene = scene; }
-    public void setClientScene(Scene scene)    { this.clientScene    = scene; }
-    public void setDietScene(Scene scene)      { this.dietScene      = scene; }
-    public void setDietGeneratorScene(Scene scene) { this.dietGeneratorScene = scene; }
+    public void setDashboardScene(Scene scene)      { this.dashboardScene      = scene; }
+    public void setClientScene(Scene scene)         { this.clientScene         = scene; }
+    public void setDietScene(Scene scene)           { this.dietScene           = scene; }
+    public void setDietGeneratorScene(Scene scene)  { this.dietGeneratorScene  = scene; }
+    public void setTrendScene(Scene scene)          { this.trendScene          = scene; }
 
     public Stage getPrimaryStage() { return stage; }
 }

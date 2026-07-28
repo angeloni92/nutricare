@@ -39,6 +39,7 @@ public class ApplicationInitializer {
             stageManager.setClientScene(sceneBuilder.buildClientScene());
             stageManager.setDietScene(sceneBuilder.buildDietScene());
             stageManager.setDietGeneratorScene(sceneBuilder.buildDietGeneratorScene());
+            stageManager.setTrendScene(sceneBuilder.buildTrendScene());
 
             // Start directly with dashboard (desktop app, no login required)
             stageManager.switchScene("dashboard");

@@ -14,4 +14,7 @@ public interface AnthropometryRepository extends JpaRepository<AnthropometryEnti
 
 	@Query("SELECT a FROM AnthropometryEntity a WHERE a.client.id = :clientId ORDER BY a.createdAt DESC")
 	List<AnthropometryEntity> findByClientIdOrderByCreatedAtDesc(@Param("clientId") Long clientId);
+
+	@Query("SELECT a FROM AnthropometryEntity a WHERE a.client.id = :clientId ORDER BY a.createdAt ASC")
+	List<AnthropometryEntity> findByClientIdOrderByCreatedAtAsc(@Param("clientId") Long clientId);
 }

@@ -15,12 +15,16 @@ import com.angeloni.nutricare.ui.controller.ClientController;
 import com.angeloni.nutricare.ui.controller.DashboardController;
 import com.angeloni.nutricare.ui.controller.DietController;
 import com.angeloni.nutricare.ui.controller.DietGeneratorController;
+import com.angeloni.nutricare.ui.controller.TrendController;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -42,6 +46,7 @@ SceneBuilder {
     private final ClientRepository clientRepository;
     private final DietResultRepository dietResultRepository;
     private final BackupService backupService;
+    private final TrendController trendController;
 
     @Value("${app.version:dev}")
     private String appVersion;
@@ -53,7 +58,8 @@ SceneBuilder {
                         DietGeneratorController dietGeneratorController,
                         ClientRepository clientRepository,
                         DietResultRepository dietResultRepository,
-                        BackupService backupService) {
+                        BackupService backupService,
+                        TrendController trendController) {
         this.stageManager = stageManager;
         this.dashboardController = dashboardController;
         this.clientController = clientController;
@@ -62,6 +68,7 @@ SceneBuilder {
         this.clientRepository = clientRepository;
         this.dietResultRepository = dietResultRepository;
         this.backupService = backupService;
+        this.trendController = trendController;
     }
 
     private Label dashClientCountLabel;
@@ -111,17 +118,19 @@ SceneBuilder {
         Label menuLabel = new Label("MENU");
         menuLabel.getStyleClass().add("nav-section-label");
 
-        Button dashBtn   = buildNavItem("  Dashboard",        "dashboard".equals(activeScene));
-        Button clientBtn = buildNavItem("  Clienti",          "client".equals(activeScene));
-        Button dietBtn   = buildNavItem("  Storico Diete",    "diet".equals(activeScene));
-        Button genBtn    = buildNavItem("  Genera Dieta AI",  "diet-generator".equals(activeScene));
+        Button dashBtn   = buildNavItem("  Dashboard",          "dashboard".equals(activeScene));
+        Button clientBtn = buildNavItem("  Clienti",            "client".equals(activeScene));
+        Button dietBtn   = buildNavItem("  Storico Diete",      "diet".equals(activeScene));
+        Button genBtn    = buildNavItem("  Genera Dieta AI",    "diet-generator".equals(activeScene));
+        Button trendBtn  = buildNavItem("  Andamento Clinico",  "trend".equals(activeScene));
 
         dashBtn.setOnAction(e   -> stageManager.switchScene("dashboard"));
         clientBtn.setOnAction(e -> stageManager.switchScene("client"));
         dietBtn.setOnAction(e   -> stageManager.switchScene("diet"));
         genBtn.setOnAction(e    -> stageManager.switchScene("diet-generator"));
+        trendBtn.setOnAction(e  -> stageManager.switchScene("trend"));
 
-        navContainer.getChildren().addAll(menuLabel, dashBtn, clientBtn, dietBtn, genBtn);
+        navContainer.getChildren().addAll(menuLabel, dashBtn, clientBtn, dietBtn, genBtn, trendBtn);
 
         // Spacer
         Region spacer = new Region();
@@ -726,5 +735,120 @@ SceneBuilder {
         Scene scene = new Scene(root, 1100, 720);
         addStyles(scene);
         return scene;
+    }
+
+    // ───────────────────────────── TREND ─────────────────────────────
+
+    public Scene buildTrendScene() {
+        BorderPane root = new BorderPane();
+        root.getStyleClass().add("app-background");
+        root.setLeft(buildSidebar("trend"));
+
+        HBox header = new HBox();
+        header.getStyleClass().add("page-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        VBox headerBlock = new VBox(2);
+        Label title = new Label("Andamento Clinico");
+        title.getStyleClass().add("page-title");
+        Label subtitle = new Label("Visualizza l'evoluzione di peso e BMI nel tempo per ogni paziente");
+        subtitle.getStyleClass().add("page-subtitle");
+        headerBlock.getChildren().addAll(title, subtitle);
+        header.getChildren().add(headerBlock);
+        root.setTop(header);
+
+        VBox content = new VBox(20);
+        content.getStyleClass().add("content-area");
+
+        // ─── Selector card ────────────────────────────────────────────
+        VBox selectorCard = new VBox(10);
+        selectorCard.getStyleClass().add("card");
+        Label selectorTitle = new Label("Seleziona Paziente");
+        selectorTitle.getStyleClass().add("card-title");
+
+        HBox selectorRow = new HBox(16);
+        selectorRow.setAlignment(Pos.CENTER_LEFT);
+        ComboBox<com.angeloni.nutricare.dto.ClientDto> clientCombo = new ComboBox<>();
+        clientCombo.getStyleClass().add("form-combo");
+        clientCombo.setPromptText("Scegli un paziente...");
+        clientCombo.setPrefWidth(300);
+        selectorRow.getChildren().add(clientCombo);
+        selectorCard.getChildren().addAll(selectorTitle, selectorRow);
+
+        // ─── Placeholder (no data) ────────────────────────────────────
+        VBox noDataBox = new VBox();
+        noDataBox.setAlignment(Pos.CENTER);
+        noDataBox.setPrefHeight(300);
+        Label noDataLabel = new Label("Seleziona un paziente per visualizzare l'andamento clinico");
+        noDataLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #94a3b8;");
+        noDataBox.getChildren().add(noDataLabel);
+
+        // ─── Charts ───────────────────────────────────────────────────
+        VBox chartsBox = new VBox(20);
+        chartsBox.setVisible(false);
+        chartsBox.setManaged(false);
+
+        LineChart<String, Number> weightChart = buildLineChart("Peso nel tempo", "Data visita", "Peso (kg)");
+        LineChart<String, Number> bmiChart    = buildLineChart("BMI nel tempo",  "Data visita", "BMI");
+
+        HBox chartsRow = new HBox(16);
+        VBox weightBox = new VBox(weightChart);
+        VBox bmiBox    = new VBox(bmiChart);
+        HBox.setHgrow(weightBox, Priority.ALWAYS);
+        HBox.setHgrow(bmiBox,    Priority.ALWAYS);
+        chartsRow.getChildren().addAll(weightBox, bmiBox);
+        chartsBox.getChildren().add(chartsRow);
+
+        // ─── BMI reference legend ─────────────────────────────────────
+        HBox bmiLegend = new HBox(20);
+        bmiLegend.setAlignment(Pos.CENTER_LEFT);
+        bmiLegend.setStyle("-fx-padding: 0 0 0 4;");
+        bmiLegend.getChildren().addAll(
+            bmiTag("< 18.5", "Sottopeso",    "#3b82f6"),
+            bmiTag("18.5–24.9", "Normopeso", "#10b981"),
+            bmiTag("25–29.9", "Sovrappeso",  "#f59e0b"),
+            bmiTag(">= 30", "Obesita",       "#ef4444")
+        );
+        chartsBox.getChildren().add(bmiLegend);
+
+        content.getChildren().addAll(selectorCard, noDataBox, chartsBox);
+
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        root.setCenter(scrollPane);
+
+        trendController.setup(clientCombo, weightChart, bmiChart, noDataBox, chartsBox);
+        stageManager.registerRefresh("trend", trendController::refresh);
+
+        Scene scene = new Scene(root, 1100, 720);
+        addStyles(scene);
+        return scene;
+    }
+
+    private LineChart<String, Number> buildLineChart(String title, String xLabel, String yLabel) {
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel(xLabel);
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel(yLabel);
+        yAxis.setForceZeroInRange(false);
+        LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
+        chart.setTitle(title);
+        chart.setAnimated(false);
+        chart.setCreateSymbols(true);
+        chart.setLegendVisible(false);
+        chart.setPrefHeight(320);
+        VBox.setVgrow(chart, Priority.ALWAYS);
+        return chart;
+    }
+
+    private Label bmiTag(String range, String label, String color) {
+        Label l = new Label(range + "  " + label);
+        l.setStyle(
+            "-fx-background-color: " + color + "22;" +
+            "-fx-border-color: " + color + ";" +
+            "-fx-border-radius: 4; -fx-background-radius: 4;" +
+            "-fx-padding: 3 8 3 8; -fx-font-size: 11px; -fx-text-fill: " + color + ";"
+        );
+        return l;
     }
 }
