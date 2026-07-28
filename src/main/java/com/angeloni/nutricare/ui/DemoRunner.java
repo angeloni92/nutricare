@@ -213,7 +213,7 @@ public class DemoRunner {
                             "Video demo creato con successo!\n\n" + outputMp4, ButtonType.OK);
                     a.setTitle("Demo completata");
                     a.showAndWait();
-                    Platform.exit();
+                    System.exit(0);
                 });
             } else {
                 log.error("ffmpeg failed (exit {}). Log: {}", exit, outputDir.resolve("ffmpeg.log"));
