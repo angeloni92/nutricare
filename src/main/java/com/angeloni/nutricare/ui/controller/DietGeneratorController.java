@@ -369,4 +369,11 @@ public class DietGeneratorController {
         a.setTitle("Successo");
         a.showAndWait();
     }
+
+    public void selectForDemo() {
+        if (providerCombo != null) providerCombo.setValue("Claude (Anthropic)");
+        if (clientCombo != null && !clientCombo.getItems().isEmpty()) {
+            clientCombo.setValue(clientCombo.getItems().get(0));
+        }
+    }
 }
