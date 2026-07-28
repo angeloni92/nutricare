@@ -2,6 +2,7 @@ package com.angeloni.nutricare.ui;
 
 import java.nio.file.Path;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.angeloni.nutricare.dto.AnthropometryDto;
@@ -41,6 +42,9 @@ SceneBuilder {
     private final ClientRepository clientRepository;
     private final DietResultRepository dietResultRepository;
     private final BackupService backupService;
+
+    @Value("${app.version:dev}")
+    private String appVersion;
 
     public SceneBuilder(StageManager stageManager,
                         DashboardController dashboardController,
@@ -136,7 +140,7 @@ SceneBuilder {
         exitBtn.setMaxWidth(Double.MAX_VALUE);
         exitBtn.setOnAction(e -> System.exit(0));
 
-        Label versionLabel = new Label("v1.0.0");
+        Label versionLabel = new Label("v" + appVersion);
         versionLabel.getStyleClass().add("sidebar-subtitle");
         versionLabel.setPadding(new Insets(4, 8, 0, 8));
 
