@@ -5,7 +5,10 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import com.angeloni.nutricare.NutricareApplication;
 import com.angeloni.nutricare.event.LocaleChangedEvent;
+import com.angeloni.nutricare.service.AuthService;
 import com.angeloni.nutricare.service.I18nService;
+import com.angeloni.nutricare.service.UserContextService;
+import com.angeloni.nutricare.ui.dialog.LoginDialog;
 import javafx.stage.Stage;
 import javafx.application.Platform;
 
@@ -15,12 +18,17 @@ public class ApplicationInitializer {
     private final StageManager stageManager;
     private final SceneBuilder sceneBuilder;
     private final I18nService i18nService;
+    private final AuthService authService;
+    private final UserContextService userContextService;
 
     public ApplicationInitializer(StageManager stageManager, SceneBuilder sceneBuilder,
-                                  I18nService i18nService) {
+                                  I18nService i18nService, AuthService authService,
+                                  UserContextService userContextService) {
         this.stageManager = stageManager;
         this.sceneBuilder = sceneBuilder;
         this.i18nService = i18nService;
+        this.authService = authService;
+        this.userContextService = userContextService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -36,6 +44,14 @@ public class ApplicationInitializer {
     private void initializeUI() {
         try {
             stageManager.setPrimaryStage(NutricareApplication.primaryStage);
+
+            // Mostra login se nessun utente è già autenticato (modalità multi-utente)
+            if (userContextService.getCurrentUser() == null) {
+                new LoginDialog(authService, userContextService).showAndWait();
+                if (userContextService.getCurrentUser() == null) {
+                    System.exit(0);
+                }
+            }
 
             stageManager.setDashboardScene(sceneBuilder.buildDashboardScene());
             stageManager.setClientScene(sceneBuilder.buildClientScene());
