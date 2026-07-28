@@ -11,6 +11,7 @@ import com.angeloni.nutricare.dto.ClientDto;
 import com.angeloni.nutricare.entity.DietResultEntity;
 import com.angeloni.nutricare.repository.DietResultRepository;
 import com.angeloni.nutricare.service.ClientService;
+import com.angeloni.nutricare.service.DietService;
 import com.angeloni.nutricare.service.UserContextService;
 import com.angeloni.nutricare.ui.dialog.DietResultDialog;
 
@@ -29,6 +30,7 @@ import javafx.scene.control.TextField;
 public class DietController {
 
     private final DietResultRepository dietResultRepository;
+    private final DietService dietService;
     private final ClientService clientService;
     private final UserContextService userContextService;
 
@@ -41,9 +43,11 @@ public class DietController {
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     public DietController(DietResultRepository dietResultRepository,
+                          DietService dietService,
                           ClientService clientService,
                           UserContextService userContextService) {
         this.dietResultRepository = dietResultRepository;
+        this.dietService = dietService;
         this.clientService = clientService;
         this.userContextService = userContextService;
     }
@@ -145,7 +149,7 @@ public class DietController {
         confirm.showAndWait().ifPresent(bt -> {
             if (bt == ButtonType.YES) {
                 try {
-                    dietResultRepository.deleteById(selected.getId());
+                    dietService.deleteDiet(selected.getId());
                     dietData.remove(selected);
                 } catch (Exception e) {
                     new Alert(Alert.AlertType.ERROR,

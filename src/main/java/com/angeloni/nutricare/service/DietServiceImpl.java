@@ -16,8 +16,10 @@ import com.angeloni.nutricare.entity.AiEntity;
 import com.angeloni.nutricare.entity.AiUserEntity;
 import com.angeloni.nutricare.entity.UserEntity;
 import com.angeloni.nutricare.exception.NotFoundException;
+import com.angeloni.nutricare.entity.DietResultEntity;
 import com.angeloni.nutricare.repository.AiRepository;
 import com.angeloni.nutricare.repository.AiUserRepository;
+import com.angeloni.nutricare.repository.DietResultRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +29,9 @@ public class DietServiceImpl implements DietService {
 
 	@Autowired
 	private AiRepository aiRepository;
+
+	@Autowired
+	private DietResultRepository dietResultRepository;
 
 	@Autowired
 	private AiUserRepository aiUserRepository;
@@ -68,8 +73,13 @@ public class DietServiceImpl implements DietService {
 	}
 
 	@Override
+	@Transactional
 	public void deleteDiet(Long id) {
-		// TODO: implement via DietResultRepository
+		UserEntity user = userContextService.getCurrentUser();
+		DietResultEntity diet = dietResultRepository.findByIdAndUser(id, user)
+				.orElseThrow(() -> new NotFoundException("Piano nutrizionale con id [" + id + "] non trovato"));
+		dietResultRepository.delete(diet);
+		log.info("Diet [{}] deleted by user [{}]", id, user.getId());
 	}
 
 	private AiUserEntity saveAiUser(UserEntity user, AiEntity ai, String aiKey) {
