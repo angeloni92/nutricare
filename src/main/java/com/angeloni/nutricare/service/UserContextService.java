@@ -6,4 +6,8 @@ public interface UserContextService {
 
 	UserEntity getCurrentUser();
 
+	void setCurrentUser(UserEntity user);
+
+	void logout();
+
 }
