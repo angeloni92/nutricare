@@ -49,6 +49,7 @@ public class DemoRunner {
 
     @Autowired private StageManager stageManager;
     @Autowired private I18nService i18nService;
+    @Autowired private AnthropometryFormDialog anthropometryFormDialog;
     @Autowired private DietResultRepository dietResultRepository;
     @Autowired private UserContextService userContextService;
     @Autowired private DietGeneratorController dietGeneratorController;
@@ -151,7 +152,7 @@ public class DemoRunner {
 
     private void captureAntropometriaDialog() throws InterruptedException {
         // Apre la dialog con tutte e 3 le tab pre-compilate
-        runOnFx(() -> AnthropometryFormDialog.showForDemo("Marco Rossi", 165.0, 62.0));
+        runOnFx(() -> anthropometryFormDialog.showForDemo("Marco Rossi", 165.0, 62.0));
         Thread.sleep(1800);
 
         // Frame 4: tab Dati Base (già selezionata)

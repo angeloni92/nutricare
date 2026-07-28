@@ -42,6 +42,7 @@ public class ClientController {
     private final AnthropometryService anthropometryService;
     private final StageManager stageManager;
     private final ClientFormDialog clientFormDialog;
+    private final AnthropometryFormDialog anthropometryFormDialog;
     private final I18nService i18n;
 
     private TableView<ClientDto> clientTable;
@@ -59,11 +60,12 @@ public class ClientController {
 
     public ClientController(ClientService clientService, AnthropometryService anthropometryService,
                             StageManager stageManager, ClientFormDialog clientFormDialog,
-                            I18nService i18n) {
+                            AnthropometryFormDialog anthropometryFormDialog, I18nService i18n) {
         this.clientService = clientService;
         this.anthropometryService = anthropometryService;
         this.stageManager = stageManager;
         this.clientFormDialog = clientFormDialog;
+        this.anthropometryFormDialog = anthropometryFormDialog;
         this.i18n = i18n;
     }
 
@@ -320,7 +322,7 @@ public class ClientController {
     private void handleNewVisit() {
         ClientDto selected = clientTable.getSelectionModel().getSelectedItem();
         if (selected == null) return;
-        AnthropometryFormDialog.show(selected).ifPresent(dto -> {
+        anthropometryFormDialog.show(selected).ifPresent(dto -> {
             try {
                 anthropometryService.saveVisit(selected.getId(), dto);
                 loadHistory(selected.getId());

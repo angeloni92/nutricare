@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.angeloni</groupId>
 	<artifactId>nutricare</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<name>nutricare</name>
 	<description>nutricare project</description>
 	<packaging>jar</packaging>
