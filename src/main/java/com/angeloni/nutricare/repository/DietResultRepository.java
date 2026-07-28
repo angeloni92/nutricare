@@ -19,5 +19,7 @@ public interface DietResultRepository extends JpaRepository<DietResultEntity, Lo
 	Optional<DietResultEntity> findByIdAndUser(Long id, UserEntity user);
 
 	List<DietResultEntity> findByUserAndClientId(UserEntity user, Long clientId);
+
+	long countByUser(UserEntity user);
 }
 

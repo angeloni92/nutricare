@@ -17,6 +17,7 @@ import com.angeloni.nutricare.repository.ClientRepository;
 import com.angeloni.nutricare.repository.DietResultRepository;
 import com.angeloni.nutricare.service.BackupService;
 import com.angeloni.nutricare.service.I18nService;
+import com.angeloni.nutricare.service.UserContextService;
 import com.angeloni.nutricare.ui.controller.ClientController;
 import com.angeloni.nutricare.ui.controller.DashboardController;
 import com.angeloni.nutricare.ui.controller.DietController;
@@ -50,6 +51,7 @@ public class SceneBuilder {
     private final BackupService backupService;
     private final TrendController trendController;
     private final I18nService i18n;
+    private final UserContextService userContextService;
 
     @Value("${app.version:dev}")
     private String appVersion;
@@ -63,7 +65,8 @@ public class SceneBuilder {
                         DietResultRepository dietResultRepository,
                         BackupService backupService,
                         TrendController trendController,
-                        I18nService i18n) {
+                        I18nService i18n,
+                        UserContextService userContextService) {
         this.stageManager = stageManager;
         this.dashboardController = dashboardController;
         this.clientController = clientController;
@@ -74,6 +77,7 @@ public class SceneBuilder {
         this.backupService = backupService;
         this.trendController = trendController;
         this.i18n = i18n;
+        this.userContextService = userContextService;
     }
 
     private Label dashClientCountLabel;
@@ -212,8 +216,9 @@ public class SceneBuilder {
         VBox content = new VBox(24);
         content.getStyleClass().add("content-area");
 
-        long clientCount = safeCount(() -> clientRepository.count());
-        long dietCount   = safeCount(() -> dietResultRepository.count());
+        var currentUser = userContextService.getCurrentUser();
+        long clientCount = safeCount(() -> clientRepository.countByUser(currentUser));
+        long dietCount   = safeCount(() -> dietResultRepository.countByUser(currentUser));
 
         dashClientCountLabel = new Label(String.valueOf(clientCount));
         dashDietCountLabel   = new Label(String.valueOf(dietCount));
@@ -269,10 +274,11 @@ public class SceneBuilder {
     }
 
     public void refreshDashboard() {
+        var u = userContextService.getCurrentUser();
         if (dashClientCountLabel != null)
-            dashClientCountLabel.setText(String.valueOf(safeCount(() -> clientRepository.count())));
+            dashClientCountLabel.setText(String.valueOf(safeCount(() -> clientRepository.countByUser(u))));
         if (dashDietCountLabel != null)
-            dashDietCountLabel.setText(String.valueOf(safeCount(() -> dietResultRepository.count())));
+            dashDietCountLabel.setText(String.valueOf(safeCount(() -> dietResultRepository.countByUser(u))));
     }
 
     private String getGreeting() {
