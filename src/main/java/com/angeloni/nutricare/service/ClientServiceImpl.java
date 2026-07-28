@@ -15,6 +15,7 @@ import com.angeloni.nutricare.entity.UserEntity;
 import com.angeloni.nutricare.exception.ConflictException;
 import com.angeloni.nutricare.exception.NotFoundException;
 import com.angeloni.nutricare.repository.ClientRepository;
+import com.angeloni.nutricare.service.I18nService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,6 +31,9 @@ public class ClientServiceImpl implements ClientService {
 
 	@Autowired
 	private ModelMapper modelMapper;
+
+	@Autowired
+	private I18nService i18n;
 
 	@Override
 	@Transactional
@@ -50,8 +54,7 @@ public class ClientServiceImpl implements ClientService {
 			if (clientDto.getId() != null && optionalClient.get().getId().equals(clientDto.getId())) {
 				return;
 			}
-			throw new ConflictException(String.format(ClientService.CLIENT_ALREADY_PRESENT_FORMAT, clientDto.getName(),
-					clientDto.getSurname()));
+			throw new ConflictException(i18n.t("client.error.duplicate", clientDto.getName(), clientDto.getSurname()));
 		}
 	}
 

@@ -175,10 +175,22 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
                     "https://api.anthropic.com/v1/messages",
                     new HttpEntity<>(body, headers),
                     Map.class);
+            if (response == null)
+                throw new RuntimeException("Risposta vuota da Claude (Anthropic).");
             List<Map<String, Object>> content = (List<Map<String, Object>>) response.get("content");
-            return content.get(0).get("text").toString();
+            if (content == null || content.isEmpty())
+                throw new RuntimeException("Nessun contenuto nella risposta Claude. Risposta: " + response);
+            Object text = content.stream()
+                    .filter(b -> "text".equals(b.get("type")))
+                    .map(b -> b.get("text"))
+                    .filter(t -> t != null)
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Nessun blocco 'text' nella risposta Claude. Risposta: " + response));
+            return text.toString();
         } catch (HttpClientErrorException e) {
             throw new RuntimeException(mapApiError("Claude (Anthropic)", e), e);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Errore chiamata API Claude: " + e.getMessage(), e);
         }
@@ -204,11 +216,22 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
                     "https://api.openai.com/v1/chat/completions",
                     new HttpEntity<>(body, headers),
                     Map.class);
+            if (response == null)
+                throw new RuntimeException("Risposta vuota da OpenAI.");
             List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+            if (choices == null || choices.isEmpty())
+                throw new RuntimeException("Nessuna scelta nella risposta OpenAI. Risposta: " + response);
             Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-            return message.get("content").toString();
+            if (message == null)
+                throw new RuntimeException("Campo 'message' mancante nella risposta OpenAI.");
+            Object content = message.get("content");
+            if (content == null)
+                throw new RuntimeException("Campo 'content' mancante nella risposta OpenAI.");
+            return content.toString();
         } catch (HttpClientErrorException e) {
             throw new RuntimeException(mapApiError("OpenAI (ChatGPT)", e), e);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Errore chiamata API OpenAI: " + e.getMessage(), e);
         }
@@ -234,11 +257,22 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
                     "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
                     new HttpEntity<>(body, headers),
                     Map.class);
+            if (response == null)
+                throw new RuntimeException("Risposta vuota da Google Gemini.");
             List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+            if (choices == null || choices.isEmpty())
+                throw new RuntimeException("Nessuna scelta nella risposta Gemini. Risposta: " + response);
             Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-            return message.get("content").toString();
+            if (message == null)
+                throw new RuntimeException("Campo 'message' mancante nella risposta Gemini.");
+            Object content = message.get("content");
+            if (content == null)
+                throw new RuntimeException("Campo 'content' mancante nella risposta Gemini.");
+            return content.toString();
         } catch (HttpClientErrorException e) {
             throw new RuntimeException(mapApiError("Google Gemini", e), e);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Errore chiamata API Gemini: " + e.getMessage(), e);
         }

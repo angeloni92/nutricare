@@ -24,6 +24,7 @@ import com.angeloni.nutricare.service.AiUserService;
 import com.angeloni.nutricare.service.AnthropometryService;
 import com.angeloni.nutricare.service.ClientService;
 import com.angeloni.nutricare.service.DietGeneratorService;
+import com.angeloni.nutricare.service.I18nService;
 import com.angeloni.nutricare.ui.StageManager;
 import com.angeloni.nutricare.ui.dialog.AiApiKeyDialog;
 import com.angeloni.nutricare.ui.dialog.DietGenerationProgressDialog;
@@ -56,6 +57,9 @@ public class DietGeneratorController {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private I18nService i18n;
 
     private static final Map<String, AINameEnum> PROVIDERS = new LinkedHashMap<>();
     private static final Map<AINameEnum, Map<String, AIModelEnum>> PROVIDER_MODELS = new LinkedHashMap<>();
@@ -200,11 +204,11 @@ public class DietGeneratorController {
 
         boolean configured = aiUserService.hasApiKey(provider, model);
         if (configured) {
-            credentialStatusLabel.setText("Credenziali configurate");
+            credentialStatusLabel.setText(i18n.t("dietgen.cred.ok"));
             credentialStatusLabel.getStyleClass().removeAll("credential-missing");
             credentialStatusLabel.getStyleClass().add("credential-ok");
         } else {
-            credentialStatusLabel.setText("Credenziali non configurate");
+            credentialStatusLabel.setText(i18n.t("dietgen.cred.missing"));
             credentialStatusLabel.getStyleClass().removeAll("credential-ok");
             credentialStatusLabel.getStyleClass().add("credential-missing");
         }
@@ -317,30 +321,25 @@ public class DietGeneratorController {
     }
 
     private PrimaryGoalEnum mapGoal(String v) {
-        return switch (v) {
-            case "Perdita Peso" -> PrimaryGoalEnum.WEIGHT_LOSS;
-            case "Aumento Massa Muscolare", "Performance Atletica" -> PrimaryGoalEnum.MUSCLE_GAIN;
-            case "Miglioramento Salute" -> PrimaryGoalEnum.ENERGY_IMPROVMENT;
-            default -> PrimaryGoalEnum.GENERAL_HEALTH;
-        };
+        if (i18n.t("dietgen.goal.weight.loss").equals(v)) return PrimaryGoalEnum.WEIGHT_LOSS;
+        if (i18n.t("dietgen.goal.muscle").equals(v))      return PrimaryGoalEnum.MUSCLE_GAIN;
+        if (i18n.t("dietgen.goal.performance").equals(v)) return PrimaryGoalEnum.MUSCLE_GAIN;
+        if (i18n.t("dietgen.goal.health").equals(v))      return PrimaryGoalEnum.ENERGY_IMPROVMENT;
+        return PrimaryGoalEnum.GENERAL_HEALTH;
     }
 
     private DietaryPreferenceEnum mapPref(String v) {
-        return switch (v) {
-            case "Vegetariano" -> DietaryPreferenceEnum.VEGETARIAN;
-            case "Vegano"      -> DietaryPreferenceEnum.VEGAN;
-            case "Ketogenica"  -> DietaryPreferenceEnum.KETO;
-            default            -> DietaryPreferenceEnum.OMNIVORE;
-        };
+        if (i18n.t("dietgen.pref.vegetarian").equals(v)) return DietaryPreferenceEnum.VEGETARIAN;
+        if (i18n.t("dietgen.pref.vegan").equals(v))      return DietaryPreferenceEnum.VEGAN;
+        if (i18n.t("dietgen.pref.keto").equals(v))       return DietaryPreferenceEnum.KETO;
+        return DietaryPreferenceEnum.OMNIVORE;
     }
 
     private ActivityLevelEnum mapActivity(String v) {
-        return switch (v) {
-            case "Molto Attivo"         -> ActivityLevelEnum.ACTIVE;
-            case "Atleta"               -> ActivityLevelEnum.VERY_ACTIVE;
-            case "Moderatamente Attivo" -> ActivityLevelEnum.MODERATE;
-            default                     -> ActivityLevelEnum.SEDENTARY;
-        };
+        if (i18n.t("dietgen.activity.active").equals(v))    return ActivityLevelEnum.ACTIVE;
+        if (i18n.t("dietgen.activity.athlete").equals(v))   return ActivityLevelEnum.VERY_ACTIVE;
+        if (i18n.t("dietgen.activity.moderate").equals(v))  return ActivityLevelEnum.MODERATE;
+        return ActivityLevelEnum.SEDENTARY;
     }
 
     private void showDietResult(String diet) {
@@ -354,19 +353,19 @@ public class DietGeneratorController {
 
     private void showError(String msg) {
         Alert a = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
-        a.setTitle("Errore");
+        a.setTitle(i18n.t("common.error.title"));
         a.showAndWait();
     }
 
     private void showWarning(String msg) {
         Alert a = new Alert(Alert.AlertType.WARNING, msg, ButtonType.OK);
-        a.setTitle("Attenzione");
+        a.setTitle(i18n.t("common.warn.title"));
         a.showAndWait();
     }
 
     private void showInfo(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
-        a.setTitle("Successo");
+        a.setTitle(i18n.t("common.success.title"));
         a.showAndWait();
     }
 

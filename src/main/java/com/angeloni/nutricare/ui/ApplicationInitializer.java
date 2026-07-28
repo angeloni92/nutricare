@@ -45,8 +45,9 @@ public class ApplicationInitializer {
         try {
             stageManager.setPrimaryStage(NutricareApplication.primaryStage);
 
-            // Mostra login se nessun utente è già autenticato (modalità multi-utente)
-            if (userContextService.getCurrentUser() == null) {
+            // Prima installazione: suggerisci registrazione (l'utente può comunque chiudere e continuare come desktop-user)
+            // Installazione multi-utente: login obbligatorio
+            if (userContextService.getCurrentUser() == null || authService.isFirstRun()) {
                 new LoginDialog(authService, userContextService).showAndWait();
                 if (userContextService.getCurrentUser() == null) {
                     System.exit(0);

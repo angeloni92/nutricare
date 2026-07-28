@@ -55,4 +55,21 @@
         <sqlFile path="db/changelog/ddl/cleanup_copilot/cleanup_copilot.sql" dbms="h2"/>
     </changeSet>
 
+    <!-- Fix: vincolo unique su (name, surname) era globale, deve essere per-utente -->
+    <changeSet id="fix_client_unique_per_user" author="angeloni">
+        <sql>ALTER TABLE clients DROP CONSTRAINT IF EXISTS unique_name_surname</sql>
+        <sql>ALTER TABLE clients ADD CONSTRAINT unique_name_surname_user UNIQUE (name, surname, user_id)</sql>
+    </changeSet>
+
+    <!-- Migra il cliente Andrea Angeloni da desktop-user al primo utente reale registrato -->
+    <changeSet id="migrate_andrea_angeloni_client" author="angeloni">
+        <sql>
+            UPDATE clients
+            SET user_id = (SELECT id FROM users WHERE username != 'desktop-user' ORDER BY id ASC LIMIT 1)
+            WHERE name = 'Andrea' AND surname = 'Angeloni'
+              AND user_id = (SELECT id FROM users WHERE username = 'desktop-user')
+              AND EXISTS (SELECT 1 FROM users WHERE username != 'desktop-user')
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
