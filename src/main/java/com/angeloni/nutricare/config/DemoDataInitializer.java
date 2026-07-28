@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
@@ -22,6 +23,7 @@ import com.angeloni.nutricare.service.UserContextService;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
+@ConditionalOnProperty(name = "nutricare.demo.record", havingValue = "true")
 @Slf4j
 @Order(10)
 public class DemoDataInitializer {
