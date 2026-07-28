@@ -48,18 +48,18 @@ public class ExportUtils {
 
     // ─── PUBLIC API ───────────────────────────────────────────────────────────
 
-    public static void writePdf(File file, String clientName, String dietText) throws IOException {
+    public static void writePdf(File file, String clientName, String dietText, I18nService i18n) throws IOException {
         String date = LocalDateTime.now().format(EXPORT_FMT);
-        PdfWriter pdf = new PdfWriter(clientName, date);
+        PdfWriter pdf = new PdfWriter(clientName, date, i18n);
         pdf.render(dietText);
         pdf.save(file);
     }
 
-    public static void writeDocx(File file, String clientName, String dietText) throws IOException {
+    public static void writeDocx(File file, String clientName, String dietText, I18nService i18n) throws IOException {
         String date = LocalDateTime.now().format(EXPORT_FMT);
         try (XWPFDocument doc = new XWPFDocument()) {
             applyPageMargins(doc);
-            addDocxCoverBlock(doc, clientName, date);
+            addDocxCoverBlock(doc, clientName, date, i18n);
             addDocxContent(doc, dietText);
             try (FileOutputStream out = new FileOutputStream(file)) {
                 doc.write(out);
@@ -194,21 +194,21 @@ public class ExportUtils {
         m.setRight(BigInteger.valueOf(1440));
     }
 
-    private static void addDocxCoverBlock(XWPFDocument doc, String clientName, String date) {
+    private static void addDocxCoverBlock(XWPFDocument doc, String clientName, String date, I18nService i18n) {
         XWPFParagraph titlePara = doc.createParagraph();
         titlePara.setAlignment(ParagraphAlignment.CENTER);
         titlePara.setSpacingBefore(0);
         titlePara.setSpacingAfter(0);
         setParaBg(titlePara, "131C2E");
         XWPFRun titleRun = titlePara.createRun();
-        titleRun.setText("PIANO NUTRIZIONALE PERSONALIZZATO");
+        titleRun.setText(i18n.t("export.diet.title"));
         titleRun.setBold(true);
         titleRun.setFontSize(22);
         titleRun.setColor("FFFFFF");
         titleRun.setFontFamily("Calibri");
         titleRun.addBreak();
         XWPFRun subRun = titlePara.createRun();
-        subRun.setText("Nutricare  —  Piano personalizzato per " + clientName);
+        subRun.setText(i18n.t("export.diet.subtitle", clientName));
         subRun.setFontSize(11);
         subRun.setColor("BFD0E8");
         subRun.setFontFamily("Calibri");
@@ -226,7 +226,7 @@ public class ExportUtils {
         XWPFRun infoLbl = infoPara.createRun();
         infoLbl.setFontFamily("Calibri"); infoLbl.setFontSize(11);
         infoLbl.setColor("1E3A5F"); infoLbl.setBold(true);
-        infoLbl.setText("  Cliente:  ");
+        infoLbl.setText(i18n.t("export.diet.client.label"));
         XWPFRun infoVal = infoPara.createRun();
         infoVal.setFontFamily("Calibri"); infoVal.setFontSize(11);
         infoVal.setColor("374151"); infoVal.setText(clientName);
@@ -234,7 +234,7 @@ public class ExportUtils {
         XWPFRun dateLbl = infoPara.createRun();
         dateLbl.setFontFamily("Calibri"); dateLbl.setFontSize(11);
         dateLbl.setColor("1E3A5F"); dateLbl.setBold(true);
-        dateLbl.setText("  Data generazione:  ");
+        dateLbl.setText(i18n.t("export.diet.date.label"));
         XWPFRun dateVal = infoPara.createRun();
         dateVal.setFontFamily("Calibri"); dateVal.setFontSize(11);
         dateVal.setColor("374151"); dateVal.setText(date);
@@ -420,11 +420,13 @@ public class ExportUtils {
         private final List<byte[]> pageStreams = new ArrayList<>();
         private ByteArrayOutputStream currentStream;
         private final String clientName, date;
+        private final I18nService i18n;
         private float yPos;
 
-        PdfWriter(String clientName, String date) {
+        PdfWriter(String clientName, String date, I18nService i18n) {
             this.clientName = clientName;
             this.date = date;
+            this.i18n = i18n;
         }
 
         void render(String dietText) {
@@ -456,18 +458,19 @@ public class ExportUtils {
         private void drawFirstPageHeader() {
             float boxY = PH - MT - BOX_H;
             emitFilledRect(ML - 12, boxY, USABLE + 24, BOX_H, C_NAVY);
-            emitText(ML, boxY + BOX_H - 32f, "PIANO NUTRIZIONALE PERSONALIZZATO", "F2", 16f, C_WHITE);
+            emitText(ML, boxY + BOX_H - 32f, sanitize(i18n.t("export.diet.title")), "F2", 16f, C_WHITE);
             emitText(ML, boxY + BOX_H - 52f,
-                    "Nutricare  -  Piano personalizzato per " + sanitize(clientName), "F1", 10f, C_LTBLUE);
+                    sanitize(i18n.t("export.diet.subtitle.pdf", clientName)), "F1", 10f, C_LTBLUE);
             float infoY = boxY - 14f;
-            emitText(ML, infoY, "Data: " + date + "     Cliente: " + sanitize(clientName), "F1", 9f, C_GRAY);
+            emitText(ML, infoY, sanitize(i18n.t("export.diet.info.line",
+                    date, clientName)), "F1", 9f, C_GRAY);
             drawLine(infoY - 6f, C_INDIGO, 0.7f);
         }
 
         private void drawRunningHeader() {
             float hY = PH - MT - 18f;
             drawLine(hY, C_INDIGO, 0.7f);
-            emitText(ML, hY + 4f, "NUTRICARE - Piano Nutrizionale", "F2", 8.5f, C_SECTION);
+            emitText(ML, hY + 4f, sanitize(i18n.t("export.diet.running.header")), "F2", 8.5f, C_SECTION);
             String rt = sanitize(clientName);
             emitText(ML + USABLE - rt.length() * 4.8f, hY + 4f, rt, "F1", 8.5f, C_GRAY);
             yPos = hY - 14f;
@@ -475,8 +478,8 @@ public class ExportUtils {
 
         private void drawFooter(int pageNum) {
             drawLine(MB + 14f, C_BORDER, 0.5f);
-            emitText(ML, MB, "Generato da Nutricare - Sistema di Gestione Nutrizionale", "F1", 7.5f, C_GRAY);
-            String pg = "Pagina " + pageNum;
+            emitText(ML, MB, sanitize(i18n.t("export.diet.footer")), "F1", 7.5f, C_GRAY);
+            String pg = sanitize(i18n.t("export.diet.page", pageNum));
             emitText(ML + USABLE - pg.length() * 4.5f, MB, pg, "F1", 7.5f, C_GRAY);
         }
 

@@ -150,7 +150,9 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
 
         sb.append("\nGenera un piano settimanale completo (lunedì-domenica) con colazione, pranzo, cena e spuntini. ");
         sb.append("Per ogni giorno indica le calorie totali stimate. Includi consigli pratici. ")
-          .append(i18nService.t("prompt.language.instruction"));
+          .append(i18nService.t("prompt.language.instruction"))
+          .append(" ")
+          .append(i18nService.t("prompt.format.instruction"));
         return sb.toString();
     }
 

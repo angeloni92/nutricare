@@ -182,7 +182,7 @@ public class DietResultDialog {
             File file = chooser.showSaveDialog(owner);
             if (file == null) return;
             try {
-                ExportUtils.writePdf(file, clientName, text);
+                ExportUtils.writePdf(file, clientName, text, i18n);
                 showInfo(i18n.t("diet.result.saved.pdf", file.getAbsolutePath()), i18n);
             } catch (Exception e) {
                 showError(i18n.t("diet.result.error.pdf", e.getMessage()), i18n);
@@ -194,7 +194,7 @@ public class DietResultDialog {
             File file = chooser.showSaveDialog(owner);
             if (file == null) return;
             try {
-                ExportUtils.writeDocx(file, clientName, text);
+                ExportUtils.writeDocx(file, clientName, text, i18n);
                 showInfo(i18n.t("diet.result.saved.word", file.getAbsolutePath()), i18n);
             } catch (Exception e) {
                 showError(i18n.t("diet.result.error.word", e.getMessage()), i18n);
