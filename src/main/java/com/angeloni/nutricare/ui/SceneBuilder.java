@@ -1,6 +1,9 @@
 package com.angeloni.nutricare.ui;
 
 import java.nio.file.Path;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -11,6 +14,7 @@ import com.angeloni.nutricare.entity.DietResultEntity;
 import com.angeloni.nutricare.repository.ClientRepository;
 import com.angeloni.nutricare.repository.DietResultRepository;
 import com.angeloni.nutricare.service.BackupService;
+import com.angeloni.nutricare.service.I18nService;
 import com.angeloni.nutricare.ui.controller.ClientController;
 import com.angeloni.nutricare.ui.controller.DashboardController;
 import com.angeloni.nutricare.ui.controller.DietController;
@@ -31,12 +35,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.DirectoryChooser;
 
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-
 @Component
-public class
-SceneBuilder {
+public class SceneBuilder {
 
     private final StageManager stageManager;
     private final DashboardController dashboardController;
@@ -47,6 +47,7 @@ SceneBuilder {
     private final DietResultRepository dietResultRepository;
     private final BackupService backupService;
     private final TrendController trendController;
+    private final I18nService i18n;
 
     @Value("${app.version:dev}")
     private String appVersion;
@@ -59,7 +60,8 @@ SceneBuilder {
                         ClientRepository clientRepository,
                         DietResultRepository dietResultRepository,
                         BackupService backupService,
-                        TrendController trendController) {
+                        TrendController trendController,
+                        I18nService i18n) {
         this.stageManager = stageManager;
         this.dashboardController = dashboardController;
         this.clientController = clientController;
@@ -69,6 +71,7 @@ SceneBuilder {
         this.dietResultRepository = dietResultRepository;
         this.backupService = backupService;
         this.trendController = trendController;
+        this.i18n = i18n;
     }
 
     private Label dashClientCountLabel;
@@ -104,7 +107,7 @@ SceneBuilder {
         VBox logoText = new VBox(1);
         Label appName = new Label("NutriCare");
         appName.getStyleClass().add("sidebar-logo");
-        Label appSub = new Label("Nutrition Management");
+        Label appSub = new Label(i18n.t("app.subtitle"));
         appSub.getStyleClass().add("sidebar-subtitle");
         logoText.getChildren().addAll(appName, appSub);
         logoRow.getChildren().add(logoText);
@@ -115,14 +118,14 @@ SceneBuilder {
         VBox navContainer = new VBox(2);
         navContainer.setPadding(new Insets(16, 10, 8, 10));
 
-        Label menuLabel = new Label("MENU");
+        Label menuLabel = new Label(i18n.t("nav.menu"));
         menuLabel.getStyleClass().add("nav-section-label");
 
-        Button dashBtn   = buildNavItem("  Dashboard",          "dashboard".equals(activeScene));
-        Button clientBtn = buildNavItem("  Clienti",            "client".equals(activeScene));
-        Button dietBtn   = buildNavItem("  Storico Diete",      "diet".equals(activeScene));
-        Button genBtn    = buildNavItem("  Genera Dieta AI",    "diet-generator".equals(activeScene));
-        Button trendBtn  = buildNavItem("  Andamento Clinico",  "trend".equals(activeScene));
+        Button dashBtn   = buildNavItem(i18n.t("nav.dashboard"),    "dashboard".equals(activeScene));
+        Button clientBtn = buildNavItem(i18n.t("nav.clients"),       "client".equals(activeScene));
+        Button dietBtn   = buildNavItem(i18n.t("nav.diet.history"),  "diet".equals(activeScene));
+        Button genBtn    = buildNavItem(i18n.t("nav.diet.generate"), "diet-generator".equals(activeScene));
+        Button trendBtn  = buildNavItem(i18n.t("nav.trend"),         "trend".equals(activeScene));
 
         dashBtn.setOnAction(e   -> stageManager.switchScene("dashboard"));
         clientBtn.setOnAction(e -> stageManager.switchScene("client"));
@@ -144,7 +147,19 @@ SceneBuilder {
         sep.setStyle("-fx-background-color: #1e293b;");
         sep.setPadding(new Insets(0, 0, 4, 0));
 
-        Button exitBtn = new Button("  Esci dall'applicazione");
+        // Language toggle IT / EN
+        HBox langRow = new HBox(4);
+        langRow.setAlignment(Pos.CENTER_LEFT);
+        langRow.setPadding(new Insets(0, 0, 2, 4));
+        Button itBtn = new Button("IT");
+        Button enBtn = new Button("EN");
+        styleActiveLangBtn(itBtn, Locale.ITALIAN.equals(i18n.getLocale()));
+        styleActiveLangBtn(enBtn, Locale.ENGLISH.equals(i18n.getLocale()));
+        itBtn.setOnAction(e -> i18n.setLocale(Locale.ITALIAN));
+        enBtn.setOnAction(e -> i18n.setLocale(Locale.ENGLISH));
+        langRow.getChildren().addAll(itBtn, enBtn);
+
+        Button exitBtn = new Button(i18n.t("nav.exit"));
         exitBtn.getStyleClass().add("nav-item-exit");
         exitBtn.setMaxWidth(Double.MAX_VALUE);
         exitBtn.setOnAction(e -> System.exit(0));
@@ -153,10 +168,16 @@ SceneBuilder {
         versionLabel.getStyleClass().add("sidebar-subtitle");
         versionLabel.setPadding(new Insets(4, 8, 0, 8));
 
-        bottomArea.getChildren().addAll(sep, exitBtn, versionLabel);
+        bottomArea.getChildren().addAll(sep, langRow, exitBtn, versionLabel);
 
         sidebar.getChildren().addAll(logoArea, navContainer, spacer, bottomArea);
         return sidebar;
+    }
+
+    private void styleActiveLangBtn(Button btn, boolean active) {
+        btn.setStyle(active
+            ? "-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 4;"
+            : "-fx-background-color: #334155; -fx-text-fill: #94a3b8; -fx-padding: 3 8; -fx-background-radius: 4;");
     }
 
     private Button buildNavItem(String text, boolean active) {
@@ -174,14 +195,13 @@ SceneBuilder {
         root.getStyleClass().add("app-background");
         root.setLeft(buildSidebar("dashboard"));
 
-        // Header con greeting dinamico
         HBox header = new HBox();
         header.getStyleClass().add("page-header");
         header.setAlignment(Pos.CENTER_LEFT);
         VBox headerBlock = new VBox(2);
         Label title = new Label(getGreeting());
         title.getStyleClass().add("page-title");
-        Label subtitle = new Label("Ecco una panoramica della tua attivita");
+        Label subtitle = new Label(i18n.t("dashboard.subtitle"));
         subtitle.getStyleClass().add("page-subtitle");
         headerBlock.getChildren().addAll(title, subtitle);
         header.getChildren().add(headerBlock);
@@ -193,56 +213,41 @@ SceneBuilder {
         long clientCount = safeCount(() -> clientRepository.count());
         long dietCount   = safeCount(() -> dietResultRepository.count());
 
-        // Stat cards
         dashClientCountLabel = new Label(String.valueOf(clientCount));
         dashDietCountLabel   = new Label(String.valueOf(dietCount));
         HBox statsRow = new HBox(16);
         statsRow.getChildren().addAll(
-            buildDynamicStatCard(dashClientCountLabel, "Clienti",        "Pazienti registrati",       "#6366f1", "#eef2ff"),
-            buildDynamicStatCard(dashDietCountLabel,   "Diete Generate", "Piani nutrizionali AI",     "#10b981", "#ecfdf5"),
-            buildStatCard("28",                        "Modelli AI",     "ChatGPT, Claude, Gemini",   "#f59e0b", "#fffbeb"),
-            buildStatCard("3",                         "Provider",       "OpenAI, Anthropic, Google", "#8b5cf6", "#f5f3ff")
+            buildDynamicStatCard(dashClientCountLabel, i18n.t("dashboard.stat.clients"),   i18n.t("dashboard.stat.clients.desc"),   "#6366f1", "#eef2ff"),
+            buildDynamicStatCard(dashDietCountLabel,   i18n.t("dashboard.stat.diets"),     i18n.t("dashboard.stat.diets.desc"),     "#10b981", "#ecfdf5"),
+            buildStatCard("28",                        i18n.t("dashboard.stat.models"),    i18n.t("dashboard.stat.models.desc"),    "#f59e0b", "#fffbeb"),
+            buildStatCard("3",                         i18n.t("dashboard.stat.providers"), i18n.t("dashboard.stat.providers.desc"), "#8b5cf6", "#f5f3ff")
         );
 
-        // Quick actions
         VBox actionsCard = new VBox(14);
         actionsCard.getStyleClass().add("card");
-        Label actionsTitle = new Label("Azioni Rapide");
+        Label actionsTitle = new Label(i18n.t("dashboard.actions.title"));
         actionsTitle.getStyleClass().add("card-title");
 
         HBox actions = new HBox(12);
         actions.setAlignment(Pos.CENTER_LEFT);
-        Button goClients = new Button("  Gestisci Clienti");
+        Button goClients = new Button(i18n.t("dashboard.actions.clients"));
         goClients.getStyleClass().add("btn-primary");
         goClients.setOnAction(e -> stageManager.switchScene("client"));
-        Button goDietGen = new Button("  Genera Dieta AI");
+        Button goDietGen = new Button(i18n.t("dashboard.actions.generate"));
         goDietGen.getStyleClass().add("btn-success");
         goDietGen.setOnAction(e -> stageManager.switchScene("diet-generator"));
-        Button goDietList = new Button("  Storico Diete");
+        Button goDietList = new Button(i18n.t("dashboard.actions.history"));
         goDietList.getStyleClass().add("btn-secondary");
         goDietList.setOnAction(e -> stageManager.switchScene("diet"));
-        Button backupBtn = new Button("  Backup Dati");
+        Button backupBtn = new Button(i18n.t("dashboard.actions.backup"));
         backupBtn.getStyleClass().add("btn-secondary");
         backupBtn.setOnAction(e -> handleBackup());
         actions.getChildren().addAll(goClients, goDietGen, goDietList, backupBtn);
         actionsCard.getChildren().addAll(actionsTitle, actions);
 
-        // Info card
         HBox infoRow = new HBox(16);
-        VBox infoCard1 = buildInfoCard(
-            "Come iniziare",
-            "1. Aggiungi un paziente dalla sezione Clienti\n" +
-            "2. Vai su Genera Dieta AI\n" +
-            "3. Seleziona il provider AI e configura le credenziali\n" +
-            "4. Seleziona il paziente e genera il piano"
-        );
-        VBox infoCard2 = buildInfoCard(
-            "Modelli AI supportati (28 totali)",
-            "ChatGPT: GPT-4o, GPT-4o mini, o3, o3-mini, o4-mini, o1, o1-mini, GPT-4 Turbo, GPT-4, GPT-3.5\n" +
-            "Claude: Fable 5, Sonnet 5, Sonnet 4, Opus 4.8, Opus 4, 3.7 Sonnet, 3.5 Sonnet, 4.5 Haiku, 3.5 Haiku, 3 Opus, 3 Sonnet, 3 Haiku\n" +
-            "Gemini: 2.5 Pro, 2.5 Flash, 2.0 Flash, 2.0 Flash Lite, 1.5 Flash, 1.5 Pro\n\n" +
-            "Configura le API Key nella schermata Genera Dieta"
-        );
+        VBox infoCard1 = buildInfoCard(i18n.t("dashboard.info.start.title"),  i18n.t("dashboard.info.start.text"));
+        VBox infoCard2 = buildInfoCard(i18n.t("dashboard.info.models.title"), i18n.t("dashboard.info.models.text"));
         HBox.setHgrow(infoCard1, Priority.ALWAYS);
         HBox.setHgrow(infoCard2, Priority.ALWAYS);
         infoRow.getChildren().addAll(infoCard1, infoCard2);
@@ -270,9 +275,9 @@ SceneBuilder {
 
     private String getGreeting() {
         int hour = LocalTime.now().getHour();
-        if (hour < 12) return "  Buongiorno!";
-        if (hour < 18) return "  Buon pomeriggio!";
-        return "  Buonasera!";
+        if (hour < 12) return i18n.t("greeting.morning");
+        if (hour < 18) return i18n.t("greeting.afternoon");
+        return i18n.t("greeting.evening");
     }
 
     private VBox buildStatCard(String value, String label, String description,
@@ -287,9 +292,7 @@ SceneBuilder {
         HBox.setHgrow(card, Priority.ALWAYS);
 
         Label valueLabel = new Label(value);
-        valueLabel.setStyle(
-            "-fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: " + accentColor + ";"
-        );
+        valueLabel.setStyle("-fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: " + accentColor + ";");
 
         Label labelEl = new Label(label);
         labelEl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0f172a;");
@@ -343,18 +346,18 @@ SceneBuilder {
 
     private void handleBackup() {
         DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Scegli cartella di destinazione backup");
+        chooser.setTitle(i18n.t("backup.chooser.title"));
         chooser.setInitialDirectory(Path.of(System.getProperty("user.home")).toFile());
         java.io.File dir = chooser.showDialog(stageManager.getPrimaryStage());
         if (dir == null) return;
         try {
             Path backupFile = backupService.backup(dir.toPath());
             new Alert(Alert.AlertType.INFORMATION,
-                    "Backup completato con successo!\n\n" + backupFile.toAbsolutePath(),
+                    i18n.t("backup.success", backupFile.toAbsolutePath()),
                     ButtonType.OK).showAndWait();
         } catch (Exception ex) {
             new Alert(Alert.AlertType.ERROR,
-                    "Errore durante il backup:\n" + ex.getMessage(),
+                    i18n.t("backup.error", ex.getMessage()),
                     ButtonType.OK).showAndWait();
         }
     }
@@ -371,9 +374,9 @@ SceneBuilder {
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox headerBlock = new VBox(2);
-        Label title = new Label("Gestione Clienti");
+        Label title = new Label(i18n.t("clients.title"));
         title.getStyleClass().add("page-title");
-        Label subtitle = new Label("Visualizza e gestisci i tuoi pazienti");
+        Label subtitle = new Label(i18n.t("clients.subtitle"));
         subtitle.getStyleClass().add("page-subtitle");
         headerBlock.getChildren().addAll(title, subtitle);
 
@@ -382,9 +385,9 @@ SceneBuilder {
 
         TextField searchField = new TextField();
         searchField.getStyleClass().add("search-field");
-        searchField.setPromptText("  Cerca clienti...");
+        searchField.setPromptText(i18n.t("clients.search.prompt"));
 
-        Button addBtn = new Button("  Nuovo Cliente");
+        Button addBtn = new Button(i18n.t("clients.btn.new"));
         addBtn.getStyleClass().add("btn-primary");
 
         header.getChildren().addAll(headerBlock, headerSpacer, searchField, addBtn);
@@ -394,12 +397,12 @@ SceneBuilder {
         TableView<ClientDto> clientTable = new TableView<>();
         clientTable.getStyleClass().add("styled-table");
         clientTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        clientTable.setPlaceholder(new Label("Nessun cliente. Crea il primo cliccando \"Nuovo Cliente\"."));
+        clientTable.setPlaceholder(new Label(i18n.t("clients.table.empty")));
 
-        TableColumn<ClientDto, String> nameCol    = new TableColumn<>("Nome");
-        TableColumn<ClientDto, String> surnameCol = new TableColumn<>("Cognome");
-        TableColumn<ClientDto, String> ageCol     = new TableColumn<>("Eta");
-        TableColumn<ClientDto, String> countryCol = new TableColumn<>("Paese");
+        TableColumn<ClientDto, String> nameCol    = new TableColumn<>(i18n.t("clients.table.name"));
+        TableColumn<ClientDto, String> surnameCol = new TableColumn<>(i18n.t("clients.table.surname"));
+        TableColumn<ClientDto, String> ageCol     = new TableColumn<>(i18n.t("clients.table.age"));
+        TableColumn<ClientDto, String> countryCol = new TableColumn<>(i18n.t("clients.table.country"));
 
         nameCol.setCellValueFactory(cd    -> new SimpleStringProperty(cd.getValue().getName()    != null ? cd.getValue().getName()    : ""));
         surnameCol.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().getSurname() != null ? cd.getValue().getSurname() : ""));
@@ -414,20 +417,20 @@ SceneBuilder {
         VBox.setVgrow(clientTable, Priority.ALWAYS);
 
         // ─── History table ───────────────────────────────────────────────
-        Label historyLabel = new Label("Seleziona un cliente per vedere lo storico visite");
+        Label historyLabel = new Label(i18n.t("clients.history.placeholder"));
         historyLabel.getStyleClass().add("card-title");
 
         TableView<AnthropometryDto> historyTable = new TableView<>();
         historyTable.getStyleClass().add("styled-table");
         historyTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        historyTable.setPlaceholder(new Label("Nessuna visita registrata."));
+        historyTable.setPlaceholder(new Label(i18n.t("clients.history.empty")));
 
-        TableColumn<AnthropometryDto, String> dateCol = new TableColumn<>("Data visita");
-        TableColumn<AnthropometryDto, String> hCol    = new TableColumn<>("Altezza (cm)");
-        TableColumn<AnthropometryDto, String> wCol    = new TableColumn<>("Peso (kg)");
-        TableColumn<AnthropometryDto, String> bmiCol  = new TableColumn<>("BMI");
-        TableColumn<AnthropometryDto, String> plCol   = new TableColumn<>("Pliche");
-        TableColumn<AnthropometryDto, String> cirCol  = new TableColumn<>("Circonferenze");
+        TableColumn<AnthropometryDto, String> dateCol = new TableColumn<>(i18n.t("clients.history.date"));
+        TableColumn<AnthropometryDto, String> hCol    = new TableColumn<>(i18n.t("clients.history.height"));
+        TableColumn<AnthropometryDto, String> wCol    = new TableColumn<>(i18n.t("clients.history.weight"));
+        TableColumn<AnthropometryDto, String> bmiCol  = new TableColumn<>(i18n.t("clients.history.bmi"));
+        TableColumn<AnthropometryDto, String> plCol   = new TableColumn<>(i18n.t("clients.history.fold"));
+        TableColumn<AnthropometryDto, String> cirCol  = new TableColumn<>(i18n.t("clients.history.circumference"));
 
         DateTimeFormatter visitFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         dateCol.setCellValueFactory(cd -> new SimpleStringProperty(
@@ -441,8 +444,10 @@ SceneBuilder {
             if (h == null || w == null || h <= 0) return new SimpleStringProperty("-");
             return new SimpleStringProperty(String.format("%.1f", w / Math.pow(h / 100.0, 2)));
         });
-        plCol.setCellValueFactory(cd  -> new SimpleStringProperty(cd.getValue().getFold()          != null ? "Si" : "-"));
-        cirCol.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().getCircumference() != null ? "Si" : "-"));
+        plCol.setCellValueFactory(cd  -> new SimpleStringProperty(
+                cd.getValue().getFold()          != null ? i18n.t("common.yes") : "-"));
+        cirCol.setCellValueFactory(cd -> new SimpleStringProperty(
+                cd.getValue().getCircumference() != null ? i18n.t("common.yes") : "-"));
 
         historyTable.getColumns().addAll(dateCol, hCol, wCol, bmiCol, plCol, cirCol);
         VBox.setVgrow(historyTable, Priority.ALWAYS);
@@ -455,7 +460,7 @@ SceneBuilder {
         VBox visitDetailBox = new VBox(12);
         visitDetailBox.setPadding(new Insets(16));
         visitDetailBox.setStyle("-fx-background-color: white;");
-        Label detailPlaceholder = new Label("Seleziona una visita per vedere il dettaglio antropometrico");
+        Label detailPlaceholder = new Label(i18n.t("clients.visit.placeholder"));
         detailPlaceholder.setStyle("-fx-font-size: 13px; -fx-text-fill: #94a3b8;");
         visitDetailBox.getChildren().add(detailPlaceholder);
 
@@ -476,17 +481,17 @@ SceneBuilder {
         footer.getStyleClass().add("scene-footer");
         footer.setAlignment(Pos.CENTER_LEFT);
 
-        Button exportExcelBtn = new Button("  Esporta Excel");
+        Button exportExcelBtn = new Button(i18n.t("clients.btn.export"));
         exportExcelBtn.getStyleClass().add("btn-secondary");
 
         Region footerSpacer = new Region();
         HBox.setHgrow(footerSpacer, Priority.ALWAYS);
 
-        Button newVisitBtn = new Button("  Nuova Visita");
+        Button newVisitBtn = new Button(i18n.t("clients.btn.new.visit"));
         newVisitBtn.getStyleClass().add("btn-success");
-        Button editBtn   = new Button("  Modifica");
+        Button editBtn   = new Button(i18n.t("clients.btn.edit"));
         editBtn.getStyleClass().add("btn-info");
-        Button deleteBtn = new Button("  Elimina");
+        Button deleteBtn = new Button(i18n.t("clients.btn.delete"));
         deleteBtn.getStyleClass().add("btn-danger");
         footer.getChildren().addAll(exportExcelBtn, footerSpacer, newVisitBtn, editBtn, deleteBtn);
         root.setBottom(footer);
@@ -511,16 +516,16 @@ SceneBuilder {
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox headerBlock = new VBox(2);
-        Label title = new Label("Storico Diete");
+        Label title = new Label(i18n.t("diet.title"));
         title.getStyleClass().add("page-title");
-        Label subtitle = new Label("Piani nutrizionali generati con l'intelligenza artificiale");
+        Label subtitle = new Label(i18n.t("diet.subtitle"));
         subtitle.getStyleClass().add("page-subtitle");
         headerBlock.getChildren().addAll(title, subtitle);
 
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
 
-        Button genBtn = new Button("  Genera Nuova Dieta");
+        Button genBtn = new Button(i18n.t("diet.btn.generate"));
         genBtn.getStyleClass().add("btn-success");
         genBtn.setOnAction(e -> stageManager.switchScene("diet-generator"));
 
@@ -529,10 +534,10 @@ SceneBuilder {
 
         TableView<DietResultEntity> dietTable = new TableView<>();
         dietTable.getStyleClass().add("styled-table");
-        dietTable.setPlaceholder(new Label("Nessuna dieta generata. Usa \"Genera Nuova Dieta\" per iniziare."));
+        dietTable.setPlaceholder(new Label(i18n.t("diet.table.empty")));
 
         TextField searchField = new TextField();
-        searchField.setPromptText("Cerca per cliente...");
+        searchField.setPromptText(i18n.t("diet.search.prompt"));
         searchField.setMaxWidth(300);
         searchField.setStyle(
             "-fx-font-size: 13px; -fx-background-radius: 8; -fx-border-radius: 8;" +
@@ -552,9 +557,9 @@ SceneBuilder {
         HBox footer = new HBox(10);
         footer.getStyleClass().add("scene-footer");
         footer.setAlignment(Pos.CENTER_RIGHT);
-        Button viewBtn   = new Button("  Visualizza");
+        Button viewBtn   = new Button(i18n.t("diet.btn.view"));
         viewBtn.getStyleClass().add("btn-info");
-        Button deleteBtn = new Button("  Elimina");
+        Button deleteBtn = new Button(i18n.t("diet.btn.delete"));
         deleteBtn.getStyleClass().add("btn-danger");
         footer.getChildren().addAll(viewBtn, deleteBtn);
         root.setBottom(footer);
@@ -579,9 +584,9 @@ SceneBuilder {
         header.getStyleClass().add("page-header");
         header.setAlignment(Pos.CENTER_LEFT);
         VBox headerBlock = new VBox(2);
-        Label title = new Label("Genera Dieta con AI");
+        Label title = new Label(i18n.t("dietgen.title"));
         title.getStyleClass().add("page-title");
-        Label subtitle = new Label("Seleziona il provider AI, configura le credenziali e genera un piano nutrizionale personalizzato");
+        Label subtitle = new Label(i18n.t("dietgen.subtitle"));
         subtitle.getStyleClass().add("page-subtitle");
         headerBlock.getChildren().addAll(title, subtitle);
         header.getChildren().add(headerBlock);
@@ -598,43 +603,43 @@ SceneBuilder {
         VBox patientCard = new VBox(10);
         patientCard.getStyleClass().add("card");
         HBox.setHgrow(patientCard, Priority.ALWAYS);
-        Label patientTitle = new Label("  Selezione Paziente");
+        Label patientTitle = new Label(i18n.t("dietgen.card.patient"));
         patientTitle.getStyleClass().add("card-title");
-        Label clientLabel = new Label("Cliente");
+        Label clientLabel = new Label(i18n.t("dietgen.label.client"));
         clientLabel.getStyleClass().add("form-label");
         ComboBox<String> clientCombo = new ComboBox<>();
         clientCombo.getStyleClass().add("form-combo");
         clientCombo.setMaxWidth(Double.MAX_VALUE);
-        clientCombo.setPromptText("Seleziona un paziente...");
+        clientCombo.setPromptText(i18n.t("dietgen.combo.client.prompt"));
         patientCard.getChildren().addAll(patientTitle, clientLabel, clientCombo);
 
-        // Card AI — provider → model a cascata
+        // Card AI
         VBox aiCard = new VBox(10);
         aiCard.getStyleClass().add("card");
         HBox.setHgrow(aiCard, Priority.ALWAYS);
-        Label aiTitle = new Label("  Configurazione AI");
+        Label aiTitle = new Label(i18n.t("dietgen.card.ai"));
         aiTitle.getStyleClass().add("card-title");
 
-        Label providerLabel = new Label("Provider AI");
+        Label providerLabel = new Label(i18n.t("dietgen.label.provider"));
         providerLabel.getStyleClass().add("form-label");
         ComboBox<String> providerCombo = new ComboBox<>();
         providerCombo.getStyleClass().add("form-combo");
         providerCombo.setMaxWidth(Double.MAX_VALUE);
 
-        Label modelLabel = new Label("Modello");
+        Label modelLabel = new Label(i18n.t("dietgen.label.model"));
         modelLabel.getStyleClass().add("form-label");
         ComboBox<String> aiModelCombo = new ComboBox<>();
         aiModelCombo.getStyleClass().add("form-combo");
         aiModelCombo.setMaxWidth(Double.MAX_VALUE);
-        aiModelCombo.setPromptText("Scegli prima il provider...");
+        aiModelCombo.setPromptText(i18n.t("dietgen.combo.model.prompt"));
 
         HBox credRow = new HBox(10);
         credRow.setAlignment(Pos.CENTER_LEFT);
-        Label credentialStatusLabel = new Label("Credenziali non configurate");
+        Label credentialStatusLabel = new Label(i18n.t("dietgen.cred.missing"));
         credentialStatusLabel.getStyleClass().add("credential-missing");
         Region credSpacer = new Region();
         HBox.setHgrow(credSpacer, Priority.ALWAYS);
-        Button configureButton = new Button("  Configura Credenziali");
+        Button configureButton = new Button(i18n.t("dietgen.btn.configure"));
         configureButton.getStyleClass().add("btn-configure");
         credRow.getChildren().addAll(credentialStatusLabel, credSpacer, configureButton);
 
@@ -644,7 +649,7 @@ SceneBuilder {
         // Card Parametri
         VBox paramsCard = new VBox(14);
         paramsCard.getStyleClass().add("card");
-        Label paramsTitle = new Label("  Parametri Dieta");
+        Label paramsTitle = new Label(i18n.t("dietgen.card.params"));
         paramsTitle.getStyleClass().add("card-title");
 
         HBox paramsRow = new HBox(20);
@@ -652,36 +657,52 @@ SceneBuilder {
 
         VBox goalGroup = new VBox(6);
         HBox.setHgrow(goalGroup, Priority.ALWAYS);
-        Label goalLabel = new Label("Obiettivo Principale");
+        Label goalLabel = new Label(i18n.t("dietgen.label.goal"));
         goalLabel.getStyleClass().add("form-label");
         ComboBox<String> goalBox = new ComboBox<>();
-        goalBox.getItems().addAll("Perdita Peso", "Aumento Massa Muscolare", "Mantenimento",
-                                   "Miglioramento Salute", "Performance Atletica");
-        goalBox.setValue("Mantenimento");
+        goalBox.getItems().addAll(
+            i18n.t("dietgen.goal.weight.loss"),
+            i18n.t("dietgen.goal.muscle"),
+            i18n.t("dietgen.goal.maintain"),
+            i18n.t("dietgen.goal.health"),
+            i18n.t("dietgen.goal.performance")
+        );
+        goalBox.setValue(i18n.t("dietgen.goal.maintain"));
         goalBox.getStyleClass().add("form-combo");
         goalBox.setMaxWidth(Double.MAX_VALUE);
         goalGroup.getChildren().addAll(goalLabel, goalBox);
 
         VBox prefGroup = new VBox(6);
         HBox.setHgrow(prefGroup, Priority.ALWAYS);
-        Label prefLabel = new Label("Preferenza Alimentare");
+        Label prefLabel = new Label(i18n.t("dietgen.label.pref"));
         prefLabel.getStyleClass().add("form-label");
         ComboBox<String> prefBox = new ComboBox<>();
-        prefBox.getItems().addAll("Onnivoro", "Vegetariano", "Vegano",
-                                   "Senza Glutine", "Senza Lattosio", "Ketogenica");
-        prefBox.setValue("Onnivoro");
+        prefBox.getItems().addAll(
+            i18n.t("dietgen.pref.omnivore"),
+            i18n.t("dietgen.pref.vegetarian"),
+            i18n.t("dietgen.pref.vegan"),
+            i18n.t("dietgen.pref.gluten.free"),
+            i18n.t("dietgen.pref.lactose.free"),
+            i18n.t("dietgen.pref.keto")
+        );
+        prefBox.setValue(i18n.t("dietgen.pref.omnivore"));
         prefBox.getStyleClass().add("form-combo");
         prefBox.setMaxWidth(Double.MAX_VALUE);
         prefGroup.getChildren().addAll(prefLabel, prefBox);
 
         VBox activityGroup = new VBox(6);
         HBox.setHgrow(activityGroup, Priority.ALWAYS);
-        Label activityLabel = new Label("Livello di Attivita");
+        Label activityLabel = new Label(i18n.t("dietgen.label.activity"));
         activityLabel.getStyleClass().add("form-label");
         ComboBox<String> activityBox = new ComboBox<>();
-        activityBox.getItems().addAll("Sedentario", "Leggermente Attivo",
-                                       "Moderatamente Attivo", "Molto Attivo", "Atleta");
-        activityBox.setValue("Moderatamente Attivo");
+        activityBox.getItems().addAll(
+            i18n.t("dietgen.activity.sedentary"),
+            i18n.t("dietgen.activity.light"),
+            i18n.t("dietgen.activity.moderate"),
+            i18n.t("dietgen.activity.active"),
+            i18n.t("dietgen.activity.athlete")
+        );
+        activityBox.setValue(i18n.t("dietgen.activity.moderate"));
         activityBox.getStyleClass().add("form-combo");
         activityBox.setMaxWidth(Double.MAX_VALUE);
         activityGroup.getChildren().addAll(activityLabel, activityBox);
@@ -692,15 +713,15 @@ SceneBuilder {
         // Card Note
         VBox notesCard = new VBox(10);
         notesCard.getStyleClass().add("card");
-        Label notesTitle = new Label("  Note Aggiuntive");
+        Label notesTitle = new Label(i18n.t("dietgen.card.notes"));
         notesTitle.getStyleClass().add("card-title");
-        Label notesSubtitle = new Label("Allergie, intolleranze o preferenze particolari da comunicare all'AI");
+        Label notesSubtitle = new Label(i18n.t("dietgen.notes.subtitle"));
         notesSubtitle.getStyleClass().add("card-subtitle");
         TextArea notesArea = new TextArea();
         notesArea.getStyleClass().add("form-field");
         notesArea.setPrefHeight(90);
         notesArea.setWrapText(true);
-        notesArea.setPromptText("Es: evitare i latticini la sera, preferire proteine vegetali a pranzo...");
+        notesArea.setPromptText(i18n.t("dietgen.notes.prompt"));
         notesCard.getChildren().addAll(notesTitle, notesSubtitle, notesArea);
 
         content.getChildren().addAll(row1, paramsCard, notesCard);
@@ -710,7 +731,6 @@ SceneBuilder {
         scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
         root.setCenter(scrollPane);
 
-        // Footer
         HBox footer = new HBox(12);
         footer.getStyleClass().add("scene-footer");
         footer.setAlignment(Pos.CENTER_RIGHT);
@@ -722,7 +742,7 @@ SceneBuilder {
         Region footerSpacer = new Region();
         HBox.setHgrow(footerSpacer, Priority.ALWAYS);
 
-        Button generateBtn = new Button("  Genera Piano Nutrizionale");
+        Button generateBtn = new Button(i18n.t("dietgen.btn.generate"));
         generateBtn.getStyleClass().add("btn-success");
 
         footer.getChildren().addAll(progressIndicator, footerSpacer, generateBtn);
@@ -748,9 +768,9 @@ SceneBuilder {
         header.getStyleClass().add("page-header");
         header.setAlignment(Pos.CENTER_LEFT);
         VBox headerBlock = new VBox(2);
-        Label title = new Label("Andamento Clinico");
+        Label title = new Label(i18n.t("trend.title"));
         title.getStyleClass().add("page-title");
-        Label subtitle = new Label("Visualizza l'evoluzione di peso e BMI nel tempo per ogni paziente");
+        Label subtitle = new Label(i18n.t("trend.subtitle"));
         subtitle.getStyleClass().add("page-subtitle");
         headerBlock.getChildren().addAll(title, subtitle);
         header.getChildren().add(headerBlock);
@@ -762,14 +782,14 @@ SceneBuilder {
         // ─── Selector card ────────────────────────────────────────────
         VBox selectorCard = new VBox(10);
         selectorCard.getStyleClass().add("card");
-        Label selectorTitle = new Label("Seleziona Paziente");
+        Label selectorTitle = new Label(i18n.t("trend.card.selector"));
         selectorTitle.getStyleClass().add("card-title");
 
         HBox selectorRow = new HBox(16);
         selectorRow.setAlignment(Pos.CENTER_LEFT);
-        ComboBox<com.angeloni.nutricare.dto.ClientDto> clientCombo = new ComboBox<>();
+        ComboBox<ClientDto> clientCombo = new ComboBox<>();
         clientCombo.getStyleClass().add("form-combo");
-        clientCombo.setPromptText("Scegli un paziente...");
+        clientCombo.setPromptText(i18n.t("trend.combo.prompt"));
         clientCombo.setPrefWidth(300);
         selectorRow.getChildren().add(clientCombo);
         selectorCard.getChildren().addAll(selectorTitle, selectorRow);
@@ -778,7 +798,7 @@ SceneBuilder {
         VBox noDataBox = new VBox();
         noDataBox.setAlignment(Pos.CENTER);
         noDataBox.setPrefHeight(300);
-        Label noDataLabel = new Label("Seleziona un paziente per visualizzare l'andamento clinico");
+        Label noDataLabel = new Label(i18n.t("trend.no.data"));
         noDataLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #94a3b8;");
         noDataBox.getChildren().add(noDataLabel);
 
@@ -787,8 +807,10 @@ SceneBuilder {
         chartsBox.setVisible(false);
         chartsBox.setManaged(false);
 
-        LineChart<String, Number> weightChart = buildLineChart("Peso nel tempo", "Data visita", "Peso (kg)");
-        LineChart<String, Number> bmiChart    = buildLineChart("BMI nel tempo",  "Data visita", "BMI");
+        LineChart<String, Number> weightChart = buildLineChart(
+                i18n.t("trend.chart.weight"), i18n.t("trend.axis.visit"), i18n.t("trend.axis.weight"));
+        LineChart<String, Number> bmiChart    = buildLineChart(
+                i18n.t("trend.chart.bmi"),    i18n.t("trend.axis.visit"), i18n.t("trend.axis.bmi"));
 
         HBox chartsRow = new HBox(16);
         VBox weightBox = new VBox(weightChart);
@@ -803,10 +825,10 @@ SceneBuilder {
         bmiLegend.setAlignment(Pos.CENTER_LEFT);
         bmiLegend.setStyle("-fx-padding: 0 0 0 4;");
         bmiLegend.getChildren().addAll(
-            bmiTag("< 18.5", "Sottopeso",    "#3b82f6"),
-            bmiTag("18.5–24.9", "Normopeso", "#10b981"),
-            bmiTag("25–29.9", "Sovrappeso",  "#f59e0b"),
-            bmiTag(">= 30", "Obesita",       "#ef4444")
+            bmiTag("< 18.5",      i18n.t("trend.bmi.underweight"), "#3b82f6"),
+            bmiTag("18.5–24.9",   i18n.t("trend.bmi.normal"),      "#10b981"),
+            bmiTag("25–29.9",     i18n.t("trend.bmi.overweight"),  "#f59e0b"),
+            bmiTag(">= 30",       i18n.t("trend.bmi.obese"),       "#ef4444")
         );
         chartsBox.getChildren().add(bmiLegend);
 

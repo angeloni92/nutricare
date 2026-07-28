@@ -19,6 +19,7 @@ public class StageManager {
     private Scene dietScene;
     private Scene dietGeneratorScene;
     private Scene trendScene;
+    private String currentSceneName = "dashboard";
 
     private final Map<String, Runnable> refreshCallbacks = new HashMap<>();
 
@@ -43,6 +44,7 @@ public class StageManager {
     }
 
     public void switchScene(String sceneName) {
+        this.currentSceneName = sceneName;
         switch (sceneName) {
             case "dashboard" -> { stage.setScene(dashboardScene); refreshScene("dashboard"); }
             case "client"    -> stage.setScene(clientScene);
@@ -59,5 +61,6 @@ public class StageManager {
     public void setDietGeneratorScene(Scene scene)  { this.dietGeneratorScene  = scene; }
     public void setTrendScene(Scene scene)          { this.trendScene          = scene; }
 
-    public Stage getPrimaryStage() { return stage; }
+    public Stage getPrimaryStage()      { return stage; }
+    public String getCurrentSceneName() { return currentSceneName; }
 }

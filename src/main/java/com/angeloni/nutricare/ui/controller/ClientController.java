@@ -14,6 +14,7 @@ import com.angeloni.nutricare.dto.ClientDto;
 import com.angeloni.nutricare.dto.FoldDto;
 import com.angeloni.nutricare.service.AnthropometryService;
 import com.angeloni.nutricare.service.ClientService;
+import com.angeloni.nutricare.service.I18nService;
 import com.angeloni.nutricare.ui.StageManager;
 import com.angeloni.nutricare.ui.dialog.AnthropometryFormDialog;
 import com.angeloni.nutricare.ui.dialog.ClientFormDialog;
@@ -40,6 +41,8 @@ public class ClientController {
     private final ClientService clientService;
     private final AnthropometryService anthropometryService;
     private final StageManager stageManager;
+    private final ClientFormDialog clientFormDialog;
+    private final I18nService i18n;
 
     private TableView<ClientDto> clientTable;
     private TableView<AnthropometryDto> historyTable;
@@ -55,10 +58,13 @@ public class ClientController {
     private static final DateTimeFormatter VISIT_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     public ClientController(ClientService clientService, AnthropometryService anthropometryService,
-                            StageManager stageManager) {
+                            StageManager stageManager, ClientFormDialog clientFormDialog,
+                            I18nService i18n) {
         this.clientService = clientService;
         this.anthropometryService = anthropometryService;
         this.stageManager = stageManager;
+        this.clientFormDialog = clientFormDialog;
+        this.i18n = i18n;
     }
 
     public void setup(TableView<ClientDto> clientTable, TextField searchField,
@@ -96,10 +102,11 @@ public class ClientController {
             editBtn.setDisable(!hasSelection);
             deleteBtn.setDisable(!hasSelection);
             if (hasSelection) {
-                historyLabel.setText("Storico visite — " + selected.getName() + " " + selected.getSurname());
+                historyLabel.setText(i18n.t("clients.history.current",
+                        selected.getName(), selected.getSurname()));
                 loadHistory(selected.getId());
             } else {
-                historyLabel.setText("Seleziona un cliente per vedere lo storico visite");
+                historyLabel.setText(i18n.t("clients.history.placeholder"));
                 visitHistory.clear();
             }
             clearDetailPane();
@@ -126,7 +133,7 @@ public class ClientController {
             allClients.setAll(clientService.getClients());
             if (clientTable != null) clientTable.refresh();
         } catch (Exception e) {
-            showError("Impossibile caricare i clienti: " + e.getMessage());
+            showError(i18n.t("clients.alert.load.error", e.getMessage()));
         }
     }
 
@@ -142,7 +149,7 @@ public class ClientController {
 
     private void clearDetailPane() {
         visitDetailBox.getChildren().clear();
-        Label ph = new Label("Seleziona una visita per vedere il dettaglio antropometrico");
+        Label ph = new Label(i18n.t("clients.visit.placeholder"));
         ph.setStyle("-fx-font-size: 13px; -fx-text-fill: #94a3b8;");
         visitDetailBox.getChildren().add(ph);
     }
@@ -152,55 +159,52 @@ public class ClientController {
         if (visit == null) { clearDetailPane(); return; }
 
         String dateStr = visit.getCreatedAt() != null ? visit.getCreatedAt().format(VISIT_FMT) : "-";
-        Label titleLbl = new Label("Dettaglio Visita — " + dateStr);
+        Label titleLbl = new Label(i18n.t("clients.detail.title", dateStr));
         titleLbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0f172a;");
         visitDetailBox.getChildren().addAll(titleLbl, new Separator());
 
-        // Basic data
         Double h = visit.getHeight(), w = visit.getWeight();
         String bmiStr = (h != null && w != null && h > 0)
                 ? String.format("%.1f", w / Math.pow(h / 100.0, 2)) : "-";
 
-        VBox basicSection = buildSection("Dati Principali");
+        VBox basicSection = buildSection(i18n.t("clients.detail.main"));
         GridPane basicGrid = buildGrid();
-        addRow(basicGrid, 0, "Altezza",  h != null ? String.format("%.1f cm", h) : "-");
-        addRow(basicGrid, 1, "Peso",     w != null ? String.format("%.1f kg", w) : "-");
-        addRow(basicGrid, 2, "BMI",      bmiStr);
+        addRow(basicGrid, 0, i18n.t("clients.detail.height"), h != null ? String.format("%.1f cm", h) : "-");
+        addRow(basicGrid, 1, i18n.t("clients.detail.weight"), w != null ? String.format("%.1f kg", w) : "-");
+        addRow(basicGrid, 2, i18n.t("clients.detail.bmi"),    bmiStr);
         basicSection.getChildren().add(basicGrid);
         visitDetailBox.getChildren().add(basicSection);
 
-        // Folds
         if (visit.getFold() != null) {
             FoldDto f = visit.getFold();
-            VBox foldSection = buildSection("Pliche Cutanee (mm)");
+            VBox foldSection = buildSection(i18n.t("clients.detail.folds"));
             GridPane foldGrid = buildGrid();
-            addRow(foldGrid, 0, "Pettorale",      fmt(f.getPectoral()));
-            addRow(foldGrid, 1, "Ascellare",      fmt(f.getAxillary()));
-            addRow(foldGrid, 2, "Sovrailiaca",    fmt(f.getSuprailiac()));
-            addRow(foldGrid, 3, "Addominale",     fmt(f.getAbdominal()));
-            addRow(foldGrid, 4, "Tricipite",      fmt(f.getTriceps()));
-            addRow(foldGrid, 5, "Sottoscapolare", fmt(f.getSubscapolaris()));
-            addRow(foldGrid, 6, "Coscia",         fmt(f.getThigh()));
+            addRow(foldGrid, 0, i18n.t("clients.detail.fold.pectoral"),    fmt(f.getPectoral()));
+            addRow(foldGrid, 1, i18n.t("clients.detail.fold.axillary"),    fmt(f.getAxillary()));
+            addRow(foldGrid, 2, i18n.t("clients.detail.fold.suprailiac"),  fmt(f.getSuprailiac()));
+            addRow(foldGrid, 3, i18n.t("clients.detail.fold.abdominal"),   fmt(f.getAbdominal()));
+            addRow(foldGrid, 4, i18n.t("clients.detail.fold.triceps"),     fmt(f.getTriceps()));
+            addRow(foldGrid, 5, i18n.t("clients.detail.fold.subscapular"), fmt(f.getSubscapolaris()));
+            addRow(foldGrid, 6, i18n.t("clients.detail.fold.thigh"),       fmt(f.getThigh()));
             foldSection.getChildren().add(foldGrid);
             visitDetailBox.getChildren().add(foldSection);
         }
 
-        // Circumferences
         if (visit.getCircumference() != null) {
             CircumferenceDto c = visit.getCircumference();
-            VBox circSection = buildSection("Circonferenze (cm)");
+            VBox circSection = buildSection(i18n.t("clients.detail.circumferences"));
             GridPane circGrid = buildGrid();
-            addRow(circGrid, 0, "Petto",   fmt(c.getChest()));
-            addRow(circGrid, 1, "Braccio", fmt(c.getArm()));
-            addRow(circGrid, 2, "Vita",    fmt(c.getWaist()));
-            addRow(circGrid, 3, "Fianchi", fmt(c.getHip()));
-            addRow(circGrid, 4, "Coscia",  fmt(c.getThigh()));
+            addRow(circGrid, 0, i18n.t("clients.detail.circ.chest"), fmt(c.getChest()));
+            addRow(circGrid, 1, i18n.t("clients.detail.circ.arm"),   fmt(c.getArm()));
+            addRow(circGrid, 2, i18n.t("clients.detail.circ.waist"), fmt(c.getWaist()));
+            addRow(circGrid, 3, i18n.t("clients.detail.circ.hip"),   fmt(c.getHip()));
+            addRow(circGrid, 4, i18n.t("clients.detail.circ.thigh"), fmt(c.getThigh()));
             circSection.getChildren().add(circGrid);
             visitDetailBox.getChildren().add(circSection);
         }
 
         if (visit.getFold() == null && visit.getCircumference() == null) {
-            Label none = new Label("Nessun dato di pliche o circonferenze per questa visita.");
+            Label none = new Label(i18n.t("clients.detail.no.measures"));
             none.setStyle("-fx-font-size: 12px; -fx-text-fill: #94a3b8; -fx-font-style: italic;");
             visitDetailBox.getChildren().add(none);
         }
@@ -236,12 +240,12 @@ public class ClientController {
     // ─── Excel Export ─────────────────────────────────────────────────────────
 
     private void handleExportExcel() {
-        if (allClients.isEmpty()) { showError("Nessun cliente da esportare."); return; }
+        if (allClients.isEmpty()) { showError(i18n.t("clients.export.error.empty")); return; }
 
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Esporta clienti in Excel");
-        chooser.setInitialFileName("clienti_nutricare_"
-                + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".xlsx");
+        chooser.setTitle(i18n.t("clients.export.dialog.title"));
+        chooser.setInitialFileName(i18n.t("clients.export.filename",
+                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))));
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Excel (*.xlsx)", "*.xlsx"));
 
@@ -254,23 +258,23 @@ public class ClientController {
                     try { return anthropometryService.getVisitsByClient(id); }
                     catch (Exception e) { return List.of(); }
                 });
-            showInfo("File Excel esportato:\n" + file.getAbsolutePath());
+            showInfo(i18n.t("clients.export.success", file.getAbsolutePath()));
         } catch (Exception e) {
-            showError("Errore durante l'esportazione: " + e.getMessage());
+            showError(i18n.t("clients.export.error", e.getMessage()));
         }
     }
 
     // ─── CRUD handlers ───────────────────────────────────────────────────────
 
     private void handleAddClient() {
-        ClientFormDialog.showCreate().ifPresent(dto -> {
+        clientFormDialog.showCreate().ifPresent(dto -> {
             try {
                 clientService.saveClient(dto);
                 loadClients();
                 stageManager.refreshScene("dashboard");
-                showInfo("Cliente aggiunto con successo.");
+                showInfo(i18n.t("clients.alert.add.success"));
             } catch (Exception e) {
-                showError("Errore durante il salvataggio: " + e.getMessage());
+                showError(i18n.t("clients.alert.add.error", e.getMessage()));
             }
         });
     }
@@ -278,13 +282,13 @@ public class ClientController {
     private void handleEditClient() {
         ClientDto selected = clientTable.getSelectionModel().getSelectedItem();
         if (selected == null) return;
-        ClientFormDialog.showEdit(selected).ifPresent(dto -> {
+        clientFormDialog.showEdit(selected).ifPresent(dto -> {
             try {
                 clientService.saveClient(dto);
                 loadClients();
-                showInfo("Cliente aggiornato con successo.");
+                showInfo(i18n.t("clients.alert.edit.success"));
             } catch (Exception e) {
-                showError("Errore durante l'aggiornamento: " + e.getMessage());
+                showError(i18n.t("clients.alert.edit.error", e.getMessage()));
             }
         });
     }
@@ -293,9 +297,9 @@ public class ClientController {
         ClientDto selected = clientTable.getSelectionModel().getSelectedItem();
         if (selected == null) return;
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Eliminare " + selected.getName() + " " + selected.getSurname() + "?",
+                i18n.t("clients.confirm.delete.msg", selected.getName(), selected.getSurname()),
                 ButtonType.YES, ButtonType.NO);
-        confirm.setTitle("Conferma eliminazione");
+        confirm.setTitle(i18n.t("clients.confirm.delete.title"));
         confirm.showAndWait().ifPresent(bt -> {
             if (bt == ButtonType.YES) {
                 try {
@@ -304,10 +308,10 @@ public class ClientController {
                     stageManager.refreshScene("dashboard");
                     visitHistory.clear();
                     clearDetailPane();
-                    historyLabel.setText("Seleziona un cliente per vedere lo storico visite");
-                    showInfo("Cliente eliminato.");
+                    historyLabel.setText(i18n.t("clients.history.placeholder"));
+                    showInfo(i18n.t("clients.alert.delete.success"));
                 } catch (Exception e) {
-                    showError("Errore durante l'eliminazione: " + e.getMessage());
+                    showError(i18n.t("clients.alert.delete.error", e.getMessage()));
                 }
             }
         });
@@ -320,20 +324,22 @@ public class ClientController {
             try {
                 anthropometryService.saveVisit(selected.getId(), dto);
                 loadHistory(selected.getId());
-                showInfo("Visita salvata con successo.");
+                showInfo(i18n.t("clients.alert.visit.success"));
             } catch (Exception e) {
-                showError("Errore durante il salvataggio della visita: " + e.getMessage());
+                showError(i18n.t("clients.alert.visit.error", e.getMessage()));
             }
         });
     }
 
     private void showError(String msg) {
         Alert a = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
-        a.setTitle("Errore"); a.showAndWait();
+        a.setTitle(i18n.t("common.error.title"));
+        a.showAndWait();
     }
 
     private void showInfo(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
-        a.setTitle("Successo"); a.showAndWait();
+        a.setTitle(i18n.t("clients.success.title"));
+        a.showAndWait();
     }
 }

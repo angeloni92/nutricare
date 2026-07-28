@@ -12,6 +12,7 @@ import com.angeloni.nutricare.entity.DietResultEntity;
 import com.angeloni.nutricare.repository.DietResultRepository;
 import com.angeloni.nutricare.service.ClientService;
 import com.angeloni.nutricare.service.DietService;
+import com.angeloni.nutricare.service.I18nService;
 import com.angeloni.nutricare.service.UserContextService;
 import com.angeloni.nutricare.ui.dialog.DietResultDialog;
 
@@ -33,6 +34,7 @@ public class DietController {
     private final DietService dietService;
     private final ClientService clientService;
     private final UserContextService userContextService;
+    private final I18nService i18n;
 
     private TableView<DietResultEntity> dietTable;
     private final ObservableList<DietResultEntity> dietData = FXCollections.observableArrayList();
@@ -45,27 +47,30 @@ public class DietController {
     public DietController(DietResultRepository dietResultRepository,
                           DietService dietService,
                           ClientService clientService,
-                          UserContextService userContextService) {
+                          UserContextService userContextService,
+                          I18nService i18n) {
         this.dietResultRepository = dietResultRepository;
         this.dietService = dietService;
         this.clientService = clientService;
         this.userContextService = userContextService;
+        this.i18n = i18n;
     }
 
     public void setup(TableView<DietResultEntity> table, Button viewBtn, Button deleteBtn) {
         this.dietTable = table;
 
-        TableColumn<DietResultEntity, String> clientCol = new TableColumn<>("Cliente");
+        TableColumn<DietResultEntity, String> clientCol = new TableColumn<>(i18n.t("diet.table.client"));
         clientCol.setCellValueFactory(cd -> new SimpleStringProperty(getClientName(cd.getValue().getClientId())));
 
-        TableColumn<DietResultEntity, String> modelCol = new TableColumn<>("Modello AI");
+        TableColumn<DietResultEntity, String> modelCol = new TableColumn<>(i18n.t("diet.table.model"));
         modelCol.setCellValueFactory(cd -> new SimpleStringProperty(
                 cd.getValue().getAiModel() != null ? cd.getValue().getAiModel() : "-"));
 
-        TableColumn<DietResultEntity, String> dateCol = new TableColumn<>("Data Generazione");
+        TableColumn<DietResultEntity, String> dateCol = new TableColumn<>(i18n.t("diet.table.date"));
         dateCol.setCellValueFactory(cd -> new SimpleStringProperty(
                 cd.getValue().getCreatedAt() != null ? cd.getValue().getCreatedAt().format(DATE_FMT) : "-"));
 
+        table.getColumns().clear();
         table.getColumns().addAll(clientCol, modelCol, dateCol);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
@@ -121,13 +126,13 @@ public class DietController {
 
     private String getClientName(Long clientId) {
         if (clientId == null) return "-";
-        return clientNames.getOrDefault(clientId, "Cliente #" + clientId);
+        return clientNames.getOrDefault(clientId, i18n.t("diet.client.fallback", clientId));
     }
 
     private void handleView() {
         DietResultEntity selected = dietTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            new Alert(Alert.AlertType.WARNING, "Seleziona una dieta da visualizzare.", ButtonType.OK).showAndWait();
+            new Alert(Alert.AlertType.WARNING, i18n.t("diet.warn.select.view"), ButtonType.OK).showAndWait();
             return;
         }
         DietResultDialog.show(
@@ -139,13 +144,13 @@ public class DietController {
     private void handleDelete() {
         DietResultEntity selected = dietTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            new Alert(Alert.AlertType.WARNING, "Seleziona una dieta da eliminare.", ButtonType.OK).showAndWait();
+            new Alert(Alert.AlertType.WARNING, i18n.t("diet.warn.select.delete"), ButtonType.OK).showAndWait();
             return;
         }
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Eliminare il piano nutrizionale per " + getClientName(selected.getClientId()) + "?",
+                i18n.t("diet.confirm.delete.msg", getClientName(selected.getClientId())),
                 ButtonType.YES, ButtonType.NO);
-        confirm.setTitle("Conferma eliminazione");
+        confirm.setTitle(i18n.t("diet.confirm.delete.title"));
         confirm.showAndWait().ifPresent(bt -> {
             if (bt == ButtonType.YES) {
                 try {
@@ -153,7 +158,7 @@ public class DietController {
                     dietData.remove(selected);
                 } catch (Exception e) {
                     new Alert(Alert.AlertType.ERROR,
-                            "Errore durante l'eliminazione: " + e.getMessage(), ButtonType.OK).showAndWait();
+                            i18n.t("diet.error.delete", e.getMessage()), ButtonType.OK).showAndWait();
                 }
             }
         });

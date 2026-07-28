@@ -2,7 +2,11 @@ package com.angeloni.nutricare.ui.dialog;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.angeloni.nutricare.dto.ClientDto;
+import com.angeloni.nutricare.service.I18nService;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,23 +22,29 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 
+@Component
 public class ClientFormDialog {
 
-    public static Optional<ClientDto> showCreate() {
-        return show("Nuovo Cliente", null);
+    @Autowired
+    private I18nService i18n;
+
+    public Optional<ClientDto> showCreate() {
+        return show(i18n.t("client.form.title.new"), null);
     }
 
-    public static Optional<ClientDto> showEdit(ClientDto existing) {
-        return show("Modifica Cliente", existing);
+    public Optional<ClientDto> showEdit(ClientDto existing) {
+        return show(i18n.t("client.form.title.edit"), existing);
     }
 
-    private static Optional<ClientDto> show(String title, ClientDto existing) {
+    private Optional<ClientDto> show(String title, ClientDto existing) {
         Dialog<ClientDto> dialog = new Dialog<>();
         dialog.setTitle(title);
-        dialog.setHeaderText(existing == null ? "Inserisci i dati del nuovo paziente" : "Modifica i dati del paziente");
+        dialog.setHeaderText(existing == null
+                ? i18n.t("client.form.header.new")
+                : i18n.t("client.form.header.edit"));
 
-        ButtonType saveBtn   = new ButtonType("Salva",   ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelBtn = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType saveBtn   = new ButtonType(i18n.t("client.form.btn.save"),   ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelBtn = new ButtonType(i18n.t("client.form.btn.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().addAll(saveBtn, cancelBtn);
 
         TextField nameField    = new TextField(existing != null ? existing.getName()    : "");
@@ -45,7 +55,7 @@ public class ClientFormDialog {
 
         nameField.setPromptText("es. Mario");
         surnameField.setPromptText("es. Rossi");
-        ageField.setPromptText("es. 35  (obbligatorio, min 1)");
+        ageField.setPromptText(i18n.t("client.form.age.prompt"));
         countryField.setPromptText("es. Italia");
 
         for (TextField tf : new TextField[]{nameField, surnameField, ageField, countryField}) {
@@ -61,12 +71,12 @@ public class ClientFormDialog {
         grid.setVgap(10);
         grid.setPadding(new Insets(16, 0, 0, 0));
 
-        grid.add(label("Nome *"),    0, 0); grid.add(nameField,    1, 0);
-        grid.add(label("Cognome *"), 0, 1); grid.add(surnameField, 1, 1);
-        grid.add(label("Eta *"),     0, 2); grid.add(ageField,     1, 2);
-        grid.add(label("Paese *"),   0, 3); grid.add(countryField, 1, 3);
+        grid.add(label(i18n.t("client.form.label.name")),    0, 0); grid.add(nameField,    1, 0);
+        grid.add(label(i18n.t("client.form.label.surname")), 0, 1); grid.add(surnameField, 1, 1);
+        grid.add(label(i18n.t("client.form.label.age")),     0, 2); grid.add(ageField,     1, 2);
+        grid.add(label(i18n.t("client.form.label.country")), 0, 3); grid.add(countryField, 1, 3);
 
-        Label requiredNote = new Label("* campi obbligatori");
+        Label requiredNote = new Label(i18n.t("client.form.required"));
         requiredNote.setStyle("-fx-font-size: 11; -fx-text-fill: #6c757d;");
         grid.add(requiredNote, 0, 4, 2, 1);
 
