@@ -237,10 +237,10 @@ public class SceneBuilder {
         goDietGen.getStyleClass().add("btn-success");
         goDietGen.setOnAction(e -> stageManager.switchScene("diet-generator"));
         Button goDietList = new Button(i18n.t("dashboard.actions.history"));
-        goDietList.getStyleClass().add("btn-secondary");
+        goDietList.getStyleClass().add("btn-info");
         goDietList.setOnAction(e -> stageManager.switchScene("diet"));
         Button backupBtn = new Button(i18n.t("dashboard.actions.backup"));
-        backupBtn.getStyleClass().add("btn-secondary");
+        backupBtn.getStyleClass().add("btn-warning");
         backupBtn.setOnAction(e -> handleBackup());
         actions.getChildren().addAll(goClients, goDietGen, goDietList, backupBtn);
         actionsCard.getChildren().addAll(actionsTitle, actions);

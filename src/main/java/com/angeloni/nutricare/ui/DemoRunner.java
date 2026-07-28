@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import com.angeloni.nutricare.entity.DietResultEntity;
 import com.angeloni.nutricare.entity.UserEntity;
 import com.angeloni.nutricare.repository.DietResultRepository;
+import com.angeloni.nutricare.service.I18nService;
 import com.angeloni.nutricare.service.UserContextService;
 import com.angeloni.nutricare.ui.controller.DietGeneratorController;
 import com.angeloni.nutricare.ui.dialog.AnthropometryFormDialog;
@@ -47,6 +48,7 @@ public class DemoRunner {
     private boolean demoRecord;
 
     @Autowired private StageManager stageManager;
+    @Autowired private I18nService i18nService;
     @Autowired private DietResultRepository dietResultRepository;
     @Autowired private UserContextService userContextService;
     @Autowired private DietGeneratorController dietGeneratorController;
@@ -197,7 +199,7 @@ public class DemoRunner {
 
         runOnFx(() -> {
             stageManager.switchScene("diet");
-            DietResultDialog.show(diet.getGeneratedDiet(), "Marco Rossi", "Claude Sonnet 5");
+            DietResultDialog.show(diet.getGeneratedDiet(), "Marco Rossi", "Claude Sonnet 5", i18nService);
         });
         Thread.sleep(1800);
 

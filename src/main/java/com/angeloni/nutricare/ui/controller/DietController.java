@@ -138,7 +138,8 @@ public class DietController {
         DietResultDialog.show(
                 selected.getGeneratedDiet(),
                 getClientName(selected.getClientId()),
-                selected.getAiModel() != null ? selected.getAiModel() : "AI");
+                selected.getAiModel() != null ? selected.getAiModel() : "AI",
+                i18n);
     }
 
     private void handleDelete() {

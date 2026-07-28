@@ -219,6 +219,21 @@
     -fx-background-color: #0284c7;
 }
 
+.btn-warning {
+    -fx-background-color: #f59e0b;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 18 9 18;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.btn-warning:hover {
+    -fx-background-color: #d97706;
+}
+
 .btn-configure {
     -fx-background-color: #eef2ff;
     -fx-text-fill: #4f46e5;

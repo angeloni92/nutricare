@@ -2,6 +2,7 @@ package com.angeloni.nutricare.ui.dialog;
 
 import java.io.File;
 
+import com.angeloni.nutricare.service.I18nService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -26,10 +27,10 @@ import javafx.stage.Window;
 
 public class DietResultDialog {
 
-    public static void show(String dietText, String clientName, String providerName) {
+    public static void show(String dietText, String clientName, String providerName, I18nService i18n) {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setTitle("Piano Nutrizionale — " + clientName);
+        stage.setTitle(i18n.t("diet.result.window.title", clientName));
         stage.setMinWidth(780);
         stage.setMinHeight(580);
         stage.setWidth(980);
@@ -47,7 +48,7 @@ public class DietResultDialog {
         wordRadio.setToggleGroup(formatGroup);
         wordRadio.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1d4ed8; -fx-cursor: hand;");
 
-        Label formatLbl = new Label("Formato:");
+        Label formatLbl = new Label(i18n.t("diet.result.format.label"));
         formatLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
 
         HBox formatBar = new HBox(16, formatLbl, pdfRadio, wordRadio);
@@ -59,10 +60,10 @@ public class DietResultDialog {
             "-fx-border-width: 0 0 1 0;"
         );
 
-        // ─── Document page (simulated PDF/Word view) ─────────────────────
+        // ─── Document page ───────────────────────────────────────────────
         Label docClientLbl = new Label(clientName);
         docClientLbl.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: white;");
-        Label docSubLbl = new Label("Piano Nutrizionale Personalizzato  •  " + providerName);
+        Label docSubLbl = new Label(i18n.t("diet.result.subtitle", providerName));
         docSubLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: rgba(255,255,255,0.85);");
 
         VBox pageHeader = new VBox(3, docClientLbl, docSubLbl);
@@ -100,14 +101,13 @@ public class DietResultDialog {
         scrollPane.setFitToHeight(true);
         scrollPane.setStyle("-fx-background: #64748b; -fx-background-color: #64748b;");
 
-        // Update page accent color on format switch
         formatGroup.selectedToggleProperty().addListener((obs, oldT, newT) ->
             pageHeader.setStyle(buildPageHeaderStyle(isPdf(formatGroup))));
 
         // ─── Top bar ─────────────────────────────────────────────────────
-        Label titleLbl = new Label("Piano Nutrizionale");
+        Label titleLbl = new Label(i18n.t("diet.result.header"));
         titleLbl.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0f172a;");
-        Label editHint = new Label("  •  Puoi modificare il testo direttamente");
+        Label editHint = new Label(i18n.t("diet.result.edit.hint"));
         editHint.setStyle("-fx-font-size: 11px; -fx-text-fill: #6366f1; -fx-font-style: italic;");
         Region topSpacer = new Region();
         HBox.setHgrow(topSpacer, Priority.ALWAYS);
@@ -128,14 +128,14 @@ public class DietResultDialog {
             "-fx-border-width: 1 0 0 0;"
         );
 
-        Button saveBtn = new Button("  Salva");
+        Button saveBtn = new Button(i18n.t("diet.result.btn.save"));
         saveBtn.setStyle(
             "-fx-background-color: #10b981; -fx-text-fill: white; -fx-font-size: 13px;" +
             "-fx-font-weight: bold; -fx-padding: 9 22 9 22; -fx-background-radius: 8; -fx-cursor: hand;"
         );
-        saveBtn.setOnAction(e -> handleSave(stage, textArea, clientName, formatGroup));
+        saveBtn.setOnAction(e -> handleSave(stage, textArea, clientName, formatGroup, i18n));
 
-        Button closeBtn = new Button("Chiudi");
+        Button closeBtn = new Button(i18n.t("diet.result.btn.close"));
         closeBtn.setStyle(
             "-fx-background-color: #e2e8f0; -fx-text-fill: #475569; -fx-font-size: 13px;" +
             "-fx-padding: 9 18 9 18; -fx-background-radius: 8; -fx-cursor: hand;"
@@ -171,43 +171,46 @@ public class DietResultDialog {
         return true;
     }
 
-    private static void handleSave(Window owner, TextArea textArea, String clientName, ToggleGroup formatGroup) {
+    private static void handleSave(Window owner, TextArea textArea, String clientName,
+                                   ToggleGroup formatGroup, I18nService i18n) {
         String text = textArea.getText();
         FileChooser chooser = new FileChooser();
         if (isPdf(formatGroup)) {
-            chooser.setTitle("Salva come PDF");
-            chooser.setInitialFileName("piano_nutrizionale_" + ExportUtils.safeFilename(clientName) + ".pdf");
+            chooser.setTitle(i18n.t("diet.result.chooser.pdf.title"));
+            chooser.setInitialFileName(i18n.t("diet.result.filename.prefix") + ExportUtils.safeFilename(clientName) + ".pdf");
             chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF (*.pdf)", "*.pdf"));
             File file = chooser.showSaveDialog(owner);
             if (file == null) return;
             try {
                 ExportUtils.writePdf(file, clientName, text);
-                showInfo("PDF salvato:\n" + file.getAbsolutePath());
+                showInfo(i18n.t("diet.result.saved.pdf", file.getAbsolutePath()), i18n);
             } catch (Exception e) {
-                showError("Errore PDF: " + e.getMessage());
+                showError(i18n.t("diet.result.error.pdf", e.getMessage()), i18n);
             }
         } else {
-            chooser.setTitle("Salva come Word");
-            chooser.setInitialFileName("piano_nutrizionale_" + ExportUtils.safeFilename(clientName) + ".docx");
+            chooser.setTitle(i18n.t("diet.result.chooser.word.title"));
+            chooser.setInitialFileName(i18n.t("diet.result.filename.prefix") + ExportUtils.safeFilename(clientName) + ".docx");
             chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Word (*.docx)", "*.docx"));
             File file = chooser.showSaveDialog(owner);
             if (file == null) return;
             try {
                 ExportUtils.writeDocx(file, clientName, text);
-                showInfo("File Word salvato:\n" + file.getAbsolutePath());
+                showInfo(i18n.t("diet.result.saved.word", file.getAbsolutePath()), i18n);
             } catch (Exception e) {
-                showError("Errore Word: " + e.getMessage());
+                showError(i18n.t("diet.result.error.word", e.getMessage()), i18n);
             }
         }
     }
 
-    private static void showInfo(String msg) {
+    private static void showInfo(String msg, I18nService i18n) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
-        a.setTitle("Salvato"); a.showAndWait();
+        a.setTitle(i18n.t("diet.result.saved.title"));
+        a.showAndWait();
     }
 
-    private static void showError(String msg) {
+    private static void showError(String msg, I18nService i18n) {
         Alert a = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
-        a.setTitle("Errore"); a.showAndWait();
+        a.setTitle(i18n.t("common.error.title"));
+        a.showAndWait();
     }
 }

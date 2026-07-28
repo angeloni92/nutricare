@@ -1,5 +1,6 @@
 package com.angeloni.nutricare.ui.dialog;
 
+import com.angeloni.nutricare.service.I18nService;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
@@ -22,19 +23,22 @@ public class DietGenerationProgressDialog {
     private final Label percentLabel;
     private final Label statusLabel;
     private final Timeline timeline;
+    private final I18nService i18n;
     private double progress = 0.0;
     private volatile boolean done = false;
 
-    public DietGenerationProgressDialog() {
+    public DietGenerationProgressDialog(I18nService i18n) {
+        this.i18n = i18n;
+
         stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.initStyle(StageStyle.UNDECORATED);
         stage.setResizable(false);
 
-        Label titleLbl = new Label("Generazione Dieta in corso...");
+        Label titleLbl = new Label(i18n.t("dietgen.progress.title"));
         titleLbl.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #0f172a;");
 
-        Label aiLbl = new Label("L'intelligenza artificiale sta elaborando il piano nutrizionale");
+        Label aiLbl = new Label(i18n.t("dietgen.progress.subtitle"));
         aiLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
         aiLbl.setWrapText(true);
 
@@ -51,7 +55,7 @@ public class DietGenerationProgressDialog {
         percentLabel = new Label("0%");
         percentLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #6366f1;");
 
-        statusLabel = new Label("Connessione al provider AI...");
+        statusLabel = new Label(i18n.t("dietgen.progress.status.connecting"));
         statusLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #94a3b8; -fx-font-style: italic;");
 
         VBox root = new VBox(14);
@@ -92,12 +96,12 @@ public class DietGenerationProgressDialog {
         progressBar.setProgress(p);
         int pct = (int) Math.round(p * 100);
         percentLabel.setText(pct + "%");
-        if (pct < 20)      statusLabel.setText("Connessione al provider AI...");
-        else if (pct < 40) statusLabel.setText("Analisi del profilo cliente...");
-        else if (pct < 60) statusLabel.setText("Elaborazione piano nutrizionale...");
-        else if (pct < 75) statusLabel.setText("Ottimizzazione calorie e macronutrienti...");
-        else if (pct < 88) statusLabel.setText("Definizione dei pasti settimanali...");
-        else               statusLabel.setText("Finalizzazione in corso...");
+        if (pct < 20)      statusLabel.setText(i18n.t("dietgen.progress.status.connecting"));
+        else if (pct < 40) statusLabel.setText(i18n.t("dietgen.progress.status.analyzing"));
+        else if (pct < 60) statusLabel.setText(i18n.t("dietgen.progress.status.elaborating"));
+        else if (pct < 75) statusLabel.setText(i18n.t("dietgen.progress.status.optimizing"));
+        else if (pct < 88) statusLabel.setText(i18n.t("dietgen.progress.status.meals"));
+        else               statusLabel.setText(i18n.t("dietgen.progress.status.finalizing"));
     }
 
     public void show() {

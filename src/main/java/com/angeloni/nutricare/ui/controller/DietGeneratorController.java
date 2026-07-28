@@ -260,7 +260,7 @@ public class DietGeneratorController {
         generateButton.setDisable(true);
         if (progressIndicator != null) progressIndicator.setVisible(false);
 
-        DietGenerationProgressDialog progressDialog = new DietGenerationProgressDialog();
+        DietGenerationProgressDialog progressDialog = new DietGenerationProgressDialog(i18n);
         progressDialog.show();
 
         final AINameEnum finalProvider = provider;
@@ -346,7 +346,7 @@ public class DietGeneratorController {
         String clientName    = clientCombo.getValue() != null ? clientCombo.getValue() : "Cliente";
         String providerModel = (providerCombo.getValue() != null ? providerCombo.getValue() : "")
                 + (aiModelCombo.getValue() != null ? " — " + aiModelCombo.getValue() : "");
-        DietResultDialog.show(diet, clientName, providerModel);
+        DietResultDialog.show(diet, clientName, providerModel, i18n);
         stageManager.refreshScene("dashboard");
         stageManager.refreshScene("diet");
     }
