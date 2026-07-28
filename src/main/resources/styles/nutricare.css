@@ -287,6 +287,29 @@
     -fx-background-color: white;
 }
 
+/* === FREE MEAL CHECKBOXES === */
+.free-meal-check .label {
+    -fx-text-fill: #374151;
+    -fx-font-size: 13px;
+}
+.free-meal-check:selected .label {
+    -fx-text-fill: #4f46e5;
+    -fx-font-weight: bold;
+}
+.free-meal-check .box {
+    -fx-background-color: white;
+    -fx-border-color: #d1d5db;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+.free-meal-check:selected .box {
+    -fx-background-color: #4f46e5;
+    -fx-border-color: #4f46e5;
+}
+.free-meal-check:selected .mark {
+    -fx-background-color: white;
+}
+
 .form-combo {
     -fx-background-color: white;
     -fx-border-color: #d1d5db;

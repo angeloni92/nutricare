@@ -1,5 +1,6 @@
 package com.angeloni.nutricare.ui.controller;
 
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,6 +36,7 @@ import javafx.collections.FXCollections;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
@@ -70,38 +72,38 @@ public class DietGeneratorController {
         PROVIDERS.put("Google Gemini", AINameEnum.GEMINI);
 
         Map<String, AIModelEnum> chatgptModels = new LinkedHashMap<>();
-        chatgptModels.put("GPT-4o  (consigliato)", AIModelEnum.GPT4O);
-        chatgptModels.put("GPT-4o mini  (economico)", AIModelEnum.GPT4O_MINI);
-        chatgptModels.put("o3  (ragionamento completo)", AIModelEnum.OPENAIO3);
-        chatgptModels.put("o3-mini  (ragionamento)", AIModelEnum.OPENAIO3MINI);
-        chatgptModels.put("o4-mini  (ragionamento recente)", AIModelEnum.OPENAIO4MINI);
-        chatgptModels.put("o1  (ragionamento avanzato)", AIModelEnum.OPENAIO1);
-        chatgptModels.put("o1-mini  (ragionamento leggero)", AIModelEnum.OPENAIO1MINI);
+        chatgptModels.put("GPT-4o", AIModelEnum.GPT4O);
+        chatgptModels.put("GPT-4o mini", AIModelEnum.GPT4O_MINI);
+        chatgptModels.put("o3", AIModelEnum.OPENAIO3);
+        chatgptModels.put("o3-mini", AIModelEnum.OPENAIO3MINI);
+        chatgptModels.put("o4-mini", AIModelEnum.OPENAIO4MINI);
+        chatgptModels.put("o1", AIModelEnum.OPENAIO1);
+        chatgptModels.put("o1-mini", AIModelEnum.OPENAIO1MINI);
         chatgptModels.put("GPT-4 Turbo", AIModelEnum.GPT4TURBO);
         chatgptModels.put("GPT-4", AIModelEnum.GPT4);
-        chatgptModels.put("GPT-3.5 Turbo  (legacy)", AIModelEnum.GPT3TURBO);
+        chatgptModels.put("GPT-3.5 Turbo", AIModelEnum.GPT3TURBO);
         PROVIDER_MODELS.put(AINameEnum.CHATGPT, chatgptModels);
 
         Map<String, AIModelEnum> claudeModels = new LinkedHashMap<>();
-        claudeModels.put("Claude Fable 5  (il più potente)", AIModelEnum.CLAUDE5FABLE);
-        claudeModels.put("Claude Sonnet 5  (consigliato)", AIModelEnum.CLAUDE5SONNET);
+        claudeModels.put("Claude Fable 5", AIModelEnum.CLAUDE5FABLE);
+        claudeModels.put("Claude Sonnet 5", AIModelEnum.CLAUDE5SONNET);
         claudeModels.put("Claude Sonnet 4.6", AIModelEnum.CLAUDE4SONNET);
-        claudeModels.put("Claude Opus 4.8  (avanzato)", AIModelEnum.CLAUDE48OPUS);
+        claudeModels.put("Claude Opus 4.8", AIModelEnum.CLAUDE48OPUS);
         claudeModels.put("Claude Opus 4", AIModelEnum.CLAUDE4OPUS);
         claudeModels.put("Claude 3.7 Sonnet", AIModelEnum.CLAUDE37SONNET);
         claudeModels.put("Claude 3.5 Sonnet", AIModelEnum.CLAUDE35SONNET);
-        claudeModels.put("Claude 4.5 Haiku  (veloce)", AIModelEnum.CLAUDE45HAIKU);
-        claudeModels.put("Claude 3.5 Haiku  (veloce)", AIModelEnum.CLAUDE35HAIKU);
-        claudeModels.put("Claude 3 Opus  (legacy)", AIModelEnum.CLAUDE3OPUS);
-        claudeModels.put("Claude 3 Sonnet  (legacy)", AIModelEnum.CLAUDE3SONNET);
-        claudeModels.put("Claude 3 Haiku  (legacy)", AIModelEnum.CLAUDE3HAIKU);
+        claudeModels.put("Claude 4.5 Haiku", AIModelEnum.CLAUDE45HAIKU);
+        claudeModels.put("Claude 3.5 Haiku", AIModelEnum.CLAUDE35HAIKU);
+        claudeModels.put("Claude 3 Opus", AIModelEnum.CLAUDE3OPUS);
+        claudeModels.put("Claude 3 Sonnet", AIModelEnum.CLAUDE3SONNET);
+        claudeModels.put("Claude 3 Haiku", AIModelEnum.CLAUDE3HAIKU);
         PROVIDER_MODELS.put(AINameEnum.CLAUDE, claudeModels);
 
         Map<String, AIModelEnum> geminiModels = new LinkedHashMap<>();
-        geminiModels.put("Gemini 2.5 Pro  (più recente)", AIModelEnum.GEMINI_25_PRO);
-        geminiModels.put("Gemini 2.5 Flash  (consigliato)", AIModelEnum.GEMINI_25_FLASH);
+        geminiModels.put("Gemini 2.5 Pro", AIModelEnum.GEMINI_25_PRO);
+        geminiModels.put("Gemini 2.5 Flash", AIModelEnum.GEMINI_25_FLASH);
         geminiModels.put("Gemini 2.0 Flash", AIModelEnum.GEMINI_20_FLASH);
-        geminiModels.put("Gemini 2.0 Flash Lite  (leggero)", AIModelEnum.GEMINI_20_FLASH_LITE);
+        geminiModels.put("Gemini 2.0 Flash Lite", AIModelEnum.GEMINI_20_FLASH_LITE);
         geminiModels.put("Gemini 1.5 Flash", AIModelEnum.GEMINI_15_FLASH);
         geminiModels.put("Gemini 1.5 Pro", AIModelEnum.GEMINI_15_PRO);
         PROVIDER_MODELS.put(AINameEnum.GEMINI, geminiModels);
@@ -118,6 +120,13 @@ public class DietGeneratorController {
     private ComboBox<String> prefBox;
     private ComboBox<String> activityBox;
     private TextArea notesArea;
+    private List<CheckBox> dayCheckBoxes;
+    private List<CheckBox> mealCheckBoxes;
+
+    private static final DayOfWeek[] DAY_VALUES = {
+        DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY,
+        DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY
+    };
 
     private List<ClientDto> clientList = new ArrayList<>();
 
@@ -126,7 +135,8 @@ public class DietGeneratorController {
                       Button configureButton, Label credentialStatusLabel,
                       ProgressIndicator progressIndicator,
                       ComboBox<String> goalBox, ComboBox<String> prefBox,
-                      ComboBox<String> activityBox, TextArea notesArea) {
+                      ComboBox<String> activityBox, TextArea notesArea,
+                      List<CheckBox> dayCheckBoxes, List<CheckBox> mealCheckBoxes) {
         this.providerCombo = providerCombo;
         this.aiModelCombo = aiModelCombo;
         this.clientCombo = clientCombo;
@@ -138,6 +148,8 @@ public class DietGeneratorController {
         this.prefBox = prefBox;
         this.activityBox = activityBox;
         this.notesArea = notesArea;
+        this.dayCheckBoxes = dayCheckBoxes;
+        this.mealCheckBoxes = mealCheckBoxes;
 
         providerCombo.setItems(FXCollections.observableArrayList(PROVIDERS.keySet()));
         providerCombo.setValue("ChatGPT (OpenAI)");
@@ -317,6 +329,21 @@ public class DietGeneratorController {
             detail.setActivityLevel(mapActivity(activityBox.getValue()));
         if (notesArea != null && notesArea.getText() != null && !notesArea.getText().isBlank())
             detail.setFoodPreferences(List.of(notesArea.getText().trim()));
+
+        if (dayCheckBoxes != null) {
+            List<DayOfWeek> freeDays = new ArrayList<>();
+            for (int i = 0; i < dayCheckBoxes.size(); i++) {
+                if (dayCheckBoxes.get(i).isSelected()) freeDays.add(DAY_VALUES[i]);
+            }
+            if (!freeDays.isEmpty()) detail.setFreeDays(freeDays);
+        }
+        if (mealCheckBoxes != null) {
+            List<String> freeMeals = mealCheckBoxes.stream()
+                    .filter(CheckBox::isSelected)
+                    .map(CheckBox::getText)
+                    .collect(Collectors.toList());
+            if (!freeMeals.isEmpty()) detail.setFreeMealTypes(freeMeals);
+        }
         return detail;
     }
 

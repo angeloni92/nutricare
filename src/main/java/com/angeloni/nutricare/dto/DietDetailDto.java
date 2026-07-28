@@ -21,7 +21,8 @@ public class DietDetailDto {
 	@PositiveOrZero(message = "Age must be higher or equal to zero")
 	private Integer caloryTarget;
 	private Month month;
-	private DayOfWeek freeDay;  
+	private List<DayOfWeek> freeDays;
+	private List<String> freeMealTypes;
     private List<String> foodPreferences;
     private List<String> foodDislikes;
 

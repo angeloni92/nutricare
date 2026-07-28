@@ -1,5 +1,6 @@
 package com.angeloni.nutricare.service;
 
+import java.time.DayOfWeek;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -146,6 +147,16 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
                 if (!notes.isBlank())
                     sb.append("NOTE AGGIUNTIVE: ").append(notes).append("\n");
             }
+            if (detail.getFreeDays() != null && !detail.getFreeDays().isEmpty()) {
+                String mealStr = (detail.getFreeMealTypes() != null && !detail.getFreeMealTypes().isEmpty())
+                        ? String.join(", ", detail.getFreeMealTypes())
+                        : i18nService.t("dietgen.free.prompt.all");
+                sb.append(i18nService.t("dietgen.free.prompt.header")).append("\n");
+                for (DayOfWeek d : detail.getFreeDays()) {
+                    sb.append("- ").append(dayToLocalizedName(d)).append(": ").append(mealStr).append("\n");
+                }
+                sb.append(i18nService.t("dietgen.free.prompt.note")).append("\n");
+            }
         }
 
         sb.append("\nGenera un piano settimanale completo (lunedì-domenica) con colazione, pranzo, cena e spuntini. ");
@@ -154,6 +165,18 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
           .append(" ")
           .append(i18nService.t("prompt.format.instruction"));
         return sb.toString();
+    }
+
+    private String dayToLocalizedName(DayOfWeek day) {
+        return switch (day) {
+            case MONDAY    -> i18nService.t("dietgen.free.day.mon");
+            case TUESDAY   -> i18nService.t("dietgen.free.day.tue");
+            case WEDNESDAY -> i18nService.t("dietgen.free.day.wed");
+            case THURSDAY  -> i18nService.t("dietgen.free.day.thu");
+            case FRIDAY    -> i18nService.t("dietgen.free.day.fri");
+            case SATURDAY  -> i18nService.t("dietgen.free.day.sat");
+            case SUNDAY    -> i18nService.t("dietgen.free.day.sun");
+        };
     }
 
     @SuppressWarnings("unchecked")

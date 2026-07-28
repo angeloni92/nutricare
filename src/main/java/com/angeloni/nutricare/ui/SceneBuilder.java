@@ -3,6 +3,8 @@ package com.angeloni.nutricare.ui;
 import java.nio.file.Path;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -710,6 +712,44 @@ public class SceneBuilder {
         paramsRow.getChildren().addAll(goalGroup, prefGroup, activityGroup);
         paramsCard.getChildren().addAll(paramsTitle, paramsRow);
 
+        // Card Pasto Libero / Sgarro
+        VBox freeCard = new VBox(12);
+        freeCard.getStyleClass().add("card");
+        Label freeTitle = new Label(i18n.t("dietgen.free.card.title"));
+        freeTitle.getStyleClass().add("card-title");
+        Label freeSubtitle = new Label(i18n.t("dietgen.free.card.subtitle"));
+        freeSubtitle.getStyleClass().add("card-subtitle");
+
+        Label daysLabel = new Label(i18n.t("dietgen.free.days.label"));
+        daysLabel.getStyleClass().add("form-label");
+        List<CheckBox> dayCheckBoxes = new ArrayList<>();
+        FlowPane daysRow = new FlowPane(16, 10);
+        daysRow.setAlignment(Pos.CENTER_LEFT);
+        for (String key : new String[]{
+                "dietgen.free.day.mon", "dietgen.free.day.tue", "dietgen.free.day.wed",
+                "dietgen.free.day.thu", "dietgen.free.day.fri", "dietgen.free.day.sat",
+                "dietgen.free.day.sun"}) {
+            CheckBox cb = new CheckBox(i18n.t(key));
+            cb.getStyleClass().add("free-meal-check");
+            dayCheckBoxes.add(cb);
+            daysRow.getChildren().add(cb);
+        }
+
+        Label mealsLabel = new Label(i18n.t("dietgen.free.meals.label"));
+        mealsLabel.getStyleClass().add("form-label");
+        List<CheckBox> mealCheckBoxes = new ArrayList<>();
+        FlowPane mealsRow = new FlowPane(24, 10);
+        mealsRow.setAlignment(Pos.CENTER_LEFT);
+        for (String key : new String[]{
+                "dietgen.free.meal.breakfast", "dietgen.free.meal.lunch", "dietgen.free.meal.dinner",
+                "dietgen.free.meal.snack", "dietgen.free.meal.afternoon"}) {
+            CheckBox cb = new CheckBox(i18n.t(key));
+            cb.getStyleClass().add("free-meal-check");
+            mealCheckBoxes.add(cb);
+            mealsRow.getChildren().add(cb);
+        }
+        freeCard.getChildren().addAll(freeTitle, freeSubtitle, daysLabel, daysRow, mealsLabel, mealsRow);
+
         // Card Note
         VBox notesCard = new VBox(10);
         notesCard.getStyleClass().add("card");
@@ -724,7 +764,7 @@ public class SceneBuilder {
         notesArea.setPromptText(i18n.t("dietgen.notes.prompt"));
         notesCard.getChildren().addAll(notesTitle, notesSubtitle, notesArea);
 
-        content.getChildren().addAll(row1, paramsCard, notesCard);
+        content.getChildren().addAll(row1, paramsCard, freeCard, notesCard);
 
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
@@ -750,7 +790,7 @@ public class SceneBuilder {
 
         dietGeneratorController.setup(providerCombo, aiModelCombo, clientCombo,
                 generateBtn, configureButton, credentialStatusLabel, progressIndicator,
-                goalBox, prefBox, activityBox, notesArea);
+                goalBox, prefBox, activityBox, notesArea, dayCheckBoxes, mealCheckBoxes);
 
         Scene scene = new Scene(root, 1100, 720);
         addStyles(scene);
