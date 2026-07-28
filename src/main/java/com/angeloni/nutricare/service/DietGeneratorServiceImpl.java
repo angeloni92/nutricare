@@ -60,6 +60,9 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
     @Autowired
     private UserContextService userContextService;
 
+    @Autowired
+    private I18nService i18nService;
+
     @Value("${nutricare.anthropic.api-key:}")
     private String anthropicApiKey;
 
@@ -146,7 +149,8 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
         }
 
         sb.append("\nGenera un piano settimanale completo (lunedì-domenica) con colazione, pranzo, cena e spuntini. ");
-        sb.append("Per ogni giorno indica le calorie totali stimate. Includi consigli pratici. Rispondi in italiano.");
+        sb.append("Per ogni giorno indica le calorie totali stimate. Includi consigli pratici. ")
+          .append(i18nService.t("prompt.language.instruction"));
         return sb.toString();
     }
 

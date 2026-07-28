@@ -257,7 +257,7 @@ public class ClientController {
                 id -> {
                     try { return anthropometryService.getVisitsByClient(id); }
                     catch (Exception e) { return List.of(); }
-                });
+                }, i18n);
             showInfo(i18n.t("clients.export.success", file.getAbsolutePath()));
         } catch (Exception e) {
             showError(i18n.t("clients.export.error", e.getMessage()));

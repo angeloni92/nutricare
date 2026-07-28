@@ -40,6 +40,7 @@ import com.angeloni.nutricare.dto.AnthropometryDto;
 import com.angeloni.nutricare.dto.CircumferenceDto;
 import com.angeloni.nutricare.dto.ClientDto;
 import com.angeloni.nutricare.dto.FoldDto;
+import com.angeloni.nutricare.service.I18nService;
 
 public class ExportUtils {
 
@@ -67,24 +68,29 @@ public class ExportUtils {
     }
 
     public static void writeXlsxClients(File file, List<ClientDto> clients,
-            Function<Long, List<AnthropometryDto>> visitsLoader) throws IOException {
+            Function<Long, List<AnthropometryDto>> visitsLoader, I18nService i18n) throws IOException {
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
-            XSSFSheet sheet = wb.createSheet("Clienti");
+            XSSFSheet sheet = wb.createSheet(i18n.t("export.sheet.clients"));
             XlsxStyles styles = new XlsxStyles(wb);
 
             String[] headers = {
-                "Nome", "Cognome", "Eta", "Paese",
-                "Data Ultima Visita", "Altezza (cm)", "Peso (kg)", "BMI",
-                "Pettorale", "Ascellare", "Sovrailiaca", "Addominale",
-                "Tricipite", "Sottoscapolare", "Coscia (Plica)",
-                "Petto (circ.)", "Braccio (circ.)", "Vita (circ.)", "Fianchi (circ.)", "Coscia (circ.)"
+                i18n.t("export.col.name"),       i18n.t("export.col.surname"),
+                i18n.t("export.col.age"),         i18n.t("export.col.country"),
+                i18n.t("export.col.last.visit"),  i18n.t("export.col.height"),
+                i18n.t("export.col.weight"),      i18n.t("export.col.bmi"),
+                i18n.t("export.col.pectoral"),    i18n.t("export.col.axillary"),
+                i18n.t("export.col.suprailiac"),  i18n.t("export.col.abdominal"),
+                i18n.t("export.col.triceps"),     i18n.t("export.col.subscapular"),
+                i18n.t("export.col.thigh.fold"),  i18n.t("export.col.chest.circ"),
+                i18n.t("export.col.arm.circ"),    i18n.t("export.col.waist.circ"),
+                i18n.t("export.col.hip.circ"),    i18n.t("export.col.thigh.circ")
             };
 
             // Row 0: Title
             XSSFRow titleRow = sheet.createRow(0);
             titleRow.setHeightInPoints(36f);
             XSSFCell titleCell = titleRow.createCell(0);
-            titleCell.setCellValue("NUTRICARE  —  Registro Clienti");
+            titleCell.setCellValue(i18n.t("export.title"));
             titleCell.setCellStyle(styles.title);
             sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, headers.length - 1));
 
@@ -92,8 +98,8 @@ public class ExportUtils {
             XSSFRow subtitleRow = sheet.createRow(1);
             subtitleRow.setHeightInPoints(22f);
             XSSFCell subtitleCell = subtitleRow.createCell(0);
-            subtitleCell.setCellValue("Esportato il: " + LocalDateTime.now().format(EXPORT_FMT)
-                    + "   |   " + clients.size() + " clienti");
+            subtitleCell.setCellValue(i18n.t("export.subtitle",
+                    LocalDateTime.now().format(EXPORT_FMT), clients.size()));
             subtitleCell.setCellStyle(styles.subtitle);
             sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, headers.length - 1));
 
