@@ -5,8 +5,13 @@ import java.util.Optional;
 import com.angeloni.nutricare.dto.ClientDto;
 
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -96,6 +101,52 @@ public class ClientFormDialog {
         });
 
         return dialog.showAndWait();
+    }
+
+    public static Stage showForDemo(String name, String surname, int age, String country) {
+        Stage stage = new Stage();
+        stage.setTitle("Nuovo Cliente");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(12); grid.setVgap(10);
+        grid.setPadding(new Insets(16, 24, 8, 24));
+
+        TextField nameField    = new TextField(name);
+        TextField surnameField = new TextField(surname);
+        TextField ageField     = new TextField(String.valueOf(age));
+        TextField countryField = new TextField(country);
+        for (TextField tf : new TextField[]{nameField, surnameField, ageField, countryField})
+            tf.setPrefWidth(260);
+
+        grid.add(label("Nome *"),    0, 0); grid.add(nameField,    1, 0);
+        grid.add(label("Cognome *"), 0, 1); grid.add(surnameField, 1, 1);
+        grid.add(label("Eta *"),     0, 2); grid.add(ageField,     1, 2);
+        grid.add(label("Paese *"),   0, 3); grid.add(countryField, 1, 3);
+        Label note = new Label("* campi obbligatori");
+        note.setStyle("-fx-font-size: 11; -fx-text-fill: #6c757d;");
+        grid.add(note, 0, 4, 2, 1);
+
+        Button saveBtn   = new Button("Salva");
+        Button cancelBtn = new Button("Annulla");
+        saveBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 6 16 6 16; -fx-background-radius: 4;");
+        cancelBtn.setStyle("-fx-padding: 6 12 6 12; -fx-background-radius: 4;");
+        cancelBtn.setOnAction(e -> stage.close());
+
+        HBox buttons = new HBox(8, saveBtn, cancelBtn);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+        buttons.setPadding(new Insets(14, 0, 4, 0));
+
+        Label header = new Label("Inserisci i dati del nuovo paziente");
+        header.setStyle("-fx-font-size: 12px; -fx-text-fill: #6b7280;");
+
+        VBox root = new VBox(6, header, grid, buttons);
+        root.setPadding(new Insets(16, 0, 16, 0));
+        root.setStyle("-fx-background-color: white;");
+
+        stage.setScene(new Scene(root, 440, 290));
+        stage.setResizable(false);
+        stage.show();
+        return stage;
     }
 
     private static Label label(String text) {
