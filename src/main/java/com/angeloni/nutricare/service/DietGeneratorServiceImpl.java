@@ -292,7 +292,7 @@ public class DietGeneratorServiceImpl implements DietGeneratorService {
         return switch (model) {
             case CLAUDE5FABLE  -> "claude-fable-5";
             case CLAUDE5SONNET -> "claude-sonnet-5";
-            case CLAUDE4SONNET -> "claude-sonnet-4-5";
+            case CLAUDE4SONNET -> "claude-sonnet-4-6";
             case CLAUDE48OPUS  -> "claude-opus-4-8";
             case CLAUDE4OPUS   -> "claude-opus-4-5";
             case CLAUDE37SONNET-> "claude-3-7-sonnet-20250219";

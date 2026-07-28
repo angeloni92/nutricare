@@ -45,6 +45,10 @@ public class ClientServiceImpl implements ClientService {
 		Optional<ClientEntity> optionalClient = clientRepository.findByNameAndSurnameAndUser(clientDto.getName(),
 				clientDto.getSurname(), user);
 		if (optionalClient.isPresent()) {
+			// Skip conflict if it's the same record being updated
+			if (clientDto.getId() != null && optionalClient.get().getId().equals(clientDto.getId())) {
+				return;
+			}
 			throw new ConflictException(String.format(ClientService.CLIENT_ALREADY_PRESENT_FORMAT, clientDto.getName(),
 					clientDto.getSurname()));
 		}

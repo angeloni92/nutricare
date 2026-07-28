@@ -81,7 +81,7 @@ public class DietGeneratorController {
         Map<String, AIModelEnum> claudeModels = new LinkedHashMap<>();
         claudeModels.put("Claude Fable 5  (il più potente)", AIModelEnum.CLAUDE5FABLE);
         claudeModels.put("Claude Sonnet 5  (consigliato)", AIModelEnum.CLAUDE5SONNET);
-        claudeModels.put("Claude Sonnet 4", AIModelEnum.CLAUDE4SONNET);
+        claudeModels.put("Claude Sonnet 4.6", AIModelEnum.CLAUDE4SONNET);
         claudeModels.put("Claude Opus 4.8  (avanzato)", AIModelEnum.CLAUDE48OPUS);
         claudeModels.put("Claude Opus 4", AIModelEnum.CLAUDE4OPUS);
         claudeModels.put("Claude 3.7 Sonnet", AIModelEnum.CLAUDE37SONNET);
