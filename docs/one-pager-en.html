@@ -108,6 +108,24 @@
     line-height: 1.55;
   }
 
+  /* ── AI highlight box ── */
+  .ai-box {
+    background: #eef2ff;
+    border-left: 4px solid #4f46e5;
+    border-radius: 0 4px 4px 0;
+    padding: 11px 14px;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .ai-box .ai-title {
+    font-weight: 700;
+    color: #3730a3;
+    font-size: 10pt;
+    margin-bottom: 4px;
+    display: block;
+  }
+  .ai-box p { font-size: 9.5pt; color: #1e1b4b; margin: 0; }
+
   /* ── Stats row ── */
   .stats {
     display: grid;
@@ -153,27 +171,27 @@
 <header>
   <div>
     <h1>NutriCare</h1>
-    <div class="tagline">Professional nutrition management — desktop, local, secure</div>
+    <div class="tagline">Professional software for nutrition practices — AI-powered, local, secure</div>
   </div>
   <div class="badge-trial">30-day free trial</div>
 </header>
 
 <div class="stats">
   <div class="stat-box">
-    <span class="stat-number">3</span>
-    <span class="stat-label">integrated AI models<br>(OpenAI · Claude · Gemini)</span>
+    <span class="stat-number">28+</span>
+    <span class="stat-label">AI models available<br>GPT · Claude · Gemini</span>
+  </div>
+  <div class="stat-box">
+    <span class="stat-number">&lt;30s</span>
+    <span class="stat-label">to generate a complete<br>personalised diet plan</span>
   </div>
   <div class="stat-box">
     <span class="stat-number">100%</span>
     <span class="stat-label">local data<br>no mandatory cloud</span>
   </div>
   <div class="stat-box">
-    <span class="stat-number">MSI</span>
-    <span class="stat-label">enterprise installer<br>SCCM / Intune ready</span>
-  </div>
-  <div class="stat-box">
     <span class="stat-number">GDPR</span>
-    <span class="stat-label">health data stays<br>on the client's PC</span>
+    <span class="stat-label">health data stays<br>in your infrastructure</span>
   </div>
 </div>
 
@@ -184,34 +202,34 @@
     <div class="section">
       <h2>The Problem</h2>
       <p>
-        Nutritionists manage patients, visits, measurements, and dietary plans
-        across disconnected tools — Excel spreadsheets, generic apps, paper folders —
-        losing time, risking errors, and struggling to show patients their
-        progress over time.
+        Multi-practitioner nutrition practices struggle to manage patient records,
+        anthropometric data, and skinfold measurements in a structured way.
+        The result is time lost, data scattered across Excel files and paper folders,
+        and diet plans that take hours instead of minutes to produce.
       </p>
     </div>
 
     <div class="section">
       <h2>The Solution</h2>
       <p>
-        <strong>NutriCare</strong> is the only desktop tool that covers the full
-        professional workflow: from the first patient intake to AI-assisted diet plan
-        generation, trend analysis of weight/BMI, and PDF/Word export ready to
-        hand to the patient.
+        <strong>NutriCare</strong> is the desktop software built for professional
+        nutrition practices with multiple practitioners: it manages patients, visits,
+        skinfold and anthropometric measurements, and generates personalised diet plans
+        via AI in seconds — with PDF and Word export ready for the patient.
       </p>
     </div>
 
     <div class="section">
       <h2>Why NutriCare</h2>
-      <div class="highlight">
-        "Health data stays on the clinic's PC — not on third-party servers.
-        GDPR compliance is structural, not a policy employees need to remember."
+      <div class="ai-box">
+        <span class="ai-title">🤖 AI diet generation — the real differentiator</span>
+        <p>The nutritionist enters the patient's skinfold and anthropometric measurements and receives a complete, personalised diet plan from GPT-4o, Claude or Gemini in under 30 seconds. Review, export to PDF, move to the next patient. <strong>Same clinical quality, multiplied capacity.</strong></p>
       </div>
       <ul>
-        <li><strong>Privacy by design:</strong> no data sent to a proprietary cloud</li>
-        <li><strong>No mandatory cloud AI subscription:</strong> users bring their own API keys</li>
-        <li><strong>Multi-practitioner:</strong> multiple nutritionists on one PC, separate accounts</li>
-        <li><strong>IT-friendly:</strong> MSI installer, silent install, Intune / SCCM deployable</li>
+        <li><strong>Privacy by design:</strong> health data stays on the practice's server, no mandatory cloud</li>
+        <li><strong>Bring your own API keys:</strong> no hidden AI subscription costs — choose any model</li>
+        <li><strong>Multi-practitioner:</strong> separate accounts, independent patient histories per nutritionist</li>
+        <li><strong>IT-friendly:</strong> MSI enterprise installer, silent install, Intune / SCCM deployable</li>
       </ul>
     </div>
   </div>
@@ -221,14 +239,14 @@
     <div class="section">
       <h2>Key Features</h2>
       <ul>
-        <li><strong>Patient management</strong> with complete visit history</li>
-        <li><strong>AI diet generation</strong> — OpenAI GPT, Claude, Gemini</li>
-        <li><strong>Professional export</strong> — PDF and Word with clinic header</li>
-        <li><strong>Trend charts</strong> — weight, BMI, measurements over time</li>
-        <li><strong>Studio dashboard</strong> — counters and recent activity</li>
-        <li><strong>Multi-user login</strong> with role management</li>
-        <li><strong>30-day trial</strong> — machine-locked, offline activation</li>
-        <li><strong>Updates</strong> via MSI reinstallation (silent upgrade-ready)</li>
+        <li><strong>Patient records</strong> with full visit history, skinfold and anthropometric data</li>
+        <li><strong>AI diet generation</strong> — 28+ models: GPT-4o, Claude, Gemini and more</li>
+        <li><strong>PDF &amp; Word export</strong> with practice header, ready to hand to the patient</li>
+        <li><strong>Trend charts</strong> — weight, BMI, circumferences over time</li>
+        <li><strong>Dashboard</strong> — aggregate stats and recent activity</li>
+        <li><strong>Multi-practitioner</strong> — separate logins, independent patient histories per nutritionist</li>
+        <li><strong>Centralised deployment</strong> via SCCM / Intune, silent install</li>
+        <li><strong>Audit log</strong> — full access and operation traceability</li>
       </ul>
     </div>
 
@@ -250,18 +268,18 @@
           </tr>
           <tr>
             <td><strong>Studio</strong></td>
-            <td>2–5 nutritionists</td>
+            <td>2–5 practitioners</td>
             <td class="price">€60–100/month</td>
           </tr>
           <tr>
             <td><strong>Enterprise</strong></td>
-            <td>Clinic / multi-site practice</td>
-            <td class="price">€200+/month<br><small style="font-weight:400;color:#555">+ onboarding</small></td>
+            <td>Practice / chain with 5+ nutritionists</td>
+            <td class="price">€200+/month<br><small style="font-weight:400;color:#555">+ onboarding &amp; GDPR DPA</small></td>
           </tr>
         </tbody>
       </table>
       <p style="font-size:9pt;color:#666;margin-top:8px;">
-        Indicative pricing — the Enterprise plan includes installation, training,
+        Indicative pricing — the Corporate plan includes installation, dedicated training,
         and a tailored GDPR Data Processing Agreement.
       </p>
     </div>

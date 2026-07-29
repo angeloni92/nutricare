@@ -108,6 +108,24 @@
     line-height: 1.55;
   }
 
+  /* ── AI highlight box ── */
+  .ai-box {
+    background: #eef2ff;
+    border-left: 4px solid #4f46e5;
+    border-radius: 0 4px 4px 0;
+    padding: 11px 14px;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .ai-box .ai-title {
+    font-weight: 700;
+    color: #3730a3;
+    font-size: 10pt;
+    margin-bottom: 4px;
+    display: block;
+  }
+  .ai-box p { font-size: 9.5pt; color: #1e1b4b; margin: 0; }
+
   /* ── Stats row ── */
   .stats {
     display: grid;
@@ -153,27 +171,27 @@
 <header>
   <div>
     <h1>NutriCare</h1>
-    <div class="tagline">Gestione nutrizionale professionale — desktop, locale, sicuro</div>
+    <div class="tagline">Software professionale per studi nutrizionali — AI-powered, locale, sicuro</div>
   </div>
   <div class="badge-trial">Trial gratuito 30 giorni</div>
 </header>
 
 <div class="stats">
   <div class="stat-box">
-    <span class="stat-number">3</span>
-    <span class="stat-label">modelli AI integrati<br>(OpenAI · Claude · Gemini)</span>
+    <span class="stat-number">28+</span>
+    <span class="stat-label">modelli AI disponibili<br>GPT · Claude · Gemini</span>
+  </div>
+  <div class="stat-box">
+    <span class="stat-number">&lt;30s</span>
+    <span class="stat-label">per generare un piano<br>dietetico completo con AI</span>
   </div>
   <div class="stat-box">
     <span class="stat-number">100%</span>
     <span class="stat-label">dati locali<br>nessun cloud obbligatorio</span>
   </div>
   <div class="stat-box">
-    <span class="stat-number">MSI</span>
-    <span class="stat-label">installer enterprise<br>SCCM / Intune ready</span>
-  </div>
-  <div class="stat-box">
     <span class="stat-number">GDPR</span>
-    <span class="stat-label">dati sanitari<br>sul PC del cliente</span>
+    <span class="stat-label">dati sanitari<br>sul server dello studio</span>
   </div>
 </div>
 
@@ -184,34 +202,34 @@
     <div class="section">
       <h2>Il problema</h2>
       <p>
-        I nutrizionisti gestiscono pazienti, visite, misurazioni e piani dietetici
-        su strumenti eterogenei — fogli Excel, app generiche, cartelle cartacee —
-        con perdita di tempo, rischio di errori e difficoltà nel mostrare ai pazienti
-        l'evoluzione nel tempo.
+        Gli studi nutrizionali con più professionisti faticano a gestire cartelle pazienti,
+        misurazioni antropometriche e pliche in modo strutturato. Il risultato è tempo perso,
+        dati dispersi tra Excel e fogli cartacei, e piani dietetici prodotti manualmente
+        che richiedono ore invece di minuti.
       </p>
     </div>
 
     <div class="section">
       <h2>La soluzione</h2>
       <p>
-        <strong>NutriCare</strong> è l'unico strumento desktop che copre l'intero
-        ciclo professionale del nutrizionista: dal primo accesso paziente alla
-        generazione automatica del piano dietetico, fino all'analisi dei trend
-        peso/BMI e all'export in PDF e Word per il paziente.
+        <strong>NutriCare</strong> è il software desktop pensato per studi nutrizionali
+        professionali con più operatori: gestisce pazienti, visite, misurazioni plicometriche
+        e antropometriche, e genera piani dietetici personalizzati tramite AI in pochi secondi
+        — con export PDF e Word pronti per il paziente.
       </p>
     </div>
 
     <div class="section">
       <h2>Perché scegliere NutriCare</h2>
-      <div class="highlight">
-        "I dati sanitari restano sul PC dello studio, non su server di terze parti.
-        La conformità GDPR è strutturale, non una policy da ricordare."
+      <div class="ai-box">
+        <span class="ai-title">🤖 Generazione diete con AI — il vero differenziale</span>
+        <p>Il nutrizionista inserisce i dati plicometrici e antropometrici del paziente e in meno di 30 secondi riceve un piano dietetico completo e personalizzato da GPT-4o, Claude o Gemini. Lo rivede, lo esporta in PDF e passa al paziente successivo. <strong>Stessa qualità clinica, capacità moltiplicata.</strong></p>
       </div>
       <ul>
-        <li><strong>Privacy by design:</strong> nessun dato inviato al cloud</li>
-        <li><strong>Nessun abbonamento obbligatorio al cloud AI:</strong> l'utente porta le proprie chiavi API</li>
-        <li><strong>Multi-nutrizionista:</strong> più professionisti sullo stesso PC, account separati</li>
-        <li><strong>IT-friendly:</strong> installer MSI, silent install, deploy via Intune/SCCM</li>
+        <li><strong>Privacy by design:</strong> dati sanitari sul server dello studio, zero cloud obbligatorio</li>
+        <li><strong>Chiavi API proprie:</strong> nessun costo nascosto per l'AI — l'utente sceglie il modello</li>
+        <li><strong>Multi-nutrizionista:</strong> più professionisti, account separati, storico indipendente</li>
+        <li><strong>IT-friendly:</strong> MSI enterprise, silent install, deploy via Intune/SCCM</li>
       </ul>
     </div>
   </div>
@@ -221,14 +239,14 @@
     <div class="section">
       <h2>Funzionalità principali</h2>
       <ul>
-        <li><strong>Anagrafica pazienti</strong> con storico visite completo</li>
-        <li><strong>Generazione dieta AI</strong> — OpenAI GPT, Claude, Gemini</li>
-        <li><strong>Export professionale</strong> — PDF e Word con intestazione studio</li>
-        <li><strong>Grafici trend</strong> peso, BMI, misure nel tempo</li>
-        <li><strong>Dashboard studio</strong> — contatori e attività recenti</li>
-        <li><strong>Sistema di login</strong> multi-utente con ruoli</li>
-        <li><strong>Trial 30 giorni</strong> machine-locked, attivazione offline</li>
-        <li><strong>Aggiornamenti</strong> tramite reinstallazione MSI</li>
+        <li><strong>Anagrafica pazienti</strong> con storico visite, pliche e misure antropometriche complete</li>
+        <li><strong>AI diet generation</strong> — 28+ modelli: GPT-4o, Claude, Gemini e altri</li>
+        <li><strong>Export PDF e Word</strong> con intestazione studio, pronti per il paziente</li>
+        <li><strong>Grafici trend</strong> peso, BMI e circonferenze nel tempo</li>
+        <li><strong>Dashboard studio</strong> — contatori pazienti, diete generate, attività recenti</li>
+        <li><strong>Multi-nutrizionista</strong> — login separati, storico paziente indipendente per operatore</li>
+        <li><strong>Deploy centralizzato</strong> via SCCM / Intune, silent install</li>
+        <li><strong>Audit log</strong> — tracciabilità completa degli accessi e delle operazioni</li>
       </ul>
     </div>
 
@@ -245,24 +263,24 @@
         <tbody>
           <tr>
             <td><strong>Single</strong></td>
-            <td>Libero professionista</td>
+            <td>Nutrizionista libero professionista</td>
             <td class="price">15–25 €/mese</td>
           </tr>
           <tr>
             <td><strong>Studio</strong></td>
-            <td>2–5 nutrizionisti</td>
+            <td>2–5 professionisti</td>
             <td class="price">60–100 €/mese</td>
           </tr>
           <tr>
             <td><strong>Enterprise</strong></td>
-            <td>Clinica / catena ambulatori</td>
-            <td class="price">200+ €/mese<br><small style="font-weight:400;color:#555">+ onboarding</small></td>
+            <td>Studio / catena con 5+ nutrizionisti</td>
+            <td class="price">200+ €/mese<br><small style="font-weight:400;color:#555">+ onboarding e DPA GDPR</small></td>
           </tr>
         </tbody>
       </table>
       <p style="font-size:9pt;color:#666;margin-top:8px;">
-        Prezzi indicativi — il piano Enterprise include installazione, formazione
-        e un DPA GDPR personalizzato.
+        Prezzi indicativi — il piano Enterprise include installazione, formazione dedicata
+        e un Data Processing Agreement GDPR personalizzato.
       </p>
     </div>
   </div>
