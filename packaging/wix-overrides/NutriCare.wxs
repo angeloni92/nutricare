@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  WiX override fragment per NutriCare.
+  Sopprime qualsiasi richiesta di riavvio in fase di installazione e disinstallazione.
+-->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <!-- Impedisce all'installer di richiedere/forzare un riavvio -->
+    <Property Id="REBOOT" Value="ReallySuppress" />
+    <!-- Nessun prompt di riavvio anche in caso di file in uso -->
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="DisableShutdown" />
+  </Fragment>
+</Wix>

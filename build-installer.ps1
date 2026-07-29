@@ -10,23 +10,7 @@ $WIX_BIN  = "C:\Program Files (x86)\WiX Toolset v3.14\bin"
 $M2_REPO  = "$env:USERPROFILE\.m2\repository\org\openjfx"
 $JFX_VER  = "21.0.2"
 
-# --- 1. Maven build ---
-Write-Host ""
-Write-Host "[1/4] Building fat JAR..." -ForegroundColor Cyan
-mvn clean package -DskipTests -q
-if ($LASTEXITCODE -ne 0) { Write-Error "Maven build failed"; exit 1 }
-Write-Host "      OK - target\nutricare-1.1.0.jar" -ForegroundColor Green
-
-# --- 2. Prepare input directory ---
-Write-Host ""
-Write-Host "[2/4] Preparing package input..." -ForegroundColor Cyan
-$inputDir = "target\pkg-input"
-Remove-Item -Recurse -Force $inputDir -ErrorAction SilentlyContinue
-New-Item -ItemType Directory -Force $inputDir | Out-Null
-Copy-Item "target\nutricare-1.1.0.jar" "$inputDir\"
-Write-Host "      OK" -ForegroundColor Green
-
-# --- 3. JavaFX module path (Windows platform JARs) ---
+# JavaFX module path (definita qui per essere usata anche nell'estrazione DLL)
 $jfxModPath = (
     "$M2_REPO\javafx-base\$JFX_VER\javafx-base-$JFX_VER-win.jar",
     "$M2_REPO\javafx-controls\$JFX_VER\javafx-controls-$JFX_VER-win.jar",
@@ -35,12 +19,45 @@ $jfxModPath = (
     "$M2_REPO\javafx-swing\$JFX_VER\javafx-swing-$JFX_VER-win.jar"
 ) -join ";"
 
-# --- 4. Run jpackage ---
+# --- 1. Maven build ---
+Write-Host ""
+Write-Host "[1/4] Building fat JAR..." -ForegroundColor Cyan
+mvn clean package -DskipTests -q
+if ($LASTEXITCODE -ne 0) { Write-Error "Maven build failed"; exit 1 }
+Write-Host "      OK - target\nutricare-1.1.0.jar" -ForegroundColor Green
+
+# --- 2. Prepare input directory + extract JavaFX native DLLs ---
+Write-Host ""
+Write-Host "[2/4] Preparing package input..." -ForegroundColor Cyan
+$inputDir = "target\pkg-input"
+Remove-Item -Recurse -Force $inputDir -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force $inputDir | Out-Null
+Copy-Item "target\nutricare-1.1.0.jar" "$inputDir\"
+
+# Estrae le DLL native di JavaFX dai JAR Maven in modo che jpackage le includa correttamente
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+foreach ($jar in ($jfxModPath -split ";")) {
+    $zip = [System.IO.Compression.ZipFile]::OpenRead($jar)
+    foreach ($entry in $zip.Entries) {
+        if ($entry.Name -match "\.dll$") {
+            $dest = Join-Path $inputDir $entry.Name
+            if (-not (Test-Path $dest)) {
+                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $dest, $false)
+                Write-Host "      Extracted: $($entry.Name)" -ForegroundColor DarkGray
+            }
+        }
+    }
+    $zip.Dispose()
+}
+Write-Host "      OK" -ForegroundColor Green
+
+# --- 3. Run jpackage ---
 Write-Host ""
 Write-Host "[3/4] Running jpackage (1-2 minutes)..." -ForegroundColor Cyan
 
 $env:PATH = "$WIX_BIN;$env:PATH"
 $outputDir = "target\installer"
+$resDir    = "packaging\wix-overrides"
 Remove-Item -Recurse -Force $outputDir -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $outputDir | Out-Null
 
@@ -52,10 +69,12 @@ New-Item -ItemType Directory -Force $outputDir | Out-Null
     --main-jar "nutricare-1.1.0.jar" `
     --icon "src\main\resources\images\logo.ico" `
     --dest $outputDir `
+    --resource-dir $resDir `
     --module-path $jfxModPath `
     --add-modules "javafx.controls,javafx.fxml,javafx.graphics,javafx.swing" `
     --java-options "--add-modules=javafx.controls,javafx.fxml,javafx.graphics,javafx.swing" `
     --java-options "-Xmx512m" `
+    --java-options "-Djava.library.path=`$APPDIR" `
     --java-options "--add-opens=java.base/java.lang=ALL-UNNAMED" `
     --java-options "--add-opens=java.base/java.util=ALL-UNNAMED" `
     --win-menu `
@@ -69,7 +88,7 @@ New-Item -ItemType Directory -Force $outputDir | Out-Null
 
 if ($LASTEXITCODE -ne 0) { Write-Error "jpackage failed"; exit 1 }
 
-# --- 5. Done ---
+# --- 4. Done ---
 $msi = Get-ChildItem $outputDir -Filter "*.msi" | Select-Object -First 1
 Write-Host ""
 Write-Host "[4/4] Done!" -ForegroundColor Green
