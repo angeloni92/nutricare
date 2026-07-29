@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>NutriCare — Accordo sul Trattamento dei Dati (DPA GDPR)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 10.5pt;
+    color: #1a1a1a;
+    background: #fff;
+    padding: 30px 44px;
+    max-width: 880px;
+    margin: 0 auto;
+  }
+
+  header {
+    border-bottom: 3px solid #2e7d32;
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  header h1 { font-size: 16pt; color: #2e7d32; font-weight: 700; line-height: 1.2; }
+  header .meta { font-size: 9pt; color: #555; text-align: right; line-height: 1.7; }
+
+  .draft-banner {
+    background: #fff8e1;
+    border: 1px solid #f9a825;
+    border-radius: 4px;
+    padding: 9px 14px;
+    font-size: 9pt;
+    color: #5d4037;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-size: 11pt;
+    color: #1b5e20;
+    background: #e8f5e9;
+    padding: 6px 12px;
+    border-left: 4px solid #2e7d32;
+    margin: 22px 0 10px;
+    font-weight: 700;
+  }
+
+  h3 {
+    font-size: 10.5pt;
+    color: #2e7d32;
+    margin: 14px 0 6px;
+    font-weight: 700;
+  }
+
+  p { line-height: 1.65; margin-bottom: 8px; }
+
+  ul { margin: 4px 0 10px 20px; }
+  ul li { margin-bottom: 5px; line-height: 1.55; }
+
+  .parties {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .party-box {
+    border: 1px solid #c8e6c9;
+    border-radius: 6px;
+    padding: 14px 16px;
+    background: #f9fdf9;
+  }
+  .party-box h3 { margin-top: 0; color: #1b5e20; font-size: 10pt; text-transform: uppercase; letter-spacing: 0.05em; }
+  .party-box .field { margin-bottom: 7px; font-size: 10pt; }
+  .party-box .field span { color: #888; font-size: 9pt; display: block; }
+  .placeholder { background: #fffde7; border-bottom: 1px solid #f9a825; padding: 0 4px; color: #5d4037; font-style: italic; }
+
+  table.annex {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 12px;
+    font-size: 10pt;
+  }
+  table.annex th {
+    background: #2e7d32;
+    color: #fff;
+    padding: 6px 10px;
+    text-align: left;
+    font-weight: 600;
+  }
+  table.annex td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: top;
+  }
+  table.annex tr:nth-child(even) td { background: #f5faf5; }
+
+  .signature-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ccc;
+  }
+  .sig-box { }
+  .sig-box .sig-title { font-weight: 700; font-size: 10pt; margin-bottom: 6px; color: #2e7d32; }
+  .sig-box .sig-line { border-bottom: 1px solid #333; margin: 40px 0 6px; }
+  .sig-box .sig-label { font-size: 9pt; color: #666; }
+
+  .art-num { color: #2e7d32; font-weight: 700; }
+
+  footer {
+    margin-top: 28px;
+    border-top: 1px solid #ccc;
+    padding-top: 8px;
+    font-size: 8.5pt;
+    color: #888;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media print {
+    body { padding: 0; font-size: 10pt; }
+    @page { margin: 16mm 18mm; size: A4; }
+    h2 { page-break-after: avoid; }
+    .parties, .signature-block { page-break-inside: avoid; }
+    .draft-banner { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Accordo sul Trattamento dei Dati Personali<br>
+    <span style="font-size:12pt;font-weight:400;color:#555">(Data Processing Agreement — art. 28 GDPR)</span></h1>
+  </div>
+  <div class="meta">
+    Versione: <strong>1.0</strong><br>
+    Applicazione: <strong>NutriCare 1.1.0</strong><br>
+    Data: <strong class="placeholder">[DATA FIRMA]</strong>
+  </div>
+</header>
+
+<div class="draft-banner">
+  <strong>BOZZA — DA PERSONALIZZARE.</strong> Questo documento è un template contrattuale predisposto dal fornitore.
+  Prima della firma si raccomanda la revisione da parte del proprio consulente legale o DPO.
+  I campi in <em style="color:#5d4037">corsivo giallo</em> sono placeholder da completare.
+</div>
+
+<!-- PARTI -->
+<div class="parties">
+  <div class="party-box">
+    <h3>Titolare del Trattamento</h3>
+    <div class="field">
+      <span>Ragione sociale / Nome</span>
+      <strong class="placeholder">[NOME STUDIO / CLINICA]</strong>
+    </div>
+    <div class="field">
+      <span>Indirizzo</span>
+      <span class="placeholder">[INDIRIZZO SEDE LEGALE]</span>
+    </div>
+    <div class="field">
+      <span>Codice Fiscale / P.IVA</span>
+      <span class="placeholder">[CF / P.IVA]</span>
+    </div>
+    <div class="field">
+      <span>Referente</span>
+      <span class="placeholder">[NOME REFERENTE]</span>
+    </div>
+    <div class="field">
+      <span>Email</span>
+      <span class="placeholder">[EMAIL]</span>
+    </div>
+  </div>
+  <div class="party-box">
+    <h3>Responsabile del Trattamento</h3>
+    <div class="field">
+      <span>Nominativo</span>
+      <strong>Andrea Angeloni</strong>
+    </div>
+    <div class="field">
+      <span>Attività</span>
+      <span>Sviluppatore e fornitore di NutriCare</span>
+    </div>
+    <div class="field">
+      <span>Indirizzo</span>
+      <span class="placeholder">[INDIRIZZO FORNITORE]</span>
+    </div>
+    <div class="field">
+      <span>Email</span>
+      <span>andrea.angeloni92@yahoo.it</span>
+    </div>
+  </div>
+</div>
+
+<p>
+  Le parti sopra identificate (di seguito "<strong>Titolare</strong>" e "<strong>Responsabile</strong>")
+  stipulano il presente Accordo sul Trattamento dei Dati Personali ("<strong>DPA</strong>") ai sensi
+  dell'art. 28 del Regolamento (UE) 2016/679 ("<strong>GDPR</strong>"), che integra e disciplina
+  il rapporto contrattuale relativo alla fornitura del software NutriCare.
+</p>
+
+<!-- ART 1 -->
+<h2><span class="art-num">Art. 1</span> — Oggetto e durata</h2>
+<p>
+  Il Responsabile fornisce al Titolare il software NutriCare, applicazione desktop per la gestione
+  professionale di pazienti nutrizionali. Il presente DPA regola le modalità con cui il
+  Responsabile tratta i dati personali per conto del Titolare nell'ambito di tale fornitura.
+</p>
+<p>
+  Il DPA ha durata pari a quella del contratto di licenza NutriCare. Alla cessazione, restano
+  in vigore gli obblighi di riservatezza e cancellazione dei dati.
+</p>
+
+<!-- ART 2 -->
+<h2><span class="art-num">Art. 2</span> — Natura e finalità del trattamento</h2>
+<p>
+  <strong>Architettura locale:</strong> NutriCare è progettato con un'architettura
+  <em>local-first</em>. I dati dei pazienti sono archiviati esclusivamente sul dispositivo
+  del Titolare (<code>%USERPROFILE%\.nutricare\</code>) e non vengono trasmessi a server
+  del Responsabile. Il Responsabile pertanto <strong>non accede né elabora</strong> i dati
+  personali dei pazienti nell'ordinario utilizzo del software.
+</p>
+<p>
+  Il trattamento effettuato dal Responsabile è limitato a:
+</p>
+<ul>
+  <li>Erogazione del software e dei suoi aggiornamenti;</li>
+  <li>Gestione della licenza d'uso (verifica firma RSA sull'ID macchina locale — nessun dato personale trasmesso);</li>
+  <li>Supporto tecnico, solo su richiesta esplicita del Titolare e previa trasmissione volontaria di log anonimi.</li>
+</ul>
+
+<!-- ART 3 -->
+<h2><span class="art-num">Art. 3</span> — Tipologie di dati e categorie di interessati</h2>
+<table class="annex">
+  <thead>
+    <tr><th>Categoria dati</th><th>Tipologia</th><th>Interessati</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Dati anagrafici</td>
+      <td>Nome, cognome, data di nascita, contatti pazienti</td>
+      <td>Pazienti del Titolare</td>
+    </tr>
+    <tr>
+      <td>Dati sanitari (art. 9 GDPR)</td>
+      <td>Peso, altezza, misure antropometriche, BMI, pliche, note cliniche</td>
+      <td>Pazienti del Titolare</td>
+    </tr>
+    <tr>
+      <td>Dati nutrizionali</td>
+      <td>Piani dietetici generati, storico diete</td>
+      <td>Pazienti del Titolare</td>
+    </tr>
+    <tr>
+      <td>Dati di accesso</td>
+      <td>Username e password (hash) dei nutrizionisti dello studio</td>
+      <td>Dipendenti / collaboratori del Titolare</td>
+    </tr>
+  </tbody>
+</table>
+<p>I dati sanitari di cui all'art. 9 GDPR sono trattati sulla base del consenso esplicito del paziente
+e/o per finalità di medicina preventiva (art. 9, par. 2, lett. h), sotto la responsabilità del Titolare.</p>
+
+<!-- ART 4 -->
+<h2><span class="art-num">Art. 4</span> — Obblighi del Responsabile</h2>
+<p>Il Responsabile si impegna a:</p>
+<ul>
+  <li>Trattare i dati personali esclusivamente su istruzione documentata del Titolare;</li>
+  <li>Garantire che le persone autorizzate al trattamento abbiano assunto obblighi di riservatezza;</li>
+  <li>Adottare le misure di sicurezza di cui all'art. 5 del presente DPA;</li>
+  <li>Assistere il Titolare nell'adempimento degli obblighi relativi ai diritti degli interessati;</li>
+  <li>Notificare al Titolare, senza ingiustificato ritardo, eventuali violazioni dei dati di cui venga a conoscenza;</li>
+  <li>Cancellare o restituire i dati al termine del contratto, secondo le istruzioni del Titolare;</li>
+  <li>Mettere a disposizione del Titolare tutte le informazioni necessarie a dimostrare il rispetto degli obblighi GDPR.</li>
+</ul>
+
+<!-- ART 5 -->
+<h2><span class="art-num">Art. 5</span> — Misure di sicurezza</h2>
+<p>Il Responsabile ha implementato le seguenti misure tecniche e organizzative nel software NutriCare:</p>
+<ul>
+  <li><strong>Binding localhost-only:</strong> il server web è vincolato a <code>127.0.0.1</code>, non accessibile dalla rete;</li>
+  <li><strong>Console di amministrazione disabilitata:</strong> la console H2 è disattivata in produzione;</li>
+  <li><strong>Cifratura chiavi API:</strong> le chiavi dei provider AI sono cifrate a riposo con AES-256-GCM;</li>
+  <li><strong>Isolamento runtime JVM:</strong> runtime Java bundled, non condiviso con altre applicazioni;</li>
+  <li><strong>Isolamento dati per utente OS:</strong> ogni account Windows accede solo ai propri dati (NTFS);</li>
+  <li><strong>Configurazione di sviluppo esclusa:</strong> i file di configurazione di sviluppo non sono inclusi nel pacchetto distribuito.</li>
+</ul>
+<p>Il Titolare rimane responsabile della sicurezza dell'infrastruttura su cui NutriCare è installato
+(crittografia disco, policy password OS, backup).</p>
+
+<!-- ART 6 -->
+<h2><span class="art-num">Art. 6</span> — Sub-responsabili (provider AI)</h2>
+<p>
+  NutriCare integra opzionalmente servizi di intelligenza artificiale di terze parti
+  (OpenAI, Anthropic, Google) per la generazione assistita dei piani dietetici.
+  L'utilizzo di questi servizi è <strong>facoltativo</strong> e avviene tramite
+  chiavi API fornite direttamente dal Titolare.
+</p>
+<p>
+  Quando il Titolare utilizza la funzione di generazione AI, diventa a tutti gli effetti
+  <strong>Titolare del trattamento</strong> nei confronti del provider AI prescelto,
+  ed è tenuto a stipulare con esso un proprio DPA secondo i termini del provider.
+  Link ai DPA dei principali provider:
+</p>
+<ul>
+  <li>OpenAI: <em>platform.openai.com/docs/guides/privacy</em></li>
+  <li>Anthropic: <em>www.anthropic.com/legal/privacy</em></li>
+  <li>Google (Gemini): <em>ai.google.dev/gemini-api/terms</em></li>
+</ul>
+<p>
+  Il Responsabile si impegna a informare il Titolare di eventuali modifiche
+  all'elenco dei sub-responsabili integrati nel software con almeno 30 giorni di preavviso.
+</p>
+
+<!-- ART 7 -->
+<h2><span class="art-num">Art. 7</span> — Trasferimento dati extra-UE</h2>
+<p>
+  I dati archiviati da NutriCare restano sul dispositivo del Titolare (territorio UE,
+  salvo diversa collocazione del dispositivo). Il Responsabile non trasferisce dati
+  dei pazienti verso paesi terzi.
+</p>
+<p>
+  L'utilizzo facoltativo di provider AI con sede extra-UE (OpenAI: USA, Anthropic: USA,
+  Google: USA) comporta un trasferimento di dati verso paesi terzi sotto la responsabilità
+  del Titolare. Il Titolare dovrà verificare le garanzie adeguate previste dagli artt. 44-49 GDPR
+  (es. Standard Contractual Clauses) con ciascun provider.
+</p>
+
+<!-- ART 8 -->
+<h2><span class="art-num">Art. 8</span> — Diritti degli interessati</h2>
+<p>
+  Il Titolare è responsabile di gestire le richieste di esercizio dei diritti degli interessati
+  (accesso, rettifica, cancellazione, portabilità, limitazione, opposizione).
+  Il Responsabile assiste il Titolare fornendo, su richiesta, documentazione tecnica sulle
+  modalità di estrazione o cancellazione dei dati dal database locale.
+</p>
+<p>
+  <strong>Cancellazione:</strong> i dati di un paziente possono essere eliminati dall'interfaccia NutriCare.
+  Una disinstallazione completa con rimozione della cartella <code>%USERPROFILE%\.nutricare\</code>
+  elimina tutti i dati.
+</p>
+
+<!-- ART 9 -->
+<h2><span class="art-num">Art. 9</span> — Violazioni dei dati (Data Breach)</h2>
+<p>
+  Nell'ipotesi in cui il Responsabile venga a conoscenza di una violazione dei dati personali
+  che lo riguardi direttamente (es. compromissione del pacchetto software distribuito),
+  ne darà notifica al Titolare entro <strong>72 ore</strong> dalla conoscenza del fatto,
+  con le informazioni disponibili ai sensi dell'art. 33 GDPR.
+</p>
+<p>
+  Il Titolare rimane responsabile della notifica all'Autorità Garante e, se del caso,
+  agli interessati, ai sensi degli artt. 33-34 GDPR.
+</p>
+
+<!-- ART 10 -->
+<h2><span class="art-num">Art. 10</span> — Cancellazione e restituzione dei dati</h2>
+<p>
+  Alla cessazione del contratto di licenza, il Titolare rimane in possesso del database locale
+  (<code>%USERPROFILE%\.nutricare\data\</code>) e può esportarlo o eliminarlo autonomamente.
+  Il Responsabile non detiene copie dei dati e non ha pertanto obblighi di restituzione.
+</p>
+
+<!-- ART 11 -->
+<h2><span class="art-num">Art. 11</span> — Legge applicabile e foro competente</h2>
+<p>
+  Il presente DPA è regolato dalla legge italiana. Per qualsiasi controversia relativa
+  all'interpretazione o all'esecuzione del presente accordo, le parti eleggono come foro
+  competente il Tribunale di <strong class="placeholder">[CITTÀ]</strong>, salvo diverso
+  accordo scritto tra le parti.
+</p>
+
+<!-- FIRME -->
+<div class="signature-block">
+  <div class="sig-box">
+    <div class="sig-title">Per il Titolare del Trattamento</div>
+    <div class="sig-line"></div>
+    <div class="sig-label">
+      <span class="placeholder">[NOME E COGNOME]</span><br>
+      <span class="placeholder">[RUOLO]</span><br>
+      Data: <span class="placeholder">[DATA]</span>
+    </div>
+  </div>
+  <div class="sig-box">
+    <div class="sig-title">Per il Responsabile del Trattamento</div>
+    <div class="sig-line"></div>
+    <div class="sig-label">
+      Andrea Angeloni<br>
+      Fornitore NutriCare<br>
+      Data: <span class="placeholder">[DATA]</span>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>NutriCare DPA v1.0 — art. 28 GDPR</span>
+  <span>Bozza — rivedere con consulente legale prima della firma</span>
+  <span>andrea.angeloni92@yahoo.it</span>
+</footer>
+
+</body>
+</html>
