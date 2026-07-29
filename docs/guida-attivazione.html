@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>NutriCare — Guida Installazione e Attivazione Licenza</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 10.5pt;
+    color: #1a1a1a;
+    background: #fff;
+    padding: 30px 44px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  header {
+    border-bottom: 3px solid #2e7d32;
+    padding-bottom: 14px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  header h1 { font-size: 17pt; color: #2e7d32; font-weight: 700; }
+  header .meta { font-size: 9pt; color: #555; text-align: right; line-height: 1.7; }
+
+  h2 {
+    font-size: 12pt;
+    color: #1b5e20;
+    background: #e8f5e9;
+    border-left: 4px solid #2e7d32;
+    padding: 7px 12px;
+    margin: 24px 0 12px;
+    font-weight: 700;
+  }
+  h3 { font-size: 10.5pt; color: #2e7d32; margin: 14px 0 6px; font-weight: 700; }
+  p { line-height: 1.65; margin-bottom: 8px; }
+  ul, ol { margin: 6px 0 12px 22px; }
+  li { margin-bottom: 6px; line-height: 1.55; }
+
+  .step-box {
+    border: 1px solid #c8e6c9;
+    border-radius: 6px;
+    padding: 14px 18px;
+    background: #f9fdf9;
+    margin-bottom: 14px;
+  }
+  .step-num {
+    display: inline-block;
+    width: 26px; height: 26px;
+    background: #2e7d32; color: #fff;
+    border-radius: 50%;
+    text-align: center; line-height: 26px;
+    font-weight: 700; font-size: 10pt;
+    margin-right: 8px;
+    float: left;
+  }
+  .step-content { margin-left: 36px; }
+  .step-content strong { display: block; margin-bottom: 4px; font-size: 10.5pt; }
+
+  code {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-family: "Consolas", monospace;
+    font-size: 9.5pt;
+    color: #0f172a;
+  }
+
+  .highlight {
+    background: #fff8e1;
+    border: 1px solid #f9a825;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 9.5pt;
+    color: #5d4037;
+  }
+
+  .contact-box {
+    background: #2e7d32;
+    color: #fff;
+    border-radius: 6px;
+    padding: 16px 22px;
+    margin-top: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .contact-box .label { font-size: 11pt; font-weight: 600; }
+  .contact-box .email { font-size: 10.5pt; opacity: 0.9; }
+
+  footer {
+    margin-top: 28px;
+    border-top: 1px solid #ccc;
+    padding-top: 8px;
+    font-size: 8.5pt;
+    color: #888;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media print {
+    body { padding: 0; }
+    @page { margin: 16mm 18mm; size: A4; }
+    h2 { page-break-after: avoid; }
+    .step-box, .contact-box { page-break-inside: avoid; }
+    .contact-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>NutriCare — Guida Installazione<br>e Attivazione Licenza</h1>
+  </div>
+  <div class="meta">
+    Versione: <strong>1.1.0</strong><br>
+    Piattaforma: <strong>Windows 10 / 11</strong><br>
+    andrea.angeloni92@yahoo.it
+  </div>
+</header>
+
+<!-- INSTALLAZIONE -->
+<h2>1. Installazione</h2>
+
+<div class="step-box">
+  <div class="step-num">1</div>
+  <div class="step-content">
+    <strong>Scaricate il file installer</strong>
+    Dal link ricevuto via email, scaricate <code>NutriCare-1.1.0.msi</code>
+    (circa 104 MB).
+  </div>
+</div>
+
+<div class="step-box">
+  <div class="step-num">2</div>
+  <div class="step-content">
+    <strong>Avviate l'installer</strong>
+    Fate doppio clic su <code>NutriCare-1.1.0.msi</code>.
+    Windows potrebbe mostrare un avviso "Publisher sconosciuto" — fate clic su
+    <strong>Esegui comunque</strong> per continuare.
+  </div>
+</div>
+
+<div class="step-box">
+  <div class="step-num">3</div>
+  <div class="step-content">
+    <strong>Completate l'installazione guidata</strong>
+    Seguite le istruzioni a schermo. NutriCare verrà installato in
+    <code>C:\Program Files\NutriCare\</code> e aggiunge un collegamento
+    nel Menu Start e sul Desktop.
+  </div>
+</div>
+
+<div class="step-box">
+  <div class="step-num">4</div>
+  <div class="step-content">
+    <strong>Primo avvio</strong>
+    Avviate NutriCare dal Menu Start o dal Desktop.
+    Al primo avvio vi verrà chiesto di creare un account (username e password).
+    I vostri dati verranno salvati localmente in
+    <code>%USERPROFILE%\.nutricare\</code> — nessun dato inviato al cloud.
+  </div>
+</div>
+
+<!-- PERIODO DI PROVA -->
+<h2>2. Periodo di prova gratuita (30 giorni)</h2>
+
+<p>
+  NutriCare include un <strong>trial gratuito di 30 giorni</strong> a partire
+  dal primo avvio. Non è richiesta nessuna carta di credito.
+</p>
+<p>
+  I giorni rimanenti del trial sono visibili nella barra laterale sinistra
+  dell'applicazione. Alla scadenza, l'applicazione mostra una finestra di
+  attivazione — i dati inseriti durante il trial non vanno persi.
+</p>
+
+<div class="highlight">
+  <strong>Nota:</strong> il trial è legato alla singola macchina. Installando
+  NutriCare su un secondo PC, il trial riparte da zero su quel dispositivo.
+</div>
+
+<!-- ACQUISTO E ATTIVAZIONE -->
+<h2>3. Acquisto e attivazione della licenza</h2>
+
+<p>
+  Quando il trial è in scadenza (o in qualsiasi momento), potete acquistare
+  una licenza permanente seguendo questi passi:
+</p>
+
+<div class="step-box">
+  <div class="step-num">1</div>
+  <div class="step-content">
+    <strong>Trovate il vostro Machine ID</strong>
+    All'apertura della finestra di attivazione, NutriCare mostra un codice
+    univoco denominato <strong>Machine ID</strong>. Copiatelo integralmente
+    (64 caratteri esadecimali).
+  </div>
+</div>
+
+<div class="step-box">
+  <div class="step-num">2</div>
+  <div class="step-content">
+    <strong>Inviate una email di acquisto</strong>
+    Scrivete a <strong>andrea.angeloni92@yahoo.it</strong> indicando:
+    <ul>
+      <li>Il piano scelto (Single / Studio / Enterprise)</li>
+      <li>Il vostro Machine ID</li>
+      <li>Nome dello studio / azienda per la fattura</li>
+    </ul>
+  </div>
+</div>
+
+<div class="step-box">
+  <div class="step-num">3</div>
+  <div class="step-content">
+    <strong>Ricevete la chiave di licenza</strong>
+    Entro 24 ore lavorative riceverete via email la chiave di attivazione
+    (una stringa Base64). La chiave è valida solo per il vostro PC.
+  </div>
+</div>
+
+<div class="step-box">
+  <div class="step-num">4</div>
+  <div class="step-content">
+    <strong>Attivate NutriCare</strong>
+    Nella finestra di attivazione, incollate la chiave nel campo
+    <strong>Chiave di licenza</strong> e fate clic su <strong>Attiva</strong>.
+    L'applicazione è ora attivata in modo permanente su questa macchina.
+  </div>
+</div>
+
+<!-- PIANI -->
+<h2>4. Piani e prezzi</h2>
+
+<table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:10pt;">
+  <thead>
+    <tr>
+      <th style="background:#2e7d32;color:#fff;padding:7px 10px;text-align:left;">Piano</th>
+      <th style="background:#2e7d32;color:#fff;padding:7px 10px;text-align:left;">Target</th>
+      <th style="background:#2e7d32;color:#fff;padding:7px 10px;text-align:left;">Prezzo indicativo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="padding:7px 10px;border-bottom:1px solid #ddd;"><strong>Single</strong></td>
+      <td style="padding:7px 10px;border-bottom:1px solid #ddd;">Libero professionista</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #ddd;font-weight:700;color:#1b5e20;">15–25 €/mese</td>
+    </tr>
+    <tr style="background:#f5faf5;">
+      <td style="padding:7px 10px;border-bottom:1px solid #ddd;"><strong>Studio</strong></td>
+      <td style="padding:7px 10px;border-bottom:1px solid #ddd;">2–5 nutrizionisti</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #ddd;font-weight:700;color:#1b5e20;">60–100 €/mese</td>
+    </tr>
+    <tr>
+      <td style="padding:7px 10px;"><strong>Enterprise</strong></td>
+      <td style="padding:7px 10px;">Clinica / catena ambulatori</td>
+      <td style="padding:7px 10px;font-weight:700;color:#1b5e20;">200+ €/mese + onboarding</td>
+    </tr>
+  </tbody>
+</table>
+<p style="font-size:9pt;color:#666;margin-top:8px;">
+  I prezzi sono indicativi. Il piano Enterprise include sessione di onboarding,
+  audit log avanzato e DPA GDPR personalizzato.
+</p>
+
+<!-- FAQ -->
+<h2>5. Domande frequenti</h2>
+
+<h3>Cosa succede ai miei dati se non rinnovo?</h3>
+<p>I dati rimangono sul vostro PC. NutriCare non cancella nulla alla scadenza — potete esportarli o riattivarli acquistando una nuova licenza.</p>
+
+<h3>Posso installare NutriCare su più PC?</h3>
+<p>Ogni licenza è valida per una singola macchina. Per installazioni multiple (es. studio con più postazioni) contattate per un preventivo Studio o Enterprise.</p>
+
+<h3>Come faccio il backup dei dati?</h3>
+<p>Da NutriCare → Dashboard → <strong>Backup</strong>. Scegliete una cartella di destinazione e l'applicazione crea un file ZIP compresso dello snapshot del database.</p>
+
+<h3>I dati dei pazienti vengono inviati al cloud?</h3>
+<p>No. Tutti i dati restano sul vostro PC in <code>%USERPROFILE%\.nutricare\</code>. L'unica connessione internet è verso il provider AI (OpenAI, Claude o Gemini) quando utilizzate la generazione automatica della dieta, e solo con le credenziali che voi stessi fornite.</p>
+
+<div class="contact-box">
+  <div class="label">Assistenza e acquisti</div>
+  <div class="email">andrea.angeloni92@yahoo.it</div>
+</div>
+
+<footer>
+  <span>NutriCare 1.1.0 — Guida Installazione e Attivazione</span>
+  <span>andrea.angeloni92@yahoo.it</span>
+</footer>
+
+</body>
+</html>
