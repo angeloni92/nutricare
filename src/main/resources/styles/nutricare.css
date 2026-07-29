@@ -409,3 +409,77 @@
     -fx-padding: 2 8 2 8;
     -fx-background-radius: 20;
 }
+
+/* === TREND CHARTS === */
+.chart-card {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 12, 0, 0, 3);
+}
+
+.chart-plot-background {
+    -fx-background-color: #f8fafc;
+    -fx-background-radius: 8;
+}
+
+.chart-vertical-grid-lines {
+    -fx-stroke: #e2e8f0;
+    -fx-stroke-width: 1;
+    -fx-stroke-dash-array: 4 4;
+}
+
+.chart-horizontal-grid-lines {
+    -fx-stroke: #e2e8f0;
+    -fx-stroke-width: 1;
+    -fx-stroke-dash-array: 4 4;
+}
+
+.chart-alternative-row-fill {
+    -fx-fill: transparent;
+    -fx-stroke: transparent;
+}
+
+.chart-title {
+    -fx-text-fill: #0f172a;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.axis {
+    -fx-tick-label-fill: #64748b;
+    -fx-font-size: 11px;
+}
+
+.axis-label {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 11px;
+}
+
+/* Serie peso — indigo */
+.weight-chart .default-color0.chart-series-line {
+    -fx-stroke: #6366f1;
+    -fx-stroke-width: 2.5;
+}
+
+.weight-chart .default-color0.chart-line-symbol {
+    -fx-background-color: #6366f1, white;
+    -fx-background-radius: 5px;
+    -fx-padding: 5px;
+}
+
+/* Serie BMI — verde */
+.bmi-chart .default-color0.chart-series-line {
+    -fx-stroke: #10b981;
+    -fx-stroke-width: 2.5;
+}
+
+.bmi-chart .default-color0.chart-line-symbol {
+    -fx-background-color: #10b981, white;
+    -fx-background-radius: 5px;
+    -fx-padding: 5px;
+}
+
+.chart-line-symbol:hover {
+    -fx-padding: 7px;
+}

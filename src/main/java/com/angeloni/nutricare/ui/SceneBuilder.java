@@ -943,30 +943,54 @@ public class SceneBuilder {
         selectorRow.getChildren().add(clientCombo);
         selectorCard.getChildren().addAll(selectorTitle, selectorRow);
 
+        // ─── Stat cards row ───────────────────────────────────────────
+        Label weightStatVal    = new Label("—");
+        Label bmiStatVal       = new Label("—");
+        Label deltaStatVal     = new Label("—");
+        Label lastVisitStatVal = new Label("—");
+
+        HBox statsRow = new HBox(16);
+        statsRow.getChildren().addAll(
+            buildTrendStatCard(weightStatVal,    i18n.t("trend.stat.weight"),    i18n.t("trend.stat.weight.desc"),    "#6366f1", "#eef2ff"),
+            buildTrendStatCard(bmiStatVal,       i18n.t("trend.stat.bmi"),       i18n.t("trend.stat.bmi.desc"),       "#10b981", "#ecfdf5"),
+            buildTrendStatCard(deltaStatVal,     i18n.t("trend.stat.delta"),     i18n.t("trend.stat.delta.desc"),     "#f59e0b", "#fffbeb"),
+            buildTrendStatCard(lastVisitStatVal, i18n.t("trend.stat.lastvisit"), i18n.t("trend.stat.lastvisit.desc"), "#8b5cf6", "#f5f3ff")
+        );
+
         // ─── Placeholder (no data) ────────────────────────────────────
-        VBox noDataBox = new VBox();
+        VBox noDataBox = new VBox(12);
         noDataBox.setAlignment(Pos.CENTER);
         noDataBox.setPrefHeight(300);
+        noDataBox.getStyleClass().add("card");
+        Label noDataIcon = new Label("📊");
+        noDataIcon.setStyle("-fx-font-size: 40px;");
         Label noDataLabel = new Label(i18n.t("trend.no.data"));
-        noDataLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #94a3b8;");
-        noDataBox.getChildren().add(noDataLabel);
+        noDataLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #64748b;");
+        Label noDataHint = new Label(i18n.t("trend.no.data.hint"));
+        noDataHint.setStyle("-fx-font-size: 12px; -fx-text-fill: #94a3b8;");
+        noDataBox.getChildren().addAll(noDataIcon, noDataLabel, noDataHint);
 
         // ─── Charts ───────────────────────────────────────────────────
-        VBox chartsBox = new VBox(20);
+        VBox chartsBox = new VBox(16);
         chartsBox.setVisible(false);
         chartsBox.setManaged(false);
 
         LineChart<String, Number> weightChart = buildLineChart(
                 i18n.t("trend.chart.weight"), i18n.t("trend.axis.visit"), i18n.t("trend.axis.weight"));
-        LineChart<String, Number> bmiChart    = buildLineChart(
-                i18n.t("trend.chart.bmi"),    i18n.t("trend.axis.visit"), i18n.t("trend.axis.bmi"));
+        weightChart.getStyleClass().add("weight-chart");
+        LineChart<String, Number> bmiChart = buildLineChart(
+                i18n.t("trend.chart.bmi"), i18n.t("trend.axis.visit"), i18n.t("trend.axis.bmi"));
+        bmiChart.getStyleClass().add("bmi-chart");
+
+        VBox weightCard = new VBox(weightChart);
+        weightCard.getStyleClass().add("chart-card");
+        VBox bmiCard = new VBox(bmiChart);
+        bmiCard.getStyleClass().add("chart-card");
 
         HBox chartsRow = new HBox(16);
-        VBox weightBox = new VBox(weightChart);
-        VBox bmiBox    = new VBox(bmiChart);
-        HBox.setHgrow(weightBox, Priority.ALWAYS);
-        HBox.setHgrow(bmiBox,    Priority.ALWAYS);
-        chartsRow.getChildren().addAll(weightBox, bmiBox);
+        HBox.setHgrow(weightCard, Priority.ALWAYS);
+        HBox.setHgrow(bmiCard,    Priority.ALWAYS);
+        chartsRow.getChildren().addAll(weightCard, bmiCard);
         chartsBox.getChildren().add(chartsRow);
 
         // ─── BMI reference legend ─────────────────────────────────────
@@ -974,26 +998,46 @@ public class SceneBuilder {
         bmiLegend.setAlignment(Pos.CENTER_LEFT);
         bmiLegend.setStyle("-fx-padding: 0 0 0 4;");
         bmiLegend.getChildren().addAll(
-            bmiTag("< 18.5",      i18n.t("trend.bmi.underweight"), "#3b82f6"),
-            bmiTag("18.5–24.9",   i18n.t("trend.bmi.normal"),      "#10b981"),
-            bmiTag("25–29.9",     i18n.t("trend.bmi.overweight"),  "#f59e0b"),
-            bmiTag(">= 30",       i18n.t("trend.bmi.obese"),       "#ef4444")
+            bmiTag("< 18.5",    i18n.t("trend.bmi.underweight"), "#3b82f6"),
+            bmiTag("18.5–24.9", i18n.t("trend.bmi.normal"),      "#10b981"),
+            bmiTag("25–29.9",   i18n.t("trend.bmi.overweight"),  "#f59e0b"),
+            bmiTag(">= 30",     i18n.t("trend.bmi.obese"),       "#ef4444")
         );
         chartsBox.getChildren().add(bmiLegend);
 
-        content.getChildren().addAll(selectorCard, noDataBox, chartsBox);
+        content.getChildren().addAll(selectorCard, statsRow, noDataBox, chartsBox);
 
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
         root.setCenter(scrollPane);
 
-        trendController.setup(clientCombo, weightChart, bmiChart, noDataBox, chartsBox);
+        trendController.setup(clientCombo, weightChart, bmiChart, noDataBox, chartsBox,
+                              weightStatVal, bmiStatVal, deltaStatVal, lastVisitStatVal);
         stageManager.registerRefresh("trend", trendController::refresh);
 
         Scene scene = new Scene(root, 1100, 720);
         addStyles(scene);
         return scene;
+    }
+
+    private VBox buildTrendStatCard(Label valueLabel, String label, String desc,
+                                    String accentColor, String bgColor) {
+        valueLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: " + accentColor + ";");
+        VBox card = new VBox(6);
+        card.setStyle(
+            "-fx-background-color: " + bgColor + ";" +
+            "-fx-background-radius: 14;" +
+            "-fx-padding: 18 20 18 20;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 2);"
+        );
+        HBox.setHgrow(card, Priority.ALWAYS);
+        Label labelEl = new Label(label);
+        labelEl.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #0f172a;");
+        Label descEl = new Label(desc);
+        descEl.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+        card.getChildren().addAll(valueLabel, labelEl, descEl);
+        return card;
     }
 
     private LineChart<String, Number> buildLineChart(String title, String xLabel, String yLabel) {
