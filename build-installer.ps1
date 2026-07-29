@@ -5,19 +5,24 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$JDK_HOME = "C:\Program Files\Java\jdk-21.0.9"
-$WIX_BIN  = "C:\Program Files (x86)\WiX Toolset v3.14\bin"
-$M2_REPO  = "$env:USERPROFILE\.m2\repository\org\openjfx"
-$JFX_VER  = "21.0.2"
+$JDK_HOME      = "C:\Program Files\Java\jdk-21.0.9"
+$WIX_BIN       = "C:\Program Files (x86)\WiX Toolset v3.14\bin"
+$LIBERICA_JRE  = "$env:USERPROFILE\.nutricare-build\liberica-jre21\jre-21.0.7-full"
 
-# JavaFX module path (definita qui per essere usata anche nell'estrazione DLL)
-$jfxModPath = (
-    "$M2_REPO\javafx-base\$JFX_VER\javafx-base-$JFX_VER-win.jar",
-    "$M2_REPO\javafx-controls\$JFX_VER\javafx-controls-$JFX_VER-win.jar",
-    "$M2_REPO\javafx-fxml\$JFX_VER\javafx-fxml-$JFX_VER-win.jar",
-    "$M2_REPO\javafx-graphics\$JFX_VER\javafx-graphics-$JFX_VER-win.jar",
-    "$M2_REPO\javafx-swing\$JFX_VER\javafx-swing-$JFX_VER-win.jar"
-) -join ";"
+# Scarica Liberica JRE 21 Full se non presente (include JavaFX + VC++ statico)
+if (-not (Test-Path $LIBERICA_JRE)) {
+    Write-Host ""
+    Write-Host "[0/4] Downloading Liberica JRE 21 Full (~120 MB)..." -ForegroundColor Cyan
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    $libDir = "$env:USERPROFILE\.nutricare-build"
+    New-Item -ItemType Directory -Force $libDir | Out-Null
+    $zip = "$libDir\liberica-jre21-full.zip"
+    Invoke-WebRequest -Uri "https://download.bell-sw.com/java/21.0.7+9/bellsoft-jre21.0.7+9-windows-amd64-full.zip" `
+                      -OutFile $zip -UseBasicParsing
+    Expand-Archive -Path $zip -DestinationPath "$libDir\liberica-jre21" -Force
+    Remove-Item $zip
+    Write-Host "      OK" -ForegroundColor Green
+}
 
 # --- 1. Maven build ---
 Write-Host ""
@@ -26,32 +31,16 @@ mvn clean package -DskipTests -q
 if ($LASTEXITCODE -ne 0) { Write-Error "Maven build failed"; exit 1 }
 Write-Host "      OK - target\nutricare-1.1.0.jar" -ForegroundColor Green
 
-# --- 2. Prepare input directory + extract JavaFX native DLLs ---
+# --- 2. Prepare input directory ---
 Write-Host ""
 Write-Host "[2/4] Preparing package input..." -ForegroundColor Cyan
 $inputDir = "target\pkg-input"
 Remove-Item -Recurse -Force $inputDir -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $inputDir | Out-Null
 Copy-Item "target\nutricare-1.1.0.jar" "$inputDir\"
-
-# Estrae le DLL native di JavaFX dai JAR Maven in modo che jpackage le includa correttamente
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-foreach ($jar in ($jfxModPath -split ";")) {
-    $zip = [System.IO.Compression.ZipFile]::OpenRead($jar)
-    foreach ($entry in $zip.Entries) {
-        if ($entry.Name -match "\.dll$") {
-            $dest = Join-Path $inputDir $entry.Name
-            if (-not (Test-Path $dest)) {
-                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $dest, $false)
-                Write-Host "      Extracted: $($entry.Name)" -ForegroundColor DarkGray
-            }
-        }
-    }
-    $zip.Dispose()
-}
 Write-Host "      OK" -ForegroundColor Green
 
-# --- 3. Run jpackage ---
+# --- 3. Run jpackage con Liberica JRE (self-contained, no external deps) ---
 Write-Host ""
 Write-Host "[3/4] Running jpackage (1-2 minutes)..." -ForegroundColor Cyan
 
@@ -69,12 +58,10 @@ New-Item -ItemType Directory -Force $outputDir | Out-Null
     --main-jar "nutricare-1.1.0.jar" `
     --icon "src\main\resources\images\logo.ico" `
     --dest $outputDir `
+    --runtime-image $LIBERICA_JRE `
     --resource-dir $resDir `
-    --module-path $jfxModPath `
-    --add-modules "javafx.controls,javafx.fxml,javafx.graphics,javafx.swing" `
     --java-options "--add-modules=javafx.controls,javafx.fxml,javafx.graphics,javafx.swing" `
     --java-options "-Xmx512m" `
-    --java-options "-Djava.library.path=`$APPDIR" `
     --java-options "--add-opens=java.base/java.lang=ALL-UNNAMED" `
     --java-options "--add-opens=java.base/java.util=ALL-UNNAMED" `
     --win-menu `
