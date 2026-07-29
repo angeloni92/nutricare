@@ -1,6 +1,5 @@
 stages:
   - package
-  - release
 
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
@@ -82,37 +81,3 @@ build-mac-dmg:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v.*/'
     - if: '$CI_PIPELINE_SOURCE == "web"'
-
-create_release:
-  stage: release
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-  script:
-    - |
-      release-cli create \
-        --name "NutriCare 1.1.0" \
-        --tag-name "v1.1.0" \
-        --description "## Novita versione 1.1.0
-
-      ### Funzionalita
-      - **Audit Log** - tracciamento completo di login, pazienti, diete, visite e backup
-      - **Nuova visita** - finestra rinnovata con i18n completo IT/EN
-      - **Trend clinico** - grafici peso/BMI per paziente nel tempo
-      - **Backup** - esportazione database con un clic dalla dashboard
-
-      ### Enterprise
-      - Installer MSI Windows con UUID stabile per SCCM/Intune
-      - Script di deploy silenzioso (deploy/sccm-deploy.ps1)
-      - Scheda sicurezza IT/EN e one-pager commerciale IT/EN
-      - Template DPA GDPR art. 28 IT/EN
-      - Guida attivazione licenza IT/EN
-      - Template email outreach IT/EN
-
-      ### Licenza
-      - Trial 30 giorni machine-locked (RSA-2048 offline)
-      - Chiave di attivazione per macchina specifica
-      - Crittografia AES-256-GCM per chiavi API AI
-
-      ### Contatto
-      andrea.angeloni92@yahoo.it" || echo "Release gia esistente o creata"
