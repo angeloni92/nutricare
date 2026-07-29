@@ -1,13 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   WiX override fragment per NutriCare.
-  Sopprime qualsiasi richiesta di riavvio in fase di installazione e disinstallazione.
+  - Sopprime richieste di riavvio
+  - Copia le DLL VC++ runtime dalla cartella app\ alla root di installazione
+    (dove risiede NutriCare.exe) per garantire l'avvio senza VC++ preinstallato
 -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
-    <!-- Impedisce all'installer di richiedere/forzare un riavvio -->
+
+    <!-- Nessun riavvio in installazione/disinstallazione -->
     <Property Id="REBOOT" Value="ReallySuppress" />
-    <!-- Nessun prompt di riavvio anche in caso di file in uso -->
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="DisableShutdown" />
+
+    <!--
+      Copia msvcp140.dll e vcruntime140*.dll da [INSTALLDIR]app\ a [INSTALLDIR]
+      in modo che il launcher NutriCare.exe le trovi accanto a sé.
+      Eseguita solo in fase di installazione (NOT Installed).
+    -->
+    <CustomAction Id="CopyVCRuntime"
+                  Directory="INSTALLDIR"
+                  ExeCommand='cmd.exe /c copy /y "[INSTALLDIR]app\msvcp140.dll" "[INSTALLDIR]msvcp140.dll" &amp;&amp; copy /y "[INSTALLDIR]app\vcruntime140.dll" "[INSTALLDIR]vcruntime140.dll" &amp;&amp; copy /y "[INSTALLDIR]app\vcruntime140_1.dll" "[INSTALLDIR]vcruntime140_1.dll"'
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
+    <InstallExecuteSequence>
+      <Custom Action="CopyVCRuntime" After="InstallFiles">NOT Installed</Custom>
+    </InstallExecuteSequence>
+
   </Fragment>
 </Wix>

@@ -193,12 +193,8 @@ public class LoginDialog {
             if (reg.isRegistered()) s.close();
         });
 
-        // Prevent closing without login
-        s.setOnCloseRequest(e -> {
-            if (userContextService.getCurrentUser() == null) {
-                e.consume();
-            }
-        });
+        // Closing the login window exits the application
+        s.setOnCloseRequest(e -> javafx.application.Platform.exit());
 
         // ── Layout ─────────────────────────────────────────────────────
         VBox root = new VBox(logoRow, form, btnRow);
