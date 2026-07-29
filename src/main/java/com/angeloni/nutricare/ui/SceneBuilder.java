@@ -19,6 +19,8 @@ import com.angeloni.nutricare.service.BackupService;
 import com.angeloni.nutricare.service.I18nService;
 import com.angeloni.nutricare.service.LicenseService;
 import com.angeloni.nutricare.service.UserContextService;
+import com.angeloni.nutricare.entity.AuditLogEntity;
+import com.angeloni.nutricare.ui.controller.AuditLogController;
 import com.angeloni.nutricare.ui.controller.ClientController;
 import com.angeloni.nutricare.ui.controller.DashboardController;
 import com.angeloni.nutricare.ui.controller.DietController;
@@ -51,6 +53,7 @@ public class SceneBuilder {
     private final DietResultRepository dietResultRepository;
     private final BackupService backupService;
     private final TrendController trendController;
+    private final AuditLogController auditLogController;
     private final I18nService i18n;
     private final UserContextService userContextService;
     private final LicenseService licenseService;
@@ -67,6 +70,7 @@ public class SceneBuilder {
                         DietResultRepository dietResultRepository,
                         BackupService backupService,
                         TrendController trendController,
+                        AuditLogController auditLogController,
                         I18nService i18n,
                         UserContextService userContextService,
                         LicenseService licenseService) {
@@ -79,6 +83,7 @@ public class SceneBuilder {
         this.dietResultRepository = dietResultRepository;
         this.backupService = backupService;
         this.trendController = trendController;
+        this.auditLogController = auditLogController;
         this.i18n = i18n;
         this.userContextService = userContextService;
         this.licenseService = licenseService;
@@ -136,14 +141,16 @@ public class SceneBuilder {
         Button dietBtn   = buildNavItem(i18n.t("nav.diet.history"),  "diet".equals(activeScene));
         Button genBtn    = buildNavItem(i18n.t("nav.diet.generate"), "diet-generator".equals(activeScene));
         Button trendBtn  = buildNavItem(i18n.t("nav.trend"),         "trend".equals(activeScene));
+        Button auditBtn  = buildNavItem(i18n.t("nav.audit"),         "audit-log".equals(activeScene));
 
         dashBtn.setOnAction(e   -> stageManager.switchScene("dashboard"));
         clientBtn.setOnAction(e -> stageManager.switchScene("client"));
         dietBtn.setOnAction(e   -> stageManager.switchScene("diet"));
         genBtn.setOnAction(e    -> stageManager.switchScene("diet-generator"));
         trendBtn.setOnAction(e  -> stageManager.switchScene("trend"));
+        auditBtn.setOnAction(e  -> stageManager.switchScene("audit-log"));
 
-        navContainer.getChildren().addAll(menuLabel, dashBtn, clientBtn, dietBtn, genBtn, trendBtn);
+        navContainer.getChildren().addAll(menuLabel, dashBtn, clientBtn, dietBtn, genBtn, trendBtn, auditBtn);
 
         // Spacer
         Region spacer = new Region();
@@ -365,6 +372,87 @@ public class SceneBuilder {
         } catch (Exception e) {
             return 0L;
         }
+    }
+
+    // ───────────────────────────── AUDIT LOG ─────────────────────────────
+
+    public Scene buildAuditLogScene() {
+        BorderPane root = new BorderPane();
+        root.getStyleClass().add("app-background");
+        root.setLeft(buildSidebar("audit-log"));
+
+        HBox header = new HBox();
+        header.getStyleClass().add("page-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        VBox headerBlock = new VBox(2);
+        Label title = new Label(i18n.t("audit.title"));
+        title.getStyleClass().add("page-title");
+        Label subtitle = new Label(i18n.t("audit.subtitle"));
+        subtitle.getStyleClass().add("page-subtitle");
+        headerBlock.getChildren().addAll(title, subtitle);
+        header.getChildren().add(headerBlock);
+        root.setTop(header);
+
+        TableView<AuditLogEntity> table = new TableView<>();
+        table.setPlaceholder(new Label(i18n.t("audit.table.empty")));
+        table.getStyleClass().add("main-table");
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        TableColumn<AuditLogEntity, String> tsCol = new TableColumn<>(i18n.t("audit.col.timestamp"));
+        tsCol.setPrefWidth(155);
+        tsCol.setCellValueFactory(c -> {
+            java.time.LocalDateTime ts = c.getValue().getOccurredAt();
+            return new SimpleStringProperty(ts != null
+                    ? ts.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) : "");
+        });
+
+        TableColumn<AuditLogEntity, String> userCol = new TableColumn<>(i18n.t("audit.col.user"));
+        userCol.setPrefWidth(110);
+        userCol.setCellValueFactory(c -> new SimpleStringProperty(
+                c.getValue().getUsername() != null ? c.getValue().getUsername() : ""));
+
+        TableColumn<AuditLogEntity, String> actionCol = new TableColumn<>(i18n.t("audit.col.action"));
+        actionCol.setPrefWidth(155);
+        actionCol.setCellValueFactory(c -> new SimpleStringProperty(
+                i18n.t("audit.action." + c.getValue().getAction())));
+
+        TableColumn<AuditLogEntity, String> detailsCol = new TableColumn<>(i18n.t("audit.col.details"));
+        detailsCol.setPrefWidth(260);
+        detailsCol.setCellValueFactory(c -> new SimpleStringProperty(
+                c.getValue().getDetails() != null ? c.getValue().getDetails() : ""));
+
+        TableColumn<AuditLogEntity, String> outcomeCol = new TableColumn<>(i18n.t("audit.col.outcome"));
+        outcomeCol.setPrefWidth(75);
+        outcomeCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getOutcome()));
+        outcomeCol.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setText(null); setStyle(""); return; }
+                setText(item);
+                setStyle("OK".equals(item)
+                        ? "-fx-text-fill: #16a34a; -fx-font-weight: bold;"
+                        : "-fx-text-fill: #dc2626; -fx-font-weight: bold;");
+            }
+        });
+
+        table.getColumns().addAll(tsCol, userCol, actionCol, detailsCol, outcomeCol);
+        root.setCenter(table);
+
+        HBox footer = new HBox();
+        footer.getStyleClass().add("scene-footer");
+        footer.setAlignment(Pos.CENTER_RIGHT);
+        Button refreshBtn = new Button(i18n.t("audit.btn.refresh"));
+        refreshBtn.getStyleClass().add("btn-secondary");
+        refreshBtn.setOnAction(e -> auditLogController.refresh());
+        footer.getChildren().add(refreshBtn);
+        root.setBottom(footer);
+
+        auditLogController.setup(table);
+        stageManager.registerRefresh("audit-log", auditLogController::refresh);
+
+        Scene scene = new Scene(root, 1100, 720);
+        addStyles(scene);
+        return scene;
     }
 
     private void handleBackup() {

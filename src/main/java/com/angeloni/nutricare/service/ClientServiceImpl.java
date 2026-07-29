@@ -18,22 +18,17 @@ import com.angeloni.nutricare.repository.ClientRepository;
 import com.angeloni.nutricare.service.I18nService;
 
 import lombok.extern.slf4j.Slf4j;
+import static com.angeloni.nutricare.service.AuditLogService.*;
 
 @Service
 @Slf4j
 public class ClientServiceImpl implements ClientService {
 
-	@Autowired
-	private UserContextService userContextService;
-
-	@Autowired
-	private ClientRepository clientRepository;
-
-	@Autowired
-	private ModelMapper modelMapper;
-
-	@Autowired
-	private I18nService i18n;
+	@Autowired private UserContextService userContextService;
+	@Autowired private ClientRepository clientRepository;
+	@Autowired private ModelMapper modelMapper;
+	@Autowired private I18nService i18n;
+	@Autowired private AuditLogService auditLog;
 
 	@Override
 	@Transactional
@@ -43,6 +38,8 @@ public class ClientServiceImpl implements ClientService {
 		ClientEntity client = modelMapper.map(clientDto, ClientEntity.class);
 		client.setUser(user);
 		client = clientRepository.saveAndFlush(client);
+		String action = clientDto.getId() == null ? CLIENT_CREATE : CLIENT_UPDATE;
+		auditLog.log(action, OK, clientDto.getName() + " " + clientDto.getSurname());
 		return modelMapper.map(client, ClientDto.class);
 	}
 
@@ -73,6 +70,7 @@ public class ClientServiceImpl implements ClientService {
 		ClientEntity client = clientRepository.findByIdAndUser(id, user)
 				.orElseThrow(() -> new NotFoundException("Cliente con id [" + id + "] non trovato"));
 		clientRepository.delete(client);
+		auditLog.log(CLIENT_DELETE, OK, client.getName() + " " + client.getSurname());
 	}
 
 }

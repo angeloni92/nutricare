@@ -22,6 +22,7 @@ import com.angeloni.nutricare.repository.AiUserRepository;
 import com.angeloni.nutricare.repository.DietResultRepository;
 
 import lombok.extern.slf4j.Slf4j;
+import static com.angeloni.nutricare.service.AuditLogService.*;
 
 @Service
 @Slf4j
@@ -42,8 +43,8 @@ public class DietServiceImpl implements DietService {
 	@Autowired
 	private DietGenerationService dietGenerationService;
 
-	@Autowired
-	private UserContextService userContextService;
+	@Autowired private UserContextService userContextService;
+	@Autowired private AuditLogService auditLog;
 
 	@Override
 	@Transactional
@@ -61,6 +62,8 @@ public class DietServiceImpl implements DietService {
 			saveAiUser(user, ai, dietRequestDto.getAi().getAiKey());
 		}
 		dietGenerationService.generateDietAsync(dietRequestDto);
+		auditLog.log(DIET_GENERATE, OK, dietRequestDto.getAi().getName().getValue()
+				+ " / " + dietRequestDto.getAi().getModel());
 		CommonResponseDto commonResponseDto = new CommonResponseDto();
 		commonResponseDto.setStatus(DietService.SUCCESS_STATUS);
 		commonResponseDto.setMessage(DietService.START_GENERATE_DIET_MSG);
@@ -79,6 +82,7 @@ public class DietServiceImpl implements DietService {
 		DietResultEntity diet = dietResultRepository.findByIdAndUser(id, user)
 				.orElseThrow(() -> new NotFoundException("Piano nutrizionale con id [" + id + "] non trovato"));
 		dietResultRepository.delete(diet);
+		auditLog.log(DIET_DELETE, OK, "id=" + id);
 		log.info("Diet [{}] deleted by user [{}]", id, user.getId());
 	}
 

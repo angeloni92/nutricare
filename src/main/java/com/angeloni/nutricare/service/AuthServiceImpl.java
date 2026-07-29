@@ -11,6 +11,7 @@ import com.angeloni.nutricare.repository.UserRepository;
 import com.angeloni.nutricare.util.PasswordUtil;
 
 import lombok.extern.slf4j.Slf4j;
+import static com.angeloni.nutricare.service.AuditLogService.*;
 
 @Service
 @Slf4j
@@ -18,23 +19,28 @@ public class AuthServiceImpl implements AuthService {
 
     private static final String DESKTOP_USERNAME = "desktop-user";
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private UserContextService userContextService;
+    @Autowired private UserRepository userRepository;
+    @Autowired private UserContextService userContextService;
+    @Autowired private AuditLogService auditLog;
 
     @Override
     @Transactional
     public UserEntity login(String username, String password) {
-        UserEntity user = userRepository.findByUsername(username.trim())
-                .orElseThrow(() -> new AuthException("Credenziali non valide"));
-        if (!PasswordUtil.verifyPassword(password, user.getPassword())) {
-            throw new AuthException("Credenziali non valide");
+        String trimmed = username.trim();
+        try {
+            UserEntity user = userRepository.findByUsername(trimmed)
+                    .orElseThrow(() -> new AuthException("Credenziali non valide"));
+            if (!PasswordUtil.verifyPassword(password, user.getPassword())) {
+                throw new AuthException("Credenziali non valide");
+            }
+            userContextService.setCurrentUser(user);
+            auditLog.logAs(user.getId(), user.getUsername(), LOGIN_OK, OK, null);
+            log.info("User logged in: {}", user.getUsername());
+            return user;
+        } catch (AuthException e) {
+            auditLog.logAs(null, trimmed, LOGIN_FAIL, FAIL, null);
+            throw e;
         }
-        userContextService.setCurrentUser(user);
-        log.info("User logged in: {}", user.getUsername());
-        return user;
     }
 
     @Override
@@ -57,6 +63,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
         user = userRepository.save(user);
         userContextService.setCurrentUser(user);
+        auditLog.logAs(user.getId(), user.getUsername(), REGISTER, OK, null);
         log.info("New user registered: {}", user.getUsername());
         return user;
     }

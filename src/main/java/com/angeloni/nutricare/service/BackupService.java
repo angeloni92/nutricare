@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
+import static com.angeloni.nutricare.service.AuditLogService.*;
 
 @Service
 @Slf4j
@@ -19,8 +20,8 @@ public class BackupService {
     private static final DateTimeFormatter TIMESTAMP_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    @Autowired private JdbcTemplate jdbcTemplate;
+    @Autowired private AuditLogService auditLog;
 
     /**
      * Esegue il backup del database H2 nella cartella indicata.
@@ -38,6 +39,7 @@ public class BackupService {
         log.info("Starting database backup to: {}", backupFile);
         jdbcTemplate.execute("BACKUP TO '" + safePath + "'");
         log.info("Backup completed: {}", backupFile);
+        auditLog.log(BACKUP, OK, backupFile.getFileName().toString());
         return backupFile;
     }
 }

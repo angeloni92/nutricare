@@ -61,6 +61,10 @@
         <sql>ALTER TABLE clients ADD CONSTRAINT unique_name_surname_user UNIQUE (name, surname, user_id)</sql>
     </changeSet>
 
+    <changeSet id="create_audit_log" author="angeloni">
+        <sqlFile path="db/changelog/ddl/audit_log/create_audit_log.sql" dbms="h2"/>
+    </changeSet>
+
     <!-- Migra il cliente Andrea Angeloni da desktop-user al primo utente reale registrato -->
     <changeSet id="migrate_andrea_angeloni_client" author="angeloni">
         <sql>

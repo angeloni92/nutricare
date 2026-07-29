@@ -20,6 +20,8 @@ import com.angeloni.nutricare.repository.CircumferenceRepository;
 import com.angeloni.nutricare.repository.ClientRepository;
 import com.angeloni.nutricare.repository.FoldRepository;
 
+import static com.angeloni.nutricare.service.AuditLogService.*;
+
 @Service
 public class AnthropometryServiceImpl implements AnthropometryService {
 
@@ -28,6 +30,7 @@ public class AnthropometryServiceImpl implements AnthropometryService {
 	@Autowired private CircumferenceRepository circumferenceRepository;
 	@Autowired private ClientRepository clientRepository;
 	@Autowired private ModelMapper modelMapper;
+	@Autowired private AuditLogService auditLog;
 
 	@Override
 	@Transactional
@@ -66,6 +69,8 @@ public class AnthropometryServiceImpl implements AnthropometryService {
 		}
 
 		antro = anthropometryRepository.findById(antro.getId()).orElseThrow();
+		auditLog.log(VISIT_CREATE, OK, "client=" + clientId
+				+ " peso=" + dto.getWeight() + "kg");
 		return toDto(antro);
 	}
 

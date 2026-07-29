@@ -71,6 +71,7 @@ public class ApplicationInitializer {
             stageManager.setDietScene(sceneBuilder.buildDietScene());
             stageManager.setDietGeneratorScene(sceneBuilder.buildDietGeneratorScene());
             stageManager.setTrendScene(sceneBuilder.buildTrendScene());
+            stageManager.setAuditLogScene(sceneBuilder.buildAuditLogScene());
 
             stageManager.switchScene("dashboard");
 
@@ -98,6 +99,7 @@ public class ApplicationInitializer {
         stageManager.setDietScene(sceneBuilder.buildDietScene());
         stageManager.setDietGeneratorScene(sceneBuilder.buildDietGeneratorScene());
         stageManager.setTrendScene(sceneBuilder.buildTrendScene());
+        stageManager.setAuditLogScene(sceneBuilder.buildAuditLogScene());
         stageManager.switchScene(current);
     }
 }

@@ -19,6 +19,7 @@ public class StageManager {
     private Scene dietScene;
     private Scene dietGeneratorScene;
     private Scene trendScene;
+    private Scene auditLogScene;
     private String currentSceneName = "dashboard";
 
     private final Map<String, Runnable> refreshCallbacks = new HashMap<>();
@@ -51,6 +52,7 @@ public class StageManager {
             case "diet"      -> { stage.setScene(dietScene); refreshScene("diet"); }
             case "diet-generator" -> stage.setScene(dietGeneratorScene);
             case "trend"         -> { stage.setScene(trendScene); refreshScene("trend"); }
+            case "audit-log"     -> { stage.setScene(auditLogScene); refreshScene("audit-log"); }
             default -> throw new IllegalArgumentException("Scene not found: " + sceneName);
         }
     }
@@ -60,6 +62,7 @@ public class StageManager {
     public void setDietScene(Scene scene)           { this.dietScene           = scene; }
     public void setDietGeneratorScene(Scene scene)  { this.dietGeneratorScene  = scene; }
     public void setTrendScene(Scene scene)          { this.trendScene          = scene; }
+    public void setAuditLogScene(Scene scene)       { this.auditLogScene       = scene; }
 
     public Stage getPrimaryStage()      { return stage; }
     public String getCurrentSceneName() { return currentSceneName; }
