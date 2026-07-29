@@ -40,6 +40,68 @@ public class LoginDialog {
         stage.showAndWait();
     }
 
+    /** Builds a visual-only login stage pre-filled for demo capture (no auth logic). */
+    public static Stage buildForCapture() {
+        Stage s = new Stage();
+        s.setTitle("NutriCare — Accedi");
+        s.initStyle(StageStyle.DECORATED);
+        s.setResizable(false);
+
+        HBox logoRow = new HBox(10);
+        logoRow.setAlignment(Pos.CENTER);
+        logoRow.setPadding(new Insets(24, 0, 16, 0));
+        try {
+            Image img = new Image(LoginDialog.class.getResourceAsStream("/images/logo-64.png"));
+            ImageView iv = new ImageView(img);
+            iv.setFitWidth(38); iv.setFitHeight(38);
+            logoRow.getChildren().add(iv);
+        } catch (Exception ignored) {}
+        VBox logoText = new VBox(2);
+        logoText.setAlignment(Pos.CENTER_LEFT);
+        Label appName = new Label("NutriCare");
+        appName.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+        Label appSub = new Label("Nutrition Management");
+        appSub.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748b;");
+        logoText.getChildren().addAll(appName, appSub);
+        logoRow.getChildren().add(logoText);
+
+        String fieldStyle = "-fx-font-size: 13px; -fx-background-radius: 6; -fx-border-radius: 6; " +
+                "-fx-border-color: #d1d5db; -fx-padding: 7 10 7 10;";
+        String labelStyle = "-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #374151;";
+
+        VBox form = new VBox(10);
+        form.setPadding(new Insets(0, 32, 0, 32));
+        Label userLabel = new Label("Username");
+        userLabel.setStyle(labelStyle);
+        TextField userField = new TextField("demo");
+        userField.setStyle(fieldStyle);
+        Label passLabel = new Label("Password");
+        passLabel.setStyle(labelStyle);
+        PasswordField passField = new PasswordField();
+        passField.setText("demo123");
+        passField.setStyle(fieldStyle);
+        form.getChildren().addAll(userLabel, userField, passLabel, passField);
+
+        HBox btnRow = new HBox(10);
+        btnRow.setAlignment(Pos.CENTER_RIGHT);
+        btnRow.setPadding(new Insets(16, 32, 24, 32));
+        Button registerBtn = new Button("Registrati");
+        registerBtn.setStyle("-fx-background-color: #e2e8f0; -fx-text-fill: #475569; -fx-padding: 7 16 7 16; -fx-background-radius: 6; -fx-cursor: hand;");
+        Button loginBtn = new Button("Accedi");
+        loginBtn.setStyle("-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 7 20 7 20; -fx-background-radius: 6; -fx-cursor: hand;");
+        btnRow.getChildren().addAll(registerBtn, loginBtn);
+
+        VBox root = new VBox(logoRow, form, btnRow);
+        root.setStyle("-fx-background-color: white;");
+        Scene scene = new Scene(root, 420, 320);
+        try {
+            String css = LoginDialog.class.getResource("/styles/nutricare.css").toExternalForm();
+            scene.getStylesheets().add(css);
+        } catch (Exception ignored) {}
+        s.setScene(scene);
+        return s;
+    }
+
     private Stage buildStage() {
         Stage s = new Stage();
         s.setTitle("NutriCare — Accedi");

@@ -1,5 +1,6 @@
 package com.angeloni.nutricare.config;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,10 +16,13 @@ import com.angeloni.nutricare.entity.AnthropometryEntity;
 import com.angeloni.nutricare.entity.ClientEntity;
 import com.angeloni.nutricare.entity.DietResultEntity;
 import com.angeloni.nutricare.entity.UserEntity;
+import com.angeloni.nutricare.enums.UserRoleEnum;
 import com.angeloni.nutricare.repository.AnthropometryRepository;
 import com.angeloni.nutricare.repository.ClientRepository;
 import com.angeloni.nutricare.repository.DietResultRepository;
+import com.angeloni.nutricare.repository.UserRepository;
 import com.angeloni.nutricare.service.UserContextService;
+import com.angeloni.nutricare.util.PasswordUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,23 +32,32 @@ import lombok.extern.slf4j.Slf4j;
 @Order(10)
 public class DemoDataInitializer {
 
-    @Autowired
-    private UserContextService userContextService;
+    @Autowired private UserContextService userContextService;
+    @Autowired private UserRepository userRepository;
+    @Autowired private ClientRepository clientRepository;
+    @Autowired private AnthropometryRepository anthropometryRepository;
+    @Autowired private DietResultRepository dietResultRepository;
 
-    @Autowired
-    private ClientRepository clientRepository;
-
-    @Autowired
-    private AnthropometryRepository anthropometryRepository;
-
-    @Autowired
-    private DietResultRepository dietResultRepository;
+    private static final String DEMO_USERNAME = "demo";
+    private static final String DEMO_PASSWORD = "demo123";
 
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void initDemoData() {
-        UserEntity user = userContextService.getCurrentUser();
-        if (user == null || !clientRepository.findByUser(user).isEmpty()) {
+        // Trova o crea l'utente demo e imposta il contesto — prima che ApplicationInitializer mostri la login
+        UserEntity user = userRepository.findByUsername(DEMO_USERNAME).orElseGet(() -> {
+            log.info("Creating demo user '{}'", DEMO_USERNAME);
+            return userRepository.save(UserEntity.builder()
+                    .username(DEMO_USERNAME)
+                    .password(PasswordUtil.hashPassword(DEMO_PASSWORD))
+                    .email("demo@nutricare.local")
+                    .role(UserRoleEnum.USER)
+                    .emailConfirmed(Boolean.TRUE)
+                    .build());
+        });
+        userContextService.setCurrentUser(user);
+
+        if (!clientRepository.findByUser(user).isEmpty()) {
             log.info("Demo data already present, skipping initialization");
             return;
         }
@@ -90,8 +103,21 @@ public class DemoDataInitializer {
     }
 
     private void createAnthropometries(List<ClientEntity> clients) {
+        // Marco: 4 visite negli ultimi 3 mesi — trend di perdita peso per il grafico
+        ClientEntity marco = clients.get(0);
         anthropometryRepository.save(AnthropometryEntity.builder()
-                .client(clients.get(0)).height(178.0).weight(95.5).build());
+                .client(marco).height(178.0).weight(95.5)
+                .createdAt(LocalDateTime.now().minusMonths(3)).build());
+        anthropometryRepository.save(AnthropometryEntity.builder()
+                .client(marco).height(178.0).weight(92.3)
+                .createdAt(LocalDateTime.now().minusMonths(2)).build());
+        anthropometryRepository.save(AnthropometryEntity.builder()
+                .client(marco).height(178.0).weight(89.8)
+                .createdAt(LocalDateTime.now().minusMonths(1)).build());
+        anthropometryRepository.save(AnthropometryEntity.builder()
+                .client(marco).height(178.0).weight(87.1)
+                .createdAt(LocalDateTime.now()).build());
+
         anthropometryRepository.save(AnthropometryEntity.builder()
                 .client(clients.get(1)).height(165.0).weight(58.0).build());
         anthropometryRepository.save(AnthropometryEntity.builder()

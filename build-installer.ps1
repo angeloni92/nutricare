@@ -62,6 +62,7 @@ New-Item -ItemType Directory -Force $outputDir | Out-Null
     --win-shortcut `
     --win-dir-chooser `
     --win-menu-group "NutriCare" `
+    --win-upgrade-uuid "9DEE3B57-859A-40DF-8B09-2F6CF5AC2048" `
     --vendor "Andrea Angeloni" `
     --description "NutriCare - Nutrition Management System" `
     --copyright "2025 Andrea Angeloni"

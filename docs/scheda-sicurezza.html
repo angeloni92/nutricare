@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>NutriCare 1.1.0 — Scheda Sicurezza</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 11pt;
+    color: #1a1a1a;
+    background: #fff;
+    padding: 30px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  header {
+    border-bottom: 3px solid #2e7d32;
+    padding-bottom: 14px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  header h1 { font-size: 20pt; color: #2e7d32; font-weight: 700; }
+  header .meta { font-size: 9pt; color: #555; text-align: right; line-height: 1.6; }
+
+  h2 {
+    font-size: 12pt;
+    color: #2e7d32;
+    border-left: 4px solid #2e7d32;
+    padding-left: 10px;
+    margin: 26px 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  p { line-height: 1.6; margin-bottom: 8px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-size: 10.5pt;
+  }
+
+  th {
+    background: #2e7d32;
+    color: #fff;
+    padding: 7px 10px;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td { background: #f5faf5; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 9pt;
+    font-weight: 600;
+  }
+  .green  { background: #e8f5e9; color: #1b5e20; }
+  .yellow { background: #fffde7; color: #f57f17; }
+  .gray   { background: #f5f5f5; color: #555; }
+
+  ul { margin: 6px 0 10px 20px; }
+  ul li { margin-bottom: 4px; line-height: 1.5; }
+
+  .disclaimer {
+    margin-top: 30px;
+    padding: 12px 16px;
+    background: #f5faf5;
+    border: 1px solid #a5d6a7;
+    border-radius: 4px;
+    font-size: 9.5pt;
+    color: #444;
+  }
+
+  footer {
+    margin-top: 30px;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+    font-size: 9pt;
+    color: #777;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media print {
+    body { padding: 0; font-size: 10pt; }
+    @page { margin: 18mm 20mm; size: A4; }
+    h2 { page-break-after: avoid; }
+    table { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>NutriCare — Scheda Sicurezza</h1>
+  <div class="meta">
+    Versione applicazione: <strong>1.1.0</strong><br>
+    Data documento: <strong>Luglio 2026</strong><br>
+    Classificazione: <strong>Uso Commerciale</strong>
+  </div>
+</header>
+
+<h2>1. Descrizione dell'applicazione</h2>
+<p>
+  NutriCare è un'applicazione desktop Windows per la gestione professionale di pazienti nutrizionali.
+  Gira interamente in locale sul PC dell'utente: non richiede connessione a server cloud proprietari
+  e non trasmette dati sanitari all'esterno.
+</p>
+<ul>
+  <li><strong>Stack:</strong> Spring Boot 3.3.5 + JavaFX 21 (runtime JVM bundled)</li>
+  <li><strong>Database:</strong> H2 embedded (file locale, non esposto in rete)</li>
+  <li><strong>Installer:</strong> MSI Windows generato con jpackage + WiX Toolset 3.x</li>
+  <li><strong>Percorso dati utente:</strong> <code>%USERPROFILE%\.nutricare\</code></li>
+</ul>
+
+<h2>2. Architettura e superficie di attacco</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:22%">Componente</th>
+      <th style="width:38%">Comportamento</th>
+      <th style="width:20%">Esposizione</th>
+      <th style="width:20%">Rischio residuo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Web server (Tomcat)</td>
+      <td>Bind esclusivo su <code>127.0.0.1:8080</code> — API REST interne per la comunicazione Spring↔JavaFX</td>
+      <td><span class="badge green">Solo localhost</span></td>
+      <td><span class="badge green">Basso</span></td>
+    </tr>
+    <tr>
+      <td>H2 Web Console</td>
+      <td>Disabilitata (<code>spring.h2.console.enabled=false</code>)</td>
+      <td><span class="badge green">Nessuna</span></td>
+      <td><span class="badge green">Nullo</span></td>
+    </tr>
+    <tr>
+      <td>Database H2</td>
+      <td>File locale in <code>%USERPROFILE%\.nutricare\data\</code>; non in ascolto su porte TCP</td>
+      <td><span class="badge green">Solo filesystem locale</span></td>
+      <td><span class="badge yellow">Accesso fisico</span></td>
+    </tr>
+    <tr>
+      <td>Chiavi API AI (OpenAI / Claude / Gemini)</td>
+      <td>Inserite dall'utente; cifrate a riposo con AES-256-GCM prima della persistenza</td>
+      <td><span class="badge green">Solo locale</span></td>
+      <td><span class="badge green">Basso</span></td>
+    </tr>
+    <tr>
+      <td>Chiamate AI esterne</td>
+      <td>HTTPS verso endpoint dei provider (OpenAI, Anthropic, Google). Dati inviati: solo testo dieta generato dall'utente, nessun dato anagrafico paziente</td>
+      <td><span class="badge yellow">Internet (HTTPS)</span></td>
+      <td><span class="badge yellow">Dipende dal provider</span></td>
+    </tr>
+    <tr>
+      <td>Telemetria / Analytics</td>
+      <td>Assenti — nessuna chiamata a server di telemetria</td>
+      <td><span class="badge green">Nessuna</span></td>
+      <td><span class="badge green">Nullo</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3. Misure di sicurezza adottate</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:30%">Misura</th>
+      <th>Dettaglio implementativo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Network binding localhost-only</td>
+      <td><code>server.address=127.0.0.1</code> in <code>application.properties</code>. Tomcat non risponde a richieste provenienti dalla rete locale (LAN, VPN, ecc.).</td>
+    </tr>
+    <tr>
+      <td>H2 console disabilitata</td>
+      <td><code>spring.h2.console.enabled=false</code>. L'interfaccia web di amministrazione H2 non è mai avviata in produzione.</td>
+    </tr>
+    <tr>
+      <td>Cifratura chiavi API (AES-256-GCM)</td>
+      <td>Le API key dei provider AI non sono mai scritte in chiaro. Prima della persistenza vengono cifrate con AES-256-GCM. La chiave di cifratura è nel JAR bundled (acceptable per app desktop single-tenant).</td>
+    </tr>
+    <tr>
+      <td>Sistema di licenza RSA-2048 offline</td>
+      <td>La licenza è un file firmato digitalmente (SHA-256withRSA) legato all'ID macchina (hash SHA-256 di MAC address + hostname). La chiave privata non è distribuita nell'applicazione; la verifica usa solo la chiave pubblica embedded.</td>
+    </tr>
+    <tr>
+      <td>Isolamento configurazione sviluppo</td>
+      <td><code>application-dev.properties</code> è esclusa dal JAR di produzione tramite filtro Maven. Nessuna configurazione di sviluppo (es. H2 console abilitata) raggiunge il pacchetto distribuito.</td>
+    </tr>
+    <tr>
+      <td>Isolamento dati per utente OS</td>
+      <td>Il database è in <code>%USERPROFILE%\.nutricare\</code>: ogni utente Windows accede solo ai propri dati, in modo trasparente grazie al filesystem NTFS.</td>
+    </tr>
+    <tr>
+      <td>JVM bundled (runtime isolato)</td>
+      <td>Il runtime Java è incluso nell'installer (jpackage). Non dipende dalla JVM di sistema; non condivide classpath con altre applicazioni.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>4. Rischi residui e raccomandazioni</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:30%">Rischio</th>
+      <th style="width:35%">Scenario</th>
+      <th>Mitigazione raccomandata</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Accesso fisico al PC</td>
+      <td>Un attaccante con accesso fisico alla macchina può leggere il file H2 direttamente</td>
+      <td>Abilitare <strong>BitLocker</strong> (o EFS) sul volume che contiene <code>%USERPROFILE%</code>. Requisito di policy aziendale, non dell'applicazione.</td>
+    </tr>
+    <tr>
+      <td>Prompt AI con dati sensibili</td>
+      <td>L'utente include dati anagrafici nel prompt inviato al modello AI</td>
+      <td>Formare l'utente a usare pseudonimi o identificativi anonimi nel generatore dieta. La funzione genera testo dietetico, non richiede dati identificativi del paziente.</td>
+    </tr>
+    <tr>
+      <td>Backup dati</td>
+      <td>Il file H2 non viene copiato automaticamente; un guasto disco causa perdita dati</td>
+      <td>Includere <code>%USERPROFILE%\.nutricare\</code> nella policy di backup aziendale (Windows Backup, robocopy, Veeam, ecc.).</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>5. Conformità GDPR — elementi applicativi</h2>
+<ul>
+  <li><strong>Residenza dei dati:</strong> i dati sanitari restano sul PC locale; nessun trasferimento a server cloud proprietari.</li>
+  <li><strong>Minimizzazione:</strong> l'applicazione raccoglie solo i dati inseriti esplicitamente dal nutrizionista (anagrafica, misure, note visite).</li>
+  <li><strong>Diritto alla cancellazione:</strong> il nutrizionista può eliminare singoli pazienti dall'interfaccia; una disinstallazione completa rimuove tutti i dati cancellando la cartella <code>%USERPROFILE%\.nutricare\</code>.</li>
+  <li><strong>DPA:</strong> un Data Processing Agreement specifico è disponibile su richiesta.</li>
+</ul>
+
+<div class="disclaimer">
+  <strong>Nota:</strong> questo documento descrive le misure di sicurezza implementate nella versione 1.1.0 dell'applicazione.
+  Eventuali modifiche architetturali in versioni successive saranno documentate in una scheda aggiornata.
+  Per domande tecniche: <strong>andrea.angeloni92@yahoo.it</strong>
+</div>
+
+<footer>
+  <span>NutriCare 1.1.0 — Scheda Sicurezza</span>
+  <span>Documento riservato — uso commerciale</span>
+  <span>Luglio 2026</span>
+</footer>
+
+</body>
+</html>

@@ -66,6 +66,12 @@ public class TrendController {
         loadClients();
     }
 
+    public void selectForDemo() {
+        if (clientCombo != null && !clientCombo.getItems().isEmpty()) {
+            clientCombo.setValue(clientCombo.getItems().get(0));
+        }
+    }
+
     public void refresh() {
         ClientDto current = clientCombo != null ? clientCombo.getValue() : null;
         loadClients();

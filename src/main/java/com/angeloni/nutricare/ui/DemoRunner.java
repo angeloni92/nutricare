@@ -24,9 +24,11 @@ import com.angeloni.nutricare.repository.DietResultRepository;
 import com.angeloni.nutricare.service.I18nService;
 import com.angeloni.nutricare.service.UserContextService;
 import com.angeloni.nutricare.ui.controller.DietGeneratorController;
+import com.angeloni.nutricare.ui.controller.TrendController;
 import com.angeloni.nutricare.ui.dialog.AnthropometryFormDialog;
 import com.angeloni.nutricare.ui.dialog.ClientFormDialog;
 import com.angeloni.nutricare.ui.dialog.DietResultDialog;
+import com.angeloni.nutricare.ui.dialog.LoginDialog;
 
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -53,15 +55,17 @@ public class DemoRunner {
     @Autowired private DietResultRepository dietResultRepository;
     @Autowired private UserContextService userContextService;
     @Autowired private DietGeneratorController dietGeneratorController;
+    @Autowired private TrendController trendController;
 
     private Path outputDir;
     private Path framesDir;
 
-    private static final int[] DURATIONS = {2, 2, 3, 3, 3, 3, 2, 3, 3, 4};
+    private static final int[] DURATIONS = {2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4};
     private static final String[] FRAME_NAMES = {
-        "01_dashboard", "02_clienti", "03_nuovo_cliente",
+        "00_login", "01_dashboard", "02_clienti", "03_nuovo_cliente",
         "04_antro_base", "05_antro_pliche", "06_antro_circ",
-        "07_genera_dieta", "08_piano_pdf", "09_piano_word", "10_storico_diete"
+        "07_genera_dieta", "08_piano_pdf", "09_piano_word", "10_storico_diete",
+        "11_trend"
     };
 
     @EventListener(ApplicationReadyEvent.class)
@@ -98,6 +102,9 @@ public class DemoRunner {
     private void runSequence() throws InterruptedException {
         log.info("Demo sequence starting...");
 
+        // 0. Schermata di login
+        captureLoginDialog();
+
         // 1. Dashboard
         navigateAndCapture("dashboard", null, "01_dashboard", 2000);
 
@@ -114,7 +121,7 @@ public class DemoRunner {
 
         // 7. Genera Dieta con Claude selezionato
         navigateAndCapture("diet-generator", dietGeneratorController::selectForDemo,
-                "07_genera_dieta", 2000);
+                "07_genera_dieta", 2500);
 
         // 8. Piano nutrizionale — modalità PDF
         openDietDialogAndCapture("08_piano_pdf");
@@ -122,8 +129,11 @@ public class DemoRunner {
         // 9. Stessa dialog — seleziona Word (header diventa blu)
         switchToWordAndCapture("09_piano_word");
 
-        // 10. Storico diete — fine video
+        // 10. Storico diete
         navigateAndCapture("diet", null, "10_storico_diete", 3000);
+
+        // 11. Trend — andamento peso e BMI del primo cliente
+        navigateAndCapture("trend", trendController::selectForDemo, "11_trend", 3500);
 
         log.info("All {} frames captured. Assembling video...", FRAME_NAMES.length);
         assembleVideo();
@@ -132,6 +142,12 @@ public class DemoRunner {
     // ─────────────────────────────────────────────────────────────────────
     // Helpers navigazione e cattura
     // ─────────────────────────────────────────────────────────────────────
+
+    private void captureLoginDialog() throws InterruptedException {
+        runOnFx(() -> LoginDialog.buildForCapture().show());
+        Thread.sleep(1500);
+        captureAndCloseTopDialog("00_login");
+    }
 
     private void navigateAndCapture(String scene, Runnable extraSetup, String frameName, long holdMs)
             throws InterruptedException {
